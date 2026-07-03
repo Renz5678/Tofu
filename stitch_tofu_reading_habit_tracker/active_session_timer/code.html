@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;family=Literata:ital,wght@0,400;0,600;0,700;1,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-lowest": "#ffffff",
+                    "on-primary-container": "#a3d5c1",
+                    "inverse-on-surface": "#f2f1ec",
+                    "on-tertiary": "#ffffff",
+                    "secondary-fixed": "#dbe5da",
+                    "surface-container-highest": "#e4e2dd",
+                    "on-secondary-fixed": "#151e17",
+                    "inverse-surface": "#30312e",
+                    "primary-container": "#2e5e4e",
+                    "secondary-fixed-dim": "#bfc9bf",
+                    "on-primary-fixed-variant": "#1e4f40",
+                    "on-secondary": "#ffffff",
+                    "background": "#fbf9f4",
+                    "on-error": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "primary-fixed": "#baeed9",
+                    "secondary": "#576158",
+                    "tertiary-container": "#774b1d",
+                    "outline-variant": "#c0c9c3",
+                    "on-primary": "#ffffff",
+                    "surface-container-high": "#eae8e3",
+                    "on-tertiary-fixed": "#2d1600",
+                    "on-secondary-fixed-variant": "#404941",
+                    "on-surface-variant": "#404945",
+                    "on-tertiary-container": "#fbbe85",
+                    "error": "#ba1a1a",
+                    "primary-fixed-dim": "#9fd1bd",
+                    "surface-tint": "#376757",
+                    "tertiary": "#5c3407",
+                    "on-error-container": "#93000a",
+                    "secondary-container": "#d8e2d7",
+                    "tertiary-fixed": "#ffdcbf",
+                    "on-surface": "#1b1c19",
+                    "surface": "#fbf9f4",
+                    "primary": "#144637",
+                    "on-background": "#1b1c19",
+                    "surface-dim": "#dbdad5",
+                    "on-secondary-container": "#5b655c",
+                    "tertiary-fixed-dim": "#f7ba82",
+                    "surface-container-low": "#f5f3ee",
+                    "surface-bright": "#fbf9f4",
+                    "surface-variant": "#e4e2dd",
+                    "inverse-primary": "#9fd1bd",
+                    "surface-container": "#f0eee9",
+                    "on-primary-fixed": "#002117",
+                    "outline": "#707974",
+                    "on-tertiary-fixed-variant": "#663d10"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "16px",
+                    "base": "8px",
+                    "stack-md": "24px",
+                    "container-padding": "20px",
+                    "stack-lg": "40px",
+                    "stack-sm": "12px"
+            },
+            "fontFamily": {
+                    "label-lg": ["Hanken Grotesk"],
+                    "numeric-xl": ["Hanken Grotesk"],
+                    "body-md": ["Hanken Grotesk"],
+                    "title-sm": ["Literata"],
+                    "label-sm": ["Hanken Grotesk"],
+                    "headline-md": ["Literata"],
+                    "display-lg": ["Literata"],
+                    "display-lg-mobile": ["Literata"]
+            },
+            "fontSize": {
+                    "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                    "numeric-xl": ["48px", {"lineHeight": "48px", "letterSpacing": "-0.04em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "title-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "display-lg-mobile": ["28px", {"lineHeight": "34px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { -webkit-font-smoothing: antialiased; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .blur-overlay {
+            backdrop-filter: blur(40px) brightness(0.6);
+            -webkit-backdrop-filter: blur(40px) brightness(0.6);
+        }
+        .timer-glow {
+            text-shadow: 0 0 40px rgba(255, 255, 255, 0.15);
+        }
+        .btn-press:active {
+            transform: scale(0.96);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen flex flex-col items-center justify-center overflow-hidden">
+<!-- Background Layer (Blurred Cover) -->
+<div class="fixed inset-0 z-0 overflow-hidden">
+<div class="absolute inset-0 bg-cover bg-center scale-110" data-alt="A professional, artistic close-up of a classic cloth-bound book cover featuring deep forest green textures and elegant gold-leaf typography. The lighting is moody and soft, highlighting the tactile quality of the paper and linen. This background image is heavily blurred and darkened to create a serene, atmospheric environment that doesn't distract from the user interface elements." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDr0QnMIPpHRIWGx7m-AtOwr7BgluvUCnzE-kTQ2VG86t3MlfX_BIlPPYDM1GCCcxkB1p3PlWkHjwrha0DIhSpoeu9MK1_OmqWGvj9RVPRrIAi3dt_mrPn6-nM_iJQQx0okAngBCjfkJl_uIKwh9aPb7kI2dxp0BwWWJV0XlNTbulqDyGb0JchgNWEcEJ-y2ebzUmoic84_SN4xYEI-lgsr63Ho0E9Fg9dwZPTl9fubtQ40k34T6huYdB8xHlk-zScZ6Yn_4KhDRxc')"></div>
+<div class="absolute inset-0 blur-overlay bg-black/30"></div>
+</div>
+<!-- Active Session Content -->
+<div class="relative z-10 w-full max-w-md h-screen flex flex-col items-center justify-between px-container-padding py-16 text-white">
+<!-- Header Section -->
+<header class="w-full text-center space-y-2">
+<span class="font-label-sm text-label-sm uppercase tracking-widest opacity-60">Currently Reading</span>
+<h1 class="font-title-sm text-title-sm italic">The Midnight Library</h1>
+</header>
+<!-- Timer Section -->
+<main class="flex flex-col items-center justify-center">
+<div class="font-numeric-xl text-[120px] leading-none tracking-tighter timer-glow font-bold tabular-nums" id="timer-display">
+                24:42
+            </div>
+<div class="mt-4 flex items-center space-x-2 text-primary-fixed opacity-90">
+<span class="material-symbols-outlined text-[20px]">local_fire_department</span>
+<span class="font-label-lg text-label-lg">45 min daily goal</span>
+</div>
+</main>
+<!-- Control Section -->
+<footer class="w-full space-y-6">
+<div class="flex flex-col gap-4">
+<!-- Pause Button (Secondary Style) -->
+<button class="btn-press w-full py-4 px-8 rounded-xl bg-white/10 border border-white/20 backdrop-blur-md flex items-center justify-center gap-3 transition-all" id="btn-pause">
+<span class="material-symbols-outlined" id="pause-icon" style="font-variation-settings: 'FILL' 1;">pause</span>
+<span class="font-label-lg text-label-lg" id="pause-text">Pause Session</span>
+</button>
+<!-- Finish Button (Primary Forest Green Style) -->
+<button class="btn-press w-full py-4 px-8 rounded-xl bg-primary-container text-white flex items-center justify-center gap-3 shadow-xl transition-all">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="font-label-lg text-label-lg">Finish Reading</span>
+</button>
+</div>
+<!-- Page Progress -->
+<div class="space-y-3">
+<div class="flex justify-between items-end">
+<span class="font-label-sm text-label-sm opacity-60">Session Progress</span>
+<span class="font-label-sm text-label-sm">54% of goal</span>
+</div>
+<div class="h-1.5 w-full bg-white/20 rounded-full overflow-hidden">
+<div class="h-full bg-primary-fixed rounded-full w-[54%] transition-all duration-700 ease-out"></div>
+</div>
+</div>
+</footer>
+</div>
+<!-- Floating Atmosphere Elements -->
+<div class="fixed top-12 left-8 opacity-20 pointer-events-none">
+<span class="material-symbols-outlined text-4xl">auto_stories</span>
+</div>
+<script>
+        // Simple Timer Logic
+        let seconds = 1482; // 24:42
+        let isPaused = false;
+        const timerDisplay = document.getElementById('timer-display');
+        const pauseBtn = document.getElementById('btn-pause');
+        const pauseText = document.getElementById('pause-text');
+        const pauseIcon = document.getElementById('pause-icon');
+
+        function updateTimer() {
+            if (isPaused) return;
+            seconds++;
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            timerDisplay.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        setInterval(updateTimer, 1000);
+
+        pauseBtn.addEventListener('click', () => {
+            isPaused = !isPaused;
+            if (isPaused) {
+                pauseText.textContent = 'Resume Reading';
+                pauseIcon.textContent = 'play_arrow';
+                timerDisplay.classList.add('opacity-50');
+            } else {
+                pauseText.textContent = 'Pause Session';
+                pauseIcon.textContent = 'pause';
+                timerDisplay.classList.remove('opacity-50');
+            }
+        });
+
+        // Subtle parallax motion for background
+        document.addEventListener('mousemove', (e) => {
+            const moveX = (e.clientX - window.innerWidth / 2) * 0.005;
+            const moveY = (e.clientY - window.innerHeight / 2) * 0.005;
+            document.querySelector('.scale-110').style.transform = `scale(1.1) translate(${moveX}px, ${moveY}px)`;
+        });
+    </script>
+</body></html>

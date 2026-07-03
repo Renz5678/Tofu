@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<title>Tofu - Session Finish</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;family=Literata:opsz,wght@7..72,600;7..72,700&amp;display=swap" rel="stylesheet"/>
+<!-- Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-container": "#a3d5c1",
+                        "inverse-on-surface": "#f2f1ec",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed": "#dbe5da",
+                        "surface-container-highest": "#e4e2dd",
+                        "on-secondary-fixed": "#151e17",
+                        "inverse-surface": "#30312e",
+                        "primary-container": "#2e5e4e",
+                        "secondary-fixed-dim": "#bfc9bf",
+                        "on-primary-fixed-variant": "#1e4f40",
+                        "on-secondary": "#ffffff",
+                        "background": "#fbf9f4",
+                        "on-error": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "primary-fixed": "#baeed9",
+                        "secondary": "#576158",
+                        "tertiary-container": "#774b1d",
+                        "outline-variant": "#c0c9c3",
+                        "on-primary": "#ffffff",
+                        "surface-container-high": "#eae8e3",
+                        "on-tertiary-fixed": "#2d1600",
+                        "on-secondary-fixed-variant": "#404941",
+                        "on-surface-variant": "#404945",
+                        "on-tertiary-container": "#fbbe85",
+                        "error": "#ba1a1a",
+                        "primary-fixed-dim": "#9fd1bd",
+                        "surface-tint": "#376757",
+                        "tertiary": "#5c3407",
+                        "on-error-container": "#93000a",
+                        "secondary-container": "#d8e2d7",
+                        "tertiary-fixed": "#ffdcbf",
+                        "on-surface": "#1b1c19",
+                        "surface": "#fbf9f4",
+                        "primary": "#144637",
+                        "on-background": "#1b1c19",
+                        "surface-dim": "#dbdad5",
+                        "on-secondary-container": "#5b655c",
+                        "tertiary-fixed-dim": "#f7ba82",
+                        "surface-container-low": "#f5f3ee",
+                        "surface-bright": "#fbf9f4",
+                        "surface-variant": "#e4e2dd",
+                        "inverse-primary": "#9fd1bd",
+                        "surface-container": "#f0eee9",
+                        "on-primary-fixed": "#002117",
+                        "outline": "#707974",
+                        "on-tertiary-fixed-variant": "#663d10"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "base": "8px",
+                        "stack-md": "24px",
+                        "container-padding": "20px",
+                        "stack-lg": "40px",
+                        "stack-sm": "12px"
+                    },
+                    "fontFamily": {
+                        "label-lg": ["Hanken Grotesk"],
+                        "numeric-xl": ["Hanken Grotesk"],
+                        "body-md": ["Hanken Grotesk"],
+                        "title-sm": ["Literata"],
+                        "label-sm": ["Hanken Grotesk"],
+                        "headline-md": ["Literata"],
+                        "display-lg": ["Literata"],
+                        "display-lg-mobile": ["Literata"]
+                    },
+                    "fontSize": {
+                        "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                        "numeric-xl": ["48px", {"lineHeight": "48px", "letterSpacing": "-0.04em", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "title-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "500"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "display-lg-mobile": ["28px", {"lineHeight": "34px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .ambient-card-shadow {
+            box-shadow: 0px 4px 20px rgba(46, 94, 78, 0.08);
+        }
+        .active-press {
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
+        }
+        .active-press:active {
+            transform: scale(0.98);
+            box-shadow: 0px 2px 8px rgba(46, 94, 78, 0.04);
+        }
+        /* Custom scrollbar for textareas */
+        textarea::-webkit-scrollbar {
+            width: 4px;
+        }
+        textarea::-webkit-scrollbar-thumb {
+            background: #D9E3D8;
+            border-radius: 10px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md min-h-screen pb-safe">
+<!-- Top App Bar -->
+<header class="w-full top-0 sticky z-50 bg-background flex items-center justify-between px-container-padding h-14">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-low transition-colors active:scale-95 duration-200">
+<span class="material-symbols-outlined text-primary">close</span>
+</button>
+<span class="font-headline-md text-headline-md text-primary">Tofu</span>
+<div class="w-10 h-10 rounded-full bg-surface-container-high overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="A clean, minimalist close-up portrait of a professional reader in a bright library, shot with a shallow depth of field. The lighting is soft and natural, emphasizing a calm, intellectual atmosphere with warm cream and forest green tones in the background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDQZlSI8qcxITgMoMaH9keqZM4lS7sg-80uA7VFZ6kj2C_I6Xil7k-2rt7hfwv8BDfC9muBDK7aJZKsv118HowGCsRD5Mq8A3IWbzgOr4lPqvIjMO5R8oPudZwajDksQcgZ98hd7e_aZQ4nfYR-_B84C3xTJ72USmNEmGcF9rZ3_N80WjcSPiK_caf-5QrNRsk1Wwc6OGIQwH2Hc0urcnYvJDr4aOKLZ0fRTMBgbXxyqk-0HgJ54cQLrP8Vh3yq-yYjAGK_bvzCMpo"/>
+</div>
+</header>
+<main class="max-w-md mx-auto px-container-padding py-stack-md">
+<!-- Hero Section -->
+<div class="mb-stack-lg text-center">
+<div class="inline-flex items-center justify-center w-16 h-16 bg-primary-container text-on-primary-container rounded-full mb-stack-sm">
+<span class="material-symbols-outlined !text-3xl" style="font-variation-settings: 'FILL' 1;">task_alt</span>
+</div>
+<h1 class="font-display-lg-mobile text-display-lg-mobile text-on-surface mb-2">Great Session!</h1>
+<p class="font-body-md text-on-surface-variant opacity-80">You're making incredible progress with "The Great Gatsby".</p>
+</div>
+<!-- Input Section: Page Reached -->
+<section class="mb-stack-md">
+<div class="bg-white rounded-xl p-6 ambient-card-shadow border border-outline-variant/30">
+<label class="block font-label-lg text-label-lg text-primary mb-2 uppercase tracking-wider" for="page-reached">Page Reached</label>
+<div class="relative">
+<input class="w-full h-14 bg-surface-container-low border-2 border-transparent focus:border-primary focus:ring-0 rounded-lg px-4 font-numeric-xl text-primary transition-all duration-200" id="page-reached" placeholder="e.g. 142" type="number"/>
+<div class="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant/40 font-label-lg">
+                        of 218
+                    </div>
+</div>
+</div>
+</section>
+<!-- Summary Grid (Bento Style) -->
+<section class="grid grid-cols-2 gap-4 mb-stack-md">
+<!-- Duration Card -->
+<div class="bg-white p-5 rounded-xl ambient-card-shadow border border-outline-variant/30 flex flex-col justify-between h-32">
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-[20px]">schedule</span>
+<span class="font-label-sm uppercase">Duration</span>
+</div>
+<div class="flex items-baseline gap-1">
+<span class="font-numeric-xl text-[32px] text-on-surface">45</span>
+<span class="font-label-lg text-on-surface-variant">min</span>
+</div>
+</div>
+<!-- Pages Read Card -->
+<div class="bg-white p-5 rounded-xl ambient-card-shadow border border-outline-variant/30 flex flex-col justify-between h-32">
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-[20px]">menu_book</span>
+<span class="font-label-sm uppercase">Pages Read</span>
+</div>
+<div class="flex items-baseline gap-1">
+<span class="font-numeric-xl text-[32px] text-on-surface">30</span>
+<span class="font-label-lg text-on-surface-variant">pgs</span>
+</div>
+</div>
+<!-- Pace Card -->
+<div class="col-span-2 bg-secondary-container/30 p-5 rounded-xl border border-secondary-fixed flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">speed</span>
+</div>
+<div>
+<span class="block font-label-sm text-on-secondary-container uppercase">Reading Pace</span>
+<span class="font-title-sm text-on-surface">Steady &amp; Focused</span>
+</div>
+</div>
+<div class="text-right">
+<span class="block font-numeric-xl text-[24px] text-primary">1.5</span>
+<span class="block font-label-sm text-on-surface-variant">min/page</span>
+</div>
+</div>
+</section>
+<!-- Session Notes -->
+<section class="mb-stack-lg">
+<label class="block font-label-lg text-label-lg text-primary mb-2 uppercase tracking-wider" for="notes">Session Notes</label>
+<textarea class="w-full bg-white rounded-xl p-4 ambient-card-shadow border border-outline-variant/30 focus:border-primary focus:ring-0 font-body-md text-on-surface-variant placeholder:opacity-40 transition-all duration-200 resize-none" id="notes" placeholder="Capture your thoughts, favorite quotes, or questions from this session..." rows="4"></textarea>
+</section>
+<!-- CTA Action -->
+<div class="fixed bottom-0 left-0 w-full p-container-padding bg-gradient-to-t from-background via-background/95 to-transparent">
+<div class="max-w-md mx-auto">
+<button class="w-full h-14 bg-primary text-white rounded-full font-label-lg text-[16px] active-press shadow-lg flex items-center justify-center gap-2">
+<span>Save Session</span>
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+<div class="h-4"></div> <!-- Spacer for home indicator -->
+</div>
+</div>
+<!-- Spacer for fixed button -->
+<div class="h-24"></div>
+</main>
+<script>
+        // Micro-interaction for input field
+        const input = document.getElementById('page-reached');
+        input.addEventListener('focus', () => {
+            input.parentElement.parentElement.classList.add('ring-2', 'ring-primary/10');
+        });
+        input.addEventListener('blur', () => {
+            input.parentElement.parentElement.classList.remove('ring-2', 'ring-primary/10');
+        });
+
+        // Simple scale effect on summary cards when tapped
+        const cards = document.querySelectorAll('.ambient-card-shadow');
+        cards.forEach(card => {
+            card.addEventListener('touchstart', () => card.style.transform = 'scale(0.98)');
+            card.addEventListener('touchend', () => card.style.transform = 'scale(1)');
+        });
+    </script>
+</body></html>

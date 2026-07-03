@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<title>Tofu | Session History</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,100..900;1,100..900&amp;family=Literata:ital,opsz,wght@0,7..72,200..900;1,7..72,200..900&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-lowest": "#ffffff",
+                    "on-primary-container": "#a3d5c1",
+                    "inverse-on-surface": "#f2f1ec",
+                    "on-tertiary": "#ffffff",
+                    "secondary-fixed": "#dbe5da",
+                    "surface-container-highest": "#e4e2dd",
+                    "on-secondary-fixed": "#151e17",
+                    "inverse-surface": "#30312e",
+                    "primary-container": "#2e5e4e",
+                    "secondary-fixed-dim": "#bfc9bf",
+                    "on-primary-fixed-variant": "#1e4f40",
+                    "on-secondary": "#ffffff",
+                    "background": "#fbf9f4",
+                    "on-error": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "primary-fixed": "#baeed9",
+                    "secondary": "#576158",
+                    "tertiary-container": "#774b1d",
+                    "outline-variant": "#c0c9c3",
+                    "on-primary": "#ffffff",
+                    "surface-container-high": "#eae8e3",
+                    "on-tertiary-fixed": "#2d1600",
+                    "on-secondary-fixed-variant": "#404941",
+                    "on-surface-variant": "#404945",
+                    "on-tertiary-container": "#fbbe85",
+                    "error": "#ba1a1a",
+                    "primary-fixed-dim": "#9fd1bd",
+                    "surface-tint": "#376757",
+                    "tertiary": "#5c3407",
+                    "on-error-container": "#93000a",
+                    "secondary-container": "#d8e2d7",
+                    "tertiary-fixed": "#ffdcbf",
+                    "on-surface": "#1b1c19",
+                    "surface": "#fbf9f4",
+                    "primary": "#144637",
+                    "on-background": "#1b1c19",
+                    "surface-dim": "#dbdad5",
+                    "on-secondary-container": "#5b655c",
+                    "tertiary-fixed-dim": "#f7ba82",
+                    "surface-container-low": "#f5f3ee",
+                    "surface-bright": "#fbf9f4",
+                    "surface-variant": "#e4e2dd",
+                    "inverse-primary": "#9fd1bd",
+                    "surface-container": "#f0eee9",
+                    "on-primary-fixed": "#002117",
+                    "outline": "#707974",
+                    "on-tertiary-fixed-variant": "#663d10"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "16px",
+                    "base": "8px",
+                    "stack-md": "24px",
+                    "container-padding": "20px",
+                    "stack-lg": "40px",
+                    "stack-sm": "12px"
+            },
+            "fontFamily": {
+                    "label-lg": ["Hanken Grotesk"],
+                    "numeric-xl": ["Hanken Grotesk"],
+                    "body-md": ["Hanken Grotesk"],
+                    "title-sm": ["Literata"],
+                    "label-sm": ["Hanken Grotesk"],
+                    "headline-md": ["Literata"],
+                    "display-lg": ["Literata"],
+                    "display-lg-mobile": ["Literata"]
+            },
+            "fontSize": {
+                    "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                    "numeric-xl": ["48px", {"lineHeight": "48px", "letterSpacing": "-0.04em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "title-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "display-lg-mobile": ["28px", {"lineHeight": "34px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        body {
+            background-color: #fbf9f4; /* Soft Cream */
+            color: #404945; /* Warm Charcoal variant */
+            -webkit-font-smoothing: antialiased;
+        }
+        .session-card {
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
+        }
+        .session-card:active {
+            transform: scale(0.98);
+        }
+        .elevation-1 {
+            box-shadow: 0px 4px 20px rgba(46, 94, 78, 0.08);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #d8e2d7;
+            border-radius: 10px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="min-h-screen flex flex-col font-body-md text-body-md selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- TopAppBar -->
+<header class="w-full top-0 sticky z-40 bg-background flex items-center justify-between px-container-padding h-14">
+<div class="flex items-center gap-4">
+<button class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-surface-container-low transition-colors active:scale-95 duration-200">
+<span class="material-symbols-outlined text-primary">menu</span>
+</button>
+<h1 class="font-headline-md text-headline-md text-primary">Tofu</h1>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="A professional studio portrait of a young adult with a friendly expression, soft natural lighting, set against a warm beige background that matches the reading app aesthetic. The image is clean, high-resolution, and conveys a sense of calm intelligence." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDBD8a13Lc2Msy1xJJv-rjTYYpnWBPJYxb-q2Bwl6fGSMq3xsdf-E7AXaQHt8xTkaBeahP_SaIgAitYYhLBxcRZUcWPEvgLK4ZFhfuMkJVk5-5RjQxkiAe3bOnEEYNf2sd8AmnM1JNn1SCSpwL4mrGZZ7Z8mfCdP01e3ql2SLyv_K4OerYlFYnratqp8lvq5pUio056-fqADlMdvaxV6P9YpUCyBmUMedThsjDrrXCSslLVaDp306kPpZp79czW-Ey4yCX7OtMrB6s"/>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-1 px-container-padding pt-6 pb-32 max-w-3xl mx-auto w-full">
+<!-- Header Section -->
+<header class="mb-stack-lg">
+<h2 class="font-display-lg-mobile text-display-lg-mobile text-on-surface mb-2">Reading History</h2>
+<p class="text-on-surface-variant font-label-lg text-label-lg">You've completed 42 sessions this month.</p>
+</header>
+<!-- Stats Overview Cards -->
+<div class="grid grid-cols-2 gap-4 mb-stack-md">
+<div class="bg-surface-container-lowest p-4 rounded-xl elevation-1 border border-surface-variant/50">
+<span class="material-symbols-outlined text-primary mb-2" style="font-variation-settings: 'FILL' 1;">timer</span>
+<p class="text-label-sm font-label-sm text-on-surface-variant">Total Time</p>
+<p class="font-title-sm text-title-sm text-on-surface">18h 45m</p>
+</div>
+<div class="bg-surface-container-lowest p-4 rounded-xl elevation-1 border border-surface-variant/50">
+<span class="material-symbols-outlined text-primary mb-2" style="font-variation-settings: 'FILL' 1;">auto_stories</span>
+<p class="text-label-sm font-label-sm text-on-surface-variant">Total Pages</p>
+<p class="font-title-sm text-title-sm text-on-surface">1,240 pgs</p>
+</div>
+</div>
+<!-- History List -->
+<div class="space-y-4">
+<p class="font-label-lg text-label-lg text-on-surface-variant px-1">October 2023</p>
+<!-- Session Row 1 -->
+<div class="session-card bg-surface-container-lowest p-4 rounded-xl elevation-1 border border-surface-variant/20 flex items-center gap-4">
+<div class="w-14 h-20 rounded-lg overflow-hidden flex-shrink-0 shadow-sm">
+<img class="w-full h-full object-cover" data-alt="A minimalist book cover for a title called 'The Silent Patient', featuring a striking white background and a single red graphic slash across the center. The style is modern editorial, high contrast, fitting for a sophisticated digital library interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYe2g1FEbPFVbfxvbZI2vDmfooeqZaNKxXwN4zuC0kereT5r0_bNZI_Qokan2LOh9wF1iq8wkT30jLTq3kG1VcHttxUczLZzN_uB-LVoEdWN5Ht81gE2KIlVgQSreDNE_exiTufVmFqdDhtB0vvi45Mu7bkh40wifAW5s24ADUI35GP2IKEzWQQwYLLfct_R0TfMgrRPRNedtVmja-2l061x-JYk4Ihef1CIElpHXjhQRoWexdPmgNsSmXJjCFWJdGSegS1MG4EeM"/>
+</div>
+<div class="flex-1 min-w-0">
+<h3 class="font-title-sm text-title-sm text-on-surface truncate">The Silent Patient</h3>
+<div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
+<span class="flex items-center gap-1 text-label-sm font-label-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[14px]">calendar_today</span>
+                            Oct 24
+                        </span>
+<span class="flex items-center gap-1 text-label-sm font-label-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[14px]">schedule</span>
+                            45m
+                        </span>
+</div>
+<div class="flex items-center gap-3 mt-3">
+<div class="px-2 py-0.5 bg-secondary-container text-on-secondary-container rounded-full text-label-sm font-label-sm">
+                            32 pages
+                        </div>
+<span class="text-label-sm font-label-sm text-primary">1.4 min/pg</span>
+</div>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-low text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+<!-- Session Row 2 -->
+<div class="session-card bg-surface-container-lowest p-4 rounded-xl elevation-1 border border-surface-variant/20 flex items-center gap-4">
+<div class="w-14 h-20 rounded-lg overflow-hidden flex-shrink-0 shadow-sm">
+<img class="w-full h-full object-cover" data-alt="A book cover for 'Atomic Habits' by James Clear, with a vibrant yellow background and a scattering of small black dots forming a pattern. The design is energetic and clean, using bold Hanken Grotesk style typography for the title." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB9OuOLeyspT16HZIBk7ZPEPyaiPqQsPK5H02yVeyCzqaZs2Z_34Jo887uqXmMSGIRAUM3a_h9PA_jKcITC8bNlxzclN1_sFe92b7gxyJdHFem56o9KfOT99cYFuP7Yqj4sW8G4E_MWP_PkkohTsiqEluM79hgdrMF3BZSDkoj4Ixj2hW4kkLJaC9JKMbJaj5d4bWy0imXFIk3ieaq-kP1eC_PVNirMjWUDDyn3_M8JHR8I_FD-nAk53TeVvQfY569_Y6nwdouAqbk"/>
+</div>
+<div class="flex-1 min-w-0">
+<h3 class="font-title-sm text-title-sm text-on-surface truncate">Atomic Habits</h3>
+<div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
+<span class="flex items-center gap-1 text-label-sm font-label-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[14px]">calendar_today</span>
+                            Oct 22
+                        </span>
+<span class="flex items-center gap-1 text-label-sm font-label-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[14px]">schedule</span>
+                            1h 10m
+                        </span>
+</div>
+<div class="flex items-center gap-3 mt-3">
+<div class="px-2 py-0.5 bg-secondary-container text-on-secondary-container rounded-full text-label-sm font-label-sm">
+                            54 pages
+                        </div>
+<span class="text-label-sm font-label-sm text-primary">1.2 min/pg</span>
+</div>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-low text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+<p class="font-label-lg text-label-lg text-on-surface-variant px-1 pt-4">Earlier</p>
+<!-- Session Row 3 -->
+<div class="session-card bg-surface-container-lowest p-4 rounded-xl elevation-1 border border-surface-variant/20 flex items-center gap-4">
+<div class="w-14 h-20 rounded-lg overflow-hidden flex-shrink-0 shadow-sm">
+<img class="w-full h-full object-cover" data-alt="A vintage-style book cover for 'Dune' featuring a stylized orange sun over deep brown desert dunes. The aesthetic is textured and tactile, reminiscent of a classic paperback found in an old library." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCtaU3TS7ULkNgT24jV-eommdXUA7zgg5CZwncxya31Tu32rolC4TmJQoIQO7PG7nvvQ8zNz9adcYfoZqViPwLCKE3Xq80ZYyw6KxWHbbYk_2B-JmAghDV_JIFVYhurYshxwBXsjyY73VsUllsu2u14hGMTPlOkqZy5trkzyQF9QmKFtEEg0vASga8TLavtN3GKDlYTvCHF1nooOu1jRXNLV23VOTd9fJ2T6p_KjavbyABONw6wVdVs4ngBvpSQmyLw3xkrHMgWde4"/>
+</div>
+<div class="flex-1 min-w-0">
+<h3 class="font-title-sm text-title-sm text-on-surface truncate">Dune</h3>
+<div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
+<span class="flex items-center gap-1 text-label-sm font-label-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[14px]">calendar_today</span>
+                            Oct 18
+                        </span>
+<span class="flex items-center gap-1 text-label-sm font-label-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[14px]">schedule</span>
+                            30m
+                        </span>
+</div>
+<div class="flex items-center gap-3 mt-3">
+<div class="px-2 py-0.5 bg-secondary-container text-on-secondary-container rounded-full text-label-sm font-label-sm">
+                            15 pages
+                        </div>
+<span class="text-label-sm font-label-sm text-primary">2.0 min/pg</span>
+</div>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-low text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+<!-- Session Row 4 -->
+<div class="session-card bg-surface-container-lowest p-4 rounded-xl elevation-1 border border-surface-variant/20 flex items-center gap-4">
+<div class="w-14 h-20 rounded-lg overflow-hidden flex-shrink-0 shadow-sm">
+<img class="w-full h-full object-cover" data-alt="The book cover for 'Project Hail Mary' by Andy Weir, showing a stylized spaceship or celestial object against a deep teal and gold background. Modern, science-fiction aesthetic with clean typography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDpra4yPi5voa9cLt7eeNN3KM6H9EwOfuoIlmXeyo0h7B9BB6cvcvGv-AqLccGufOSF13IsW4122pCIj09oj_oCOUGEXEs_tzc6VbtFe-AyHE1RYsFaIcVSPSD5CKDN_6yPxps4GXzW-JAu5NsZxPb5S4lkPCSfF3xm0S5XFznJU2Psw1P4mnODnvfVhv3lA6lCO-YX4C0se3GBbMnjA5wSkmsXFJn3X-IbRCnC1ZGfAt91IwrhVBilBuKX4iFmH8WCJZ3j6QoBQWA"/>
+</div>
+<div class="flex-1 min-w-0">
+<h3 class="font-title-sm text-title-sm text-on-surface truncate">Project Hail Mary</h3>
+<div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
+<span class="flex items-center gap-1 text-label-sm font-label-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[14px]">calendar_today</span>
+                            Oct 15
+                        </span>
+<span class="flex items-center gap-1 text-label-sm font-label-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[14px]">schedule</span>
+                            2h 15m
+                        </span>
+</div>
+<div class="flex items-center gap-3 mt-3">
+<div class="px-2 py-0.5 bg-secondary-container text-on-secondary-container rounded-full text-label-sm font-label-sm">
+                            112 pages
+                        </div>
+<span class="text-label-sm font-label-sm text-primary">1.2 min/pg</span>
+</div>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-low text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+</main>
+<!-- FAB for new session -->
+<button class="fixed bottom-24 right-6 w-14 h-14 bg-primary text-on-primary rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-transform z-40">
+<span class="material-symbols-outlined" style="font-variation-settings: 'wght' 600;">add</span>
+</button>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 pb-safe bg-surface-container-lowest shadow-sm border-t border-outline-variant">
+<a class="flex flex-col items-center justify-center text-on-surface opacity-40 hover:opacity-100 transition-opacity active:scale-90 duration-150" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-sm text-label-sm">Home</span>
+</a>
+<!-- Library Active based on prompt context (history of reading sessions) -->
+<a class="flex flex-col items-center justify-center text-primary bg-secondary-container rounded-full px-4 py-1 active:scale-90 transition-all duration-150" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">import_contacts</span>
+<span class="font-label-sm text-label-sm">Library</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface opacity-40 hover:opacity-100 transition-opacity active:scale-90 duration-150" href="#">
+<span class="material-symbols-outlined">leaderboard</span>
+<span class="font-label-sm text-label-sm">Stats</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface opacity-40 hover:opacity-100 transition-opacity active:scale-90 duration-150" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm">Profile</span>
+</a>
+</nav>
+<script>
+        // Micro-interaction for session cards
+        document.querySelectorAll('.session-card').forEach(card => {
+            card.addEventListener('click', () => {
+                // Flash effect
+                card.style.backgroundColor = '#f0eee9';
+                setTimeout(() => {
+                    card.style.backgroundColor = '#ffffff';
+                }, 200);
+            });
+        });
+    </script>
+</body></html>

@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<title>Tofu - Welcome to Your Reading Habit</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;family=Literata:opsz,wght@7..72,400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-lowest": "#ffffff",
+                    "on-primary-container": "#a3d5c1",
+                    "inverse-on-surface": "#f2f1ec",
+                    "on-tertiary": "#ffffff",
+                    "secondary-fixed": "#dbe5da",
+                    "surface-container-highest": "#e4e2dd",
+                    "on-secondary-fixed": "#151e17",
+                    "inverse-surface": "#30312e",
+                    "primary-container": "#2e5e4e",
+                    "secondary-fixed-dim": "#bfc9bf",
+                    "on-primary-fixed-variant": "#1e4f40",
+                    "on-secondary": "#ffffff",
+                    "background": "#fbf9f4",
+                    "on-error": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "primary-fixed": "#baeed9",
+                    "secondary": "#576158",
+                    "tertiary-container": "#774b1d",
+                    "outline-variant": "#c0c9c3",
+                    "on-primary": "#ffffff",
+                    "surface-container-high": "#eae8e3",
+                    "on-tertiary-fixed": "#2d1600",
+                    "on-secondary-fixed-variant": "#404941",
+                    "on-surface-variant": "#404945",
+                    "on-tertiary-container": "#fbbe85",
+                    "error": "#ba1a1a",
+                    "primary-fixed-dim": "#9fd1bd",
+                    "surface-tint": "#376757",
+                    "tertiary": "#5c3407",
+                    "on-error-container": "#93000a",
+                    "secondary-container": "#d8e2d7",
+                    "tertiary-fixed": "#ffdcbf",
+                    "on-surface": "#1b1c19",
+                    "surface": "#fbf9f4",
+                    "primary": "#144637",
+                    "on-background": "#1b1c19",
+                    "surface-dim": "#dbdad5",
+                    "on-secondary-container": "#5b655c",
+                    "tertiary-fixed-dim": "#f7ba82",
+                    "surface-container-low": "#f5f3ee",
+                    "surface-bright": "#fbf9f4",
+                    "surface-variant": "#e4e2dd",
+                    "inverse-primary": "#9fd1bd",
+                    "surface-container": "#f0eee9",
+                    "on-primary-fixed": "#002117",
+                    "outline": "#707974",
+                    "on-tertiary-fixed-variant": "#663d10"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "16px",
+                    "base": "8px",
+                    "stack-md": "24px",
+                    "container-padding": "20px",
+                    "stack-lg": "40px",
+                    "stack-sm": "12px"
+            },
+            "fontFamily": {
+                    "label-lg": ["Hanken Grotesk"],
+                    "numeric-xl": ["Hanken Grotesk"],
+                    "body-md": ["Hanken Grotesk"],
+                    "title-sm": ["Literata"],
+                    "label-sm": ["Hanken Grotesk"],
+                    "headline-md": ["Literata"],
+                    "display-lg": ["Literata"],
+                    "display-lg-mobile": ["Literata"]
+            },
+            "fontSize": {
+                    "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                    "numeric-xl": ["48px", {"lineHeight": "48px", "letterSpacing": "-0.04em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "title-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "display-lg-mobile": ["28px", {"lineHeight": "34px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #fbf9f4; /* Explicit fallback for cream background */
+            -webkit-tap-highlight-color: transparent;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .auth-card-transition {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body-md text-on-surface selection:bg-primary-fixed selection:text-on-primary-fixed min-h-screen flex flex-col overflow-x-hidden">
+<!-- Header Section -->
+<header class="w-full pt-10 pb-6 flex flex-col items-center justify-center bg-background">
+<div class="w-12 h-12 bg-primary rounded-xl flex items-center justify-center mb-4 shadow-sm transform transition-transform hover:scale-105">
+<span class="material-symbols-outlined text-surface text-3xl" style="font-variation-settings: 'FILL' 1;">menu_book</span>
+</div>
+<h1 class="font-headline-md text-headline-md text-primary tracking-tight">Tofu</h1>
+</header>
+<main class="flex-grow flex flex-col items-center px-container-padding max-w-md mx-auto w-full relative">
+<!-- Hero Illustration Area -->
+<div class="w-full mb-stack-md rounded-xl overflow-hidden relative h-64 shadow-xl shadow-primary/10">
+<div class="absolute inset-0 bg-cover bg-center" data-alt="A serene, warm editorial illustration of a cozy reading nook. A soft green velvet armchair sits beside a dark wood bookshelf filled with antique books. Warm golden sunlight streams through a window, illuminating a steaming cup of tea on a small side table. The style is minimalist and tactile, with a sophisticated palette of forest green, cream, and rich wood tones, evoking a calm and productive atmosphere." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBWf16O-tz1XhtFsUv6ukISPQndRgJlA7jRCgC2rtRTjZeCIrbeAqMakfX9HnUsSxSjMREDPeUHB-CTGKd0VfIvGdiKJcQrhrt7MfHwolOyaJcNwrlSdMkw_wGTnVTo8-x1i2ZE6X7LeSuItDgWIlB3BfqDnFf9EFvDiDGUbCODEcn5paPRSohK0M365ci43EIEe4x-8OVtk-aL9pxwSu5P3HidakX7zjJTdCM9EJblDa9cZ_5TrR4wD2vo5ojpFGaKWq58nS0-qkA')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/40 to-transparent"></div>
+<div class="absolute bottom-4 left-6 right-6">
+<h2 class="font-display-lg-mobile text-display-lg-mobile text-surface drop-shadow-md">Nurture your mind.</h2>
+</div>
+</div>
+<!-- Auth Container -->
+<div class="w-full space-y-stack-md auth-card-transition" id="auth-container">
+<!-- Tab Switcher -->
+<div class="flex p-1 bg-surface-container rounded-full w-full">
+<button class="flex-1 py-2 rounded-full font-label-lg text-label-lg transition-all duration-300 bg-surface-container-lowest text-primary shadow-sm" id="tab-login" onclick="switchTab('login')">Log In</button>
+<button class="flex-1 py-2 rounded-full font-label-lg text-label-lg transition-all duration-300 text-on-surface-variant" id="tab-signup" onclick="switchTab('signup')">Sign Up</button>
+</div>
+<!-- Forms Section -->
+<div class="relative w-full overflow-hidden min-h-[380px]">
+<!-- Log In Form -->
+<form class="w-full space-y-6 auth-card-transition opacity-100 translate-x-0" id="form-login">
+<div class="space-y-4">
+<div class="space-y-1">
+<label class="font-label-sm text-label-sm text-primary ml-1" for="login-email">EMAIL ADDRESS</label>
+<input class="w-full px-4 py-3 rounded-lg bg-surface-container-low border border-outline-variant focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all placeholder:text-on-surface-variant/40" id="login-email" placeholder="hello@example.com" type="email"/>
+</div>
+<div class="space-y-1">
+<label class="font-label-sm text-label-sm text-primary ml-1" for="login-password">PASSWORD</label>
+<div class="relative">
+<input class="w-full px-4 py-3 rounded-lg bg-surface-container-low border border-outline-variant focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all placeholder:text-on-surface-variant/40" id="login-password" placeholder="••••••••" type="password"/>
+<button class="absolute right-3 top-3 text-on-surface-variant/60 hover:text-primary transition-colors" type="button">
+<span class="material-symbols-outlined text-xl">visibility_off</span>
+</button>
+</div>
+<div class="flex justify-end pt-1">
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors underline decoration-outline-variant underline-offset-4" href="#">Forgot password?</a>
+</div>
+</div>
+</div>
+<button class="w-full bg-primary text-surface py-4 rounded-xl font-label-lg text-label-lg shadow-lg shadow-primary/20 active:scale-[0.98] transition-all hover:brightness-110" type="submit">
+                        Start Reading
+                    </button>
+</form>
+<!-- Sign Up Form (Hidden by Default) -->
+<form class="w-full space-y-6 auth-card-transition absolute top-0 left-0 opacity-0 translate-x-full pointer-events-none" id="form-signup">
+<div class="space-y-4">
+<div class="space-y-1">
+<label class="font-label-sm text-label-sm text-primary ml-1" for="signup-name">FULL NAME</label>
+<input class="w-full px-4 py-3 rounded-lg bg-surface-container-low border border-outline-variant focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all placeholder:text-on-surface-variant/40" id="signup-name" placeholder="Elias Thorne" type="text"/>
+</div>
+<div class="space-y-1">
+<label class="font-label-sm text-label-sm text-primary ml-1" for="signup-email">EMAIL ADDRESS</label>
+<input class="w-full px-4 py-3 rounded-lg bg-surface-container-low border border-outline-variant focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all placeholder:text-on-surface-variant/40" id="signup-email" placeholder="elias@books.com" type="email"/>
+</div>
+<div class="space-y-1">
+<label class="font-label-sm text-label-sm text-primary ml-1" for="signup-password">PASSWORD</label>
+<input class="w-full px-4 py-3 rounded-lg bg-surface-container-low border border-outline-variant focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all placeholder:text-on-surface-variant/40" id="signup-password" placeholder="Create a strong password" type="password"/>
+</div>
+</div>
+<div class="flex items-start space-x-2">
+<input class="mt-1 rounded border-outline-variant text-primary focus:ring-primary" id="terms" type="checkbox"/>
+<label class="font-label-sm text-label-sm text-on-surface-variant" for="terms">I agree to the <a class="underline" href="#">Terms of Service</a> and <a class="underline" href="#">Privacy Policy</a>.</label>
+</div>
+<button class="w-full bg-primary text-surface py-4 rounded-xl font-label-lg text-label-lg shadow-lg shadow-primary/20 active:scale-[0.98] transition-all hover:brightness-110" type="submit">
+                        Create Account
+                    </button>
+</form>
+</div>
+</div>
+<!-- Social Auth Divider -->
+<div class="w-full flex items-center py-stack-md">
+<div class="flex-grow border-t border-outline-variant"></div>
+<span class="px-4 font-label-sm text-label-sm text-on-surface-variant/60">OR CONTINUE WITH</span>
+<div class="flex-grow border-t border-outline-variant"></div>
+</div>
+<!-- Social Buttons -->
+<div class="w-full grid grid-cols-2 gap-4 mb-12">
+<button class="flex items-center justify-center space-x-2 py-3 px-4 rounded-lg bg-surface-container-lowest border border-outline-variant hover:bg-surface-container-low transition-colors active:scale-95">
+<span class="material-symbols-outlined text-lg">google</span>
+<span class="font-label-lg text-label-lg">Google</span>
+</button>
+<button class="flex items-center justify-center space-x-2 py-3 px-4 rounded-lg bg-surface-container-lowest border border-outline-variant hover:bg-surface-container-low transition-colors active:scale-95">
+<span class="material-symbols-outlined text-lg">apps</span>
+<span class="font-label-lg text-label-lg">Apple</span>
+</button>
+</div>
+</main>
+<!-- Footer Quote -->
+<footer class="w-full py-8 text-center px-container-padding bg-surface-container-low/50">
+<p class="font-title-sm text-title-sm text-on-surface-variant italic opacity-70">
+            "Reading is a conversation. All books talk. But a good book listens as well."
+        </p>
+<p class="font-label-sm text-label-sm text-primary mt-2 uppercase tracking-widest">— Mark Levy</p>
+</footer>
+<script>
+        function switchTab(mode) {
+            const loginBtn = document.getElementById('tab-login');
+            const signupBtn = document.getElementById('tab-signup');
+            const loginForm = document.getElementById('form-login');
+            const signupForm = document.getElementById('form-signup');
+
+            if (mode === 'login') {
+                loginBtn.classList.add('bg-surface-container-lowest', 'text-primary', 'shadow-sm');
+                loginBtn.classList.remove('text-on-surface-variant');
+                signupBtn.classList.remove('bg-surface-container-lowest', 'text-primary', 'shadow-sm');
+                signupBtn.classList.add('text-on-surface-variant');
+
+                loginForm.classList.remove('opacity-0', 'translate-x-full', 'pointer-events-none');
+                loginForm.classList.add('opacity-100', 'translate-x-0');
+                
+                signupForm.classList.add('opacity-0', 'translate-x-full', 'pointer-events-none');
+                signupForm.classList.remove('opacity-100', 'translate-x-0');
+            } else {
+                signupBtn.classList.add('bg-surface-container-lowest', 'text-primary', 'shadow-sm');
+                signupBtn.classList.remove('text-on-surface-variant');
+                loginBtn.classList.remove('bg-surface-container-lowest', 'text-primary', 'shadow-sm');
+                loginBtn.classList.add('text-on-surface-variant');
+
+                signupForm.classList.remove('opacity-0', 'translate-x-full', 'pointer-events-none');
+                signupForm.classList.add('opacity-100', 'translate-x-0');
+                signupForm.classList.style = "position: relative";
+
+                loginForm.classList.add('opacity-0', '-translate-x-full', 'pointer-events-none');
+                loginForm.classList.remove('opacity-100', 'translate-x-0');
+            }
+        }
+
+        // Ripple Effect Logic for Buttons
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('click', function(e) {
+                let x = e.clientX - e.target.offsetLeft;
+                let y = e.clientY - e.target.offsetTop;
+                let ripple = document.createElement('span');
+                ripple.style.left = `${x}px`;
+                ripple.style.top = `${y}px`;
+                ripple.classList.add('ripple');
+                this.appendChild(ripple);
+                setTimeout(() => {
+                    ripple.remove();
+                }, 600);
+            });
+        });
+    </script>
+<style>
+        .ripple {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            border-radius: 50%;
+            animation: ripple-animation 0.6s linear;
+            width: 0;
+            height: 0;
+        }
+        @keyframes ripple-animation {
+            to {
+                width: 200px;
+                height: 200px;
+                opacity: 0;
+            }
+        }
+    </style>
+</body></html>

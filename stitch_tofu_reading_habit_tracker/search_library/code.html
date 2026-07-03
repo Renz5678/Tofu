@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<title>Tofu | Library</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;family=Literata:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-lowest": "#ffffff",
+                    "on-primary-container": "#a3d5c1",
+                    "inverse-on-surface": "#f2f1ec",
+                    "on-tertiary": "#ffffff",
+                    "secondary-fixed": "#dbe5da",
+                    "surface-container-highest": "#e4e2dd",
+                    "on-secondary-fixed": "#151e17",
+                    "inverse-surface": "#30312e",
+                    "primary-container": "#2e5e4e",
+                    "secondary-fixed-dim": "#bfc9bf",
+                    "on-primary-fixed-variant": "#1e4f40",
+                    "on-secondary": "#ffffff",
+                    "background": "#fbf9f4",
+                    "on-error": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "primary-fixed": "#baeed9",
+                    "secondary": "#576158",
+                    "tertiary-container": "#774b1d",
+                    "outline-variant": "#c0c9c3",
+                    "on-primary": "#ffffff",
+                    "surface-container-high": "#eae8e3",
+                    "on-tertiary-fixed": "#2d1600",
+                    "on-secondary-fixed-variant": "#404941",
+                    "on-surface-variant": "#404945",
+                    "on-tertiary-container": "#fbbe85",
+                    "error": "#ba1a1a",
+                    "primary-fixed-dim": "#9fd1bd",
+                    "surface-tint": "#376757",
+                    "tertiary": "#5c3407",
+                    "on-error-container": "#93000a",
+                    "secondary-container": "#d8e2d7",
+                    "tertiary-fixed": "#ffdcbf",
+                    "on-surface": "#1b1c19",
+                    "surface": "#fbf9f4",
+                    "primary": "#144637",
+                    "on-background": "#1b1c19",
+                    "surface-dim": "#dbdad5",
+                    "on-secondary-container": "#5b655c",
+                    "tertiary-fixed-dim": "#f7ba82",
+                    "surface-container-low": "#f5f3ee",
+                    "surface-bright": "#fbf9f4",
+                    "surface-variant": "#e4e2dd",
+                    "inverse-primary": "#9fd1bd",
+                    "surface-container": "#f0eee9",
+                    "on-primary-fixed": "#002117",
+                    "outline": "#707974",
+                    "on-tertiary-fixed-variant": "#663d10"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "16px",
+                    "base": "8px",
+                    "stack-md": "24px",
+                    "container-padding": "20px",
+                    "stack-lg": "40px",
+                    "stack-sm": "12px"
+            },
+            "fontFamily": {
+                    "label-lg": ["Hanken Grotesk"],
+                    "numeric-xl": ["Hanken Grotesk"],
+                    "body-md": ["Hanken Grotesk"],
+                    "title-sm": ["Literata"],
+                    "label-sm": ["Hanken Grotesk"],
+                    "headline-md": ["Literata"],
+                    "display-lg": ["Literata"],
+                    "display-lg-mobile": ["Literata"]
+            },
+            "fontSize": {
+                    "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                    "numeric-xl": ["48px", {"lineHeight": "48px", "letterSpacing": "-0.04em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "title-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "display-lg-mobile": ["28px", {"lineHeight": "34px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { -webkit-tap-highlight-color: transparent; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .progress-ring__circle {
+            transition: stroke-dashoffset 0.35s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen pb-24">
+<!-- Top App Bar -->
+<header class="w-full top-0 sticky z-50 bg-background dark:bg-background flex items-center justify-between px-container-padding h-14 w-full">
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-primary dark:text-primary-fixed-dim hover:bg-surface-container-low transition-colors p-2 rounded-full active:scale-95 transition-transform duration-200">menu</button>
+<h1 class="font-headline-md text-headline-md text-primary dark:text-primary-fixed-dim">Tofu</h1>
+</div>
+<div class="h-8 w-8 rounded-full bg-surface-container-high overflow-hidden border border-outline-variant">
+<div class="w-full h-full bg-cover bg-center" data-alt="A clean professional studio portrait of a young adult with a friendly expression. The lighting is soft and natural, emphasizing a high-end minimalist aesthetic with warm cream and forest green tones in the blurred background. The style is modern editorial photography with crisp focus and professional color grading." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD_XmSOQ41qMWVSmDVTe4_w22g8UAnwmln6L0axyDvwSs_YvfWfUL8Le1zOpGYC8piMTpb4uV1e8tMbfJ0wGskpo4vZACAgLnEsr3ZeutRoXgbjszIvJK1iNsSSba-bJkZwZWb991Rf8OhworzsrXnu7UGx25P-YeYKPbeVQl04QKGyF3d9R3KKcmzwExLtBaDLy0ef3jPRwpjTKRpjy7_aZhlXD3yBh6WyEfWEjYrECrKXw7Q3QmVG-cEZNXZ1neZeI6jFBzrdg2E')"></div>
+</div>
+</header>
+<main class="px-container-padding pt-4 space-y-stack-md">
+<!-- Search Section -->
+<section class="space-y-4">
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="w-full h-12 pl-12 pr-4 bg-surface-container-low border-none rounded-xl font-body-md text-body-md focus:ring-2 focus:ring-primary transition-all duration-200" placeholder="Search your library..." type="text"/>
+</div>
+<!-- Filter Chips -->
+<div class="flex gap-2 overflow-x-auto no-scrollbar pb-2">
+<button class="flex items-center gap-1 px-4 py-2 bg-secondary-container text-on-secondary-container rounded-full whitespace-nowrap active:scale-95 transition-transform">
+<span class="font-label-lg text-label-lg">Genre</span>
+<span class="material-symbols-outlined text-[18px]">expand_more</span>
+</button>
+<button class="flex items-center gap-1 px-4 py-2 bg-surface-container text-on-surface-variant rounded-full whitespace-nowrap active:scale-95 transition-transform">
+<span class="font-label-lg text-label-lg">Language</span>
+<span class="material-symbols-outlined text-[18px]">expand_more</span>
+</button>
+<button class="flex items-center gap-1 px-4 py-2 bg-surface-container text-on-surface-variant rounded-full whitespace-nowrap active:scale-95 transition-transform">
+<span class="font-label-lg text-label-lg">Status</span>
+<span class="material-symbols-outlined text-[18px]">expand_more</span>
+</button>
+</div>
+</section>
+<!-- Status Tabs -->
+<nav class="flex border-b border-outline-variant">
+<button class="flex-1 py-3 text-center border-b-2 border-primary text-primary font-semibold transition-all">
+<span class="font-label-lg text-label-lg">Reading</span>
+</button>
+<button class="flex-1 py-3 text-center text-on-surface-variant opacity-60 hover:opacity-100 transition-all">
+<span class="font-label-lg text-label-lg">Finished</span>
+</button>
+<button class="flex-1 py-3 text-center text-on-surface-variant opacity-60 hover:opacity-100 transition-all">
+<span class="font-label-lg text-label-lg">On Hold</span>
+</button>
+</nav>
+<!-- Books Grid -->
+<section class="grid grid-cols-2 gap-x-gutter gap-y-stack-md pb-8">
+<!-- Book 1 -->
+<div class="group cursor-pointer">
+<div class="relative aspect-[2/3] rounded-xl overflow-hidden shadow-[0px_4px_20px_rgba(46,94,78,0.08)] mb-3 bg-white">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105" data-alt="A minimalist book cover for a title called 'The Silent Garden'. The design features a single abstract forest green leaf on a warm cream textured paper background. The lighting is soft and architectural, creating a premium tactile feel. The overall aesthetic is calm, editorial, and sophisticated." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC3jZjC4Zp2AO0QHRWQx0Bu7kx-BOZX270t9jVLlUsacPuNsnOlfTymmBbF8Nu5aaqic2aHfyhuWgpiyqJhgJkKE1MA0M2ykOsT_6QAcNB92PW7y-YgJep-8oLcXDzRvjFK3loyXV3JjC_zYULvSj0QHflOXaIk_4Dbz_QRdpRIGkqwR8wEWkEH-lo7vWu9TJBjO_vyNqejomE-SyQgQcJxhNauZ8X3pnb5oW6hAmJ5QRyETc7wKcprixCG_z7mfXdarBPbq1u7nMU')"></div>
+<!-- Progress Overlay -->
+<div class="absolute top-2 right-2 flex items-center justify-center w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full shadow-sm">
+<svg class="w-10 h-10">
+<circle class="text-primary/10" cx="20" cy="20" fill="transparent" r="16" stroke="currentColor" stroke-width="3"></circle>
+<circle class="text-primary progress-ring__circle" cx="20" cy="20" fill="transparent" r="16" stroke="currentColor" stroke-dasharray="100.5" stroke-dashoffset="30" stroke-linecap="round" stroke-width="3"></circle>
+</svg>
+<span class="absolute text-[10px] font-bold text-primary">70%</span>
+</div>
+</div>
+<h3 class="font-title-sm text-title-sm text-on-surface leading-tight">The Silent Garden</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant opacity-60">Elena Rostova</p>
+</div>
+<!-- Book 2 -->
+<div class="group cursor-pointer">
+<div class="relative aspect-[2/3] rounded-xl overflow-hidden shadow-[0px_4px_20px_rgba(46,94,78,0.08)] mb-3 bg-white">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105" data-alt="A book cover titled 'Foundations of Thought'. The aesthetic is high-end non-fiction with clean serif typography in dark forest green against a light sage and cream background. Soft shadows and a slight texture on the cover suggest a physical paper material. The design is modern, academic, and visually quiet." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC2-mf7Msu6TuXaYFAtZbT4MkgDgGViRetvYsNmFy7lg3OXnRhEok6by7ZIgmjm_ZXA_8zd420CJjY05tE-2pkOlDs_BOlqDe9xqblbR2D8Q_ohN8wBELeR4DqvMx68PR6jOw1u8OYfWe9TLIbUggZbQ9iXF6WVBE_ssqoZn1g7B1mWGfAgi1-gwvwFwUf-HsAZIsLdiE0k0ILUv8K3hZGo0ObMtUkTB1rpdL_OFGqGx2nsFwjgAMPAXoH-g5Kz9IdI4KWeaZJLwbw')"></div>
+<!-- Progress Overlay -->
+<div class="absolute top-2 right-2 flex items-center justify-center w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full shadow-sm">
+<svg class="w-10 h-10">
+<circle class="text-primary/10" cx="20" cy="20" fill="transparent" r="16" stroke="currentColor" stroke-width="3"></circle>
+<circle class="text-primary progress-ring__circle" cx="20" cy="20" fill="transparent" r="16" stroke="currentColor" stroke-dasharray="100.5" stroke-dashoffset="75" stroke-linecap="round" stroke-width="3"></circle>
+</svg>
+<span class="absolute text-[10px] font-bold text-primary">25%</span>
+</div>
+</div>
+<h3 class="font-title-sm text-title-sm text-on-surface leading-tight">Foundations of Thought</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant opacity-60">Dr. Julian Vane</p>
+</div>
+<!-- Book 3 -->
+<div class="group cursor-pointer">
+<div class="relative aspect-[2/3] rounded-xl overflow-hidden shadow-[0px_4px_20px_rgba(46,94,78,0.08)] mb-3 bg-white">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105" data-alt="A modern novel cover for 'Midnight in Kyoto'. Vibrant but sophisticated indigo and deep green tones with subtle golden light accents. The composition is asymmetrical and artistic, following a clean editorial layout. The mood is atmospheric and peaceful, evoking a sense of calm discovery." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAiXEh_WtNXCbTY5r9pHwJiAW5urqSB3UJR_Vd5E3SD5z7xtm4xH9iSSVpSgxidxqemyUZ_BE-qJoix7KzjggnOzC2U0BZSl3H634b7vCTh_tNJAEw4o3xaWBvLMFB1rm-E8tw3lpvaXMnIW1WkIue14UOgDC9YwiSgsuEMZh2LVPgF7bBhCLFM_OcBhIv-kNYXHlA9kItjdh4WJmrUMJHt8ns6yDMQjqhNWZXA_rB7PH69PpzaE8XgYpT7cKP5gsqVmWYj_Iara2Q')"></div>
+<!-- Progress Overlay -->
+<div class="absolute top-2 right-2 flex items-center justify-center w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full shadow-sm">
+<svg class="w-10 h-10">
+<circle class="text-primary/10" cx="20" cy="20" fill="transparent" r="16" stroke="currentColor" stroke-width="3"></circle>
+<circle class="text-primary progress-ring__circle" cx="20" cy="20" fill="transparent" r="16" stroke="currentColor" stroke-dasharray="100.5" stroke-dashoffset="10" stroke-linecap="round" stroke-width="3"></circle>
+</svg>
+<span class="absolute text-[10px] font-bold text-primary">90%</span>
+</div>
+</div>
+<h3 class="font-title-sm text-title-sm text-on-surface leading-tight">Midnight in Kyoto</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant opacity-60">Satoshi Nakamura</p>
+</div>
+<!-- Book 4 -->
+<div class="group cursor-pointer">
+<div class="relative aspect-[2/3] rounded-xl overflow-hidden shadow-[0px_4px_20px_rgba(46,94,78,0.08)] mb-3 bg-white">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105" data-alt="A minimalist architectural book cover titled 'Form and Function'. High-contrast black and white photography of a staircase with a sharp forest green accent line. Crisp Hanken Grotesk typography. The aesthetic is extremely clean, modern, and disciplined, emphasizing a tactile paper finish." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCsvCn6DX4MDERz6zfcvISFFptSLWD8NuG_OMUvS1KBa4G5B9PU_-p-EYFcSMde7PFvwtFVcR_jkbd8R-6xPGIVO47zF9mjnynTo_NLJmNbeAIYtINeoWws87Itsg5p4fToRj2Xfsm8ueIGmEUmTj_YPs1FqsMixm7JOKHNRB_Lkm63M50ATaQATH_CAl9iRFQvGOpXtyA-54jBXbo7aH3exnIS2Kc24i_ijfS5hsW7O3vlm3mXbtbKwy18IB1hohGLCKtuHad-Ti0')"></div>
+<!-- Progress Overlay -->
+<div class="absolute top-2 right-2 flex items-center justify-center w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full shadow-sm">
+<svg class="w-10 h-10">
+<circle class="text-primary/10" cx="20" cy="20" fill="transparent" r="16" stroke="currentColor" stroke-width="3"></circle>
+<circle class="text-primary progress-ring__circle" cx="20" cy="20" fill="transparent" r="16" stroke="currentColor" stroke-dasharray="100.5" stroke-dashoffset="50" stroke-linecap="round" stroke-width="3"></circle>
+</svg>
+<span class="absolute text-[10px] font-bold text-primary">50%</span>
+</div>
+</div>
+<h3 class="font-title-sm text-title-sm text-on-surface leading-tight">Form and Function</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant opacity-60">Lars Bergman</p>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 pb-safe bg-surface-container-lowest shadow-sm rounded-t-xl border-t border-outline-variant">
+<button class="flex flex-col items-center justify-center text-on-surface dark:text-on-surface-variant opacity-40 hover:opacity-100 transition-opacity active:scale-90 transition-all duration-150">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-sm text-label-sm">Home</span>
+</button>
+<button class="flex flex-col items-center justify-center text-primary dark:text-primary-fixed-dim bg-secondary-container dark:bg-primary-container rounded-full px-4 py-1 active:scale-90 transition-all duration-150">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">import_contacts</span>
+<span class="font-label-sm text-label-sm">Library</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface dark:text-on-surface-variant opacity-40 hover:opacity-100 transition-opacity active:scale-90 transition-all duration-150">
+<span class="material-symbols-outlined">leaderboard</span>
+<span class="font-label-sm text-label-sm">Stats</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface dark:text-on-surface-variant opacity-40 hover:opacity-100 transition-opacity active:scale-90 transition-all duration-150">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm">Profile</span>
+</button>
+</nav>
+<script>
+        // Simple micro-interaction for chips
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('click', function() {
+                if(this.classList.contains('bg-surface-container')) {
+                    this.classList.remove('bg-surface-container', 'text-on-surface-variant');
+                    this.classList.add('bg-secondary-container', 'text-on-secondary-container');
+                } else if (this.classList.contains('bg-secondary-container') && !this.closest('nav')) {
+                    this.classList.add('bg-surface-container', 'text-on-surface-variant');
+                    this.classList.remove('bg-secondary-container', 'text-on-secondary-container');
+                }
+            });
+        });
+
+        // Tab switching logic
+        const tabs = document.querySelectorAll('nav button');
+        tabs.forEach(tab => {
+            if(tab.closest('nav').classList.contains('border-b')) {
+               tab.addEventListener('click', () => {
+                   tabs.forEach(t => {
+                       if(t.closest('nav').classList.contains('border-b')) {
+                           t.classList.remove('border-primary', 'text-primary', 'font-semibold');
+                           t.classList.add('text-on-surface-variant', 'opacity-60');
+                           t.classList.remove('border-b-2');
+                       }
+                   });
+                   tab.classList.add('border-primary', 'text-primary', 'font-semibold', 'border-b-2');
+                   tab.classList.remove('text-on-surface-variant', 'opacity-60');
+               });
+            }
+        });
+    </script>
+</body></html>

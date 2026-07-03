@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<title>Tofu - Reading Habit Tracker</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;family=Literata:opsz,wght@7..72,400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-lowest": "#ffffff",
+                    "on-primary-container": "#a3d5c1",
+                    "inverse-on-surface": "#f2f1ec",
+                    "on-tertiary": "#ffffff",
+                    "secondary-fixed": "#dbe5da",
+                    "surface-container-highest": "#e4e2dd",
+                    "on-secondary-fixed": "#151e17",
+                    "inverse-surface": "#30312e",
+                    "primary-container": "#2e5e4e",
+                    "secondary-fixed-dim": "#bfc9bf",
+                    "on-primary-fixed-variant": "#1e4f40",
+                    "on-secondary": "#ffffff",
+                    "background": "#fbf9f4",
+                    "on-error": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "primary-fixed": "#baeed9",
+                    "secondary": "#576158",
+                    "tertiary-container": "#774b1d",
+                    "outline-variant": "#c0c9c3",
+                    "on-primary": "#ffffff",
+                    "surface-container-high": "#eae8e3",
+                    "on-tertiary-fixed": "#2d1600",
+                    "on-secondary-fixed-variant": "#404941",
+                    "on-surface-variant": "#404945",
+                    "on-tertiary-container": "#fbbe85",
+                    "error": "#ba1a1a",
+                    "primary-fixed-dim": "#9fd1bd",
+                    "surface-tint": "#376757",
+                    "tertiary": "#5c3407",
+                    "on-error-container": "#93000a",
+                    "secondary-container": "#d8e2d7",
+                    "tertiary-fixed": "#ffdcbf",
+                    "on-surface": "#1b1c19",
+                    "surface": "#fbf9f4",
+                    "primary": "#144637",
+                    "on-background": "#1b1c19",
+                    "surface-dim": "#dbdad5",
+                    "on-secondary-container": "#5b655c",
+                    "tertiary-fixed-dim": "#f7ba82",
+                    "surface-container-low": "#f5f3ee",
+                    "surface-bright": "#fbf9f4",
+                    "surface-variant": "#e4e2dd",
+                    "inverse-primary": "#9fd1bd",
+                    "surface-container": "#f0eee9",
+                    "on-primary-fixed": "#002117",
+                    "outline": "#707974",
+                    "on-tertiary-fixed-variant": "#663d10"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "16px",
+                    "base": "8px",
+                    "stack-md": "24px",
+                    "container-padding": "20px",
+                    "stack-lg": "40px",
+                    "stack-sm": "12px"
+            },
+            "fontFamily": {
+                    "label-lg": ["Hanken Grotesk"],
+                    "numeric-xl": ["Hanken Grotesk"],
+                    "body-md": ["Hanken Grotesk"],
+                    "title-sm": ["Literata"],
+                    "label-sm": ["Hanken Grotesk"],
+                    "headline-md": ["Literata"],
+                    "display-lg": ["Literata"],
+                    "display-lg-mobile": ["Literata"]
+            },
+            "fontSize": {
+                    "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                    "numeric-xl": ["48px", {"lineHeight": "48px", "letterSpacing": "-0.04em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "title-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "display-lg-mobile": ["28px", {"lineHeight": "34px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #fbf9f4; /* Match background token */
+            color: #1b1c19; /* Match on-surface token */
+            -webkit-font-smoothing: antialiased;
+        }
+        .card-shadow {
+            box-shadow: 0px 4px 20px rgba(46, 94, 78, 0.08);
+        }
+        .progress-ring-circle {
+            transition: stroke-dashoffset 0.35s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+        .active-tap:active {
+            transform: scale(0.95);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="min-h-screen pb-24">
+<!-- TopAppBar -->
+<header class="bg-background dark:bg-background w-full top-0 sticky z-40 flex items-center justify-between px-container-padding h-14 w-full">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">menu</span>
+<span class="font-headline-md text-headline-md text-primary dark:text-primary-fixed-dim">Tofu</span>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-1 bg-secondary-container px-3 py-1 rounded-full">
+<span class="material-symbols-outlined text-tertiary-container text-sm" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+<span class="font-label-lg text-label-lg text-on-secondary-container">12</span>
+</div>
+<div class="w-8 h-8 rounded-full bg-surface-container-high overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="Professional headshot of a young woman with a warm smile, wearing a minimalist sage green sweater, set against a soft cream studio background that matches the Tofu brand aesthetic. The lighting is soft and editorial, emphasizing a calm productivity mood with high-key whites and natural textures." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDqslCHSLwXld-As9F6Rqfpz20aZ3Poc9EiwGjEMx0F7BOfvb3oYcVDeRiUjPHQ3-BE1aOhhzyQSjD72ayt50WZ3S_r5OLc4a0la_iqikRzG_bvolY_1o6Ks51RPqPQT2PKrDDFmVG5DYAIpEa6PmgPhBYXha6OGbqogsonN6YAzyVHVgewRtuqhMOq36zK9EYBJqSwPzaYvoDQxzhRFWlJe_CmSIBA-QM-A8B_kp4Bz94aYfnfYhBqsX-arfT9l_1_2RL1fVBfKY"/>
+</div>
+</div>
+</header>
+<main class="px-container-padding pt-6 space-y-stack-md">
+<!-- Welcome Header -->
+<section>
+<h1 class="font-display-lg-mobile text-display-lg-mobile text-on-surface">Good Morning, Alex</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Your reading sanctuary is ready.</p>
+</section>
+<!-- Stats Bento Grid -->
+<section class="grid grid-cols-2 gap-4">
+<!-- Reading Time Ring -->
+<div class="bg-surface-container-lowest p-5 rounded-xl card-shadow flex flex-col items-center justify-center space-y-3">
+<div class="relative w-24 h-24">
+<svg class="w-full h-full">
+<circle class="text-primary opacity-10" cx="48" cy="48" fill="transparent" r="40" stroke="currentColor" stroke-width="8"></circle>
+<circle class="progress-ring-circle text-primary" cx="48" cy="48" fill="transparent" r="40" stroke="currentColor" stroke-dasharray="251.2" stroke-dashoffset="60" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="font-label-lg text-label-lg text-primary">45</span>
+<span class="text-[10px] uppercase tracking-wider text-on-surface-variant">min</span>
+</div>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Daily Goal</span>
+</div>
+<!-- Pages Read Slim Bar -->
+<div class="bg-surface-container-lowest p-5 rounded-xl card-shadow flex flex-col justify-between">
+<div class="space-y-1">
+<span class="font-numeric-xl text-[32px] text-primary">28</span>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Pages today</p>
+</div>
+<div class="w-full bg-primary opacity-10 h-1.5 rounded-full mt-4">
+<div class="bg-primary h-1.5 rounded-full w-[70%]"></div>
+</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant mt-2">Goal: 40</p>
+</div>
+</section>
+<!-- Current Read Featured Card -->
+<section class="space-y-stack-sm">
+<div class="flex items-center justify-between">
+<h2 class="font-title-sm text-title-sm text-on-surface">Current Read</h2>
+<button class="font-label-sm text-label-sm text-primary">View Library</button>
+</div>
+<div class="bg-surface-container-lowest rounded-xl card-shadow overflow-hidden flex flex-col md:flex-row">
+<div class="relative aspect-[3/4] md:w-1/3">
+<img class="w-full h-full object-cover" data-alt="A beautiful editorial book cover for a novel titled 'The Quiet Forest'. The design features minimalist botanical illustrations of ferns and pine needles in deep forest green and gold foil on a textured cream paper background. Soft, warm sunlight grazes the edge of the book, creating a tactile and sophisticated atmosphere consistent with a high-end reading app." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCUptHVFT3WTWCFCN0pXGWjzOMwE99rpAwLz8d0URrn9sczBtn9OMElFEGHwZyzKcv1XXo8Xpj0VO8vkkDz7Temv4G78XOYc16DxlpDmncnlzR6ePb_dGmB7Hx9ug7Nxabh70LbIEEJUGukJC1MHexgGKAvIbr_oNcQM1otFySHd7e9vPiVFAMSk_pBCwH8TcfDRo21NUhaCi3tXvjCHcvOLzv-QD64X1Q8ZqtvkK2JlPEe4c2Irfo5oWjBenaRDkOO0t5gFML9qz8"/>
+<div class="absolute top-3 left-3 bg-primary text-white font-label-sm text-[10px] px-2 py-0.5 rounded-full">65% READ</div>
+</div>
+<div class="p-6 flex-1 flex flex-col justify-between space-y-4">
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-1">The Midnight Library</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Matt Haig • Fiction</p>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between items-end">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Chapter 12 of 18</span>
+<span class="font-label-sm text-label-sm text-primary font-bold">12m left</span>
+</div>
+<div class="w-full bg-secondary-container h-1 rounded-full">
+<div class="bg-primary h-1 rounded-full w-[65%]"></div>
+</div>
+</div>
+<button class="w-full bg-primary text-on-primary py-4 rounded-xl font-label-lg text-label-lg flex items-center justify-center gap-2 active:scale-95 transition-transform duration-200 shadow-lg shadow-primary/10">
+<span class="material-symbols-outlined text-xl">play_circle</span>
+                        Continue Reading
+                    </button>
+</div>
+</div>
+</section>
+<!-- Weekly Progress Mini Chart -->
+<section class="bg-surface-container-low p-5 rounded-xl space-y-4">
+<div class="flex items-center justify-between">
+<h3 class="font-label-lg text-label-lg text-on-surface">Weekly Progress</h3>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Last 7 Days</span>
+</div>
+<div class="flex items-end justify-between h-20 px-2">
+<!-- Mon -->
+<div class="flex flex-col items-center gap-2 w-full">
+<div class="w-2 bg-primary opacity-20 rounded-full h-12"></div>
+<span class="font-label-sm text-[10px] text-on-surface-variant">M</span>
+</div>
+<!-- Tue -->
+<div class="flex flex-col items-center gap-2 w-full">
+<div class="w-2 bg-primary rounded-full h-16"></div>
+<span class="font-label-sm text-[10px] text-on-surface-variant">T</span>
+</div>
+<!-- Wed -->
+<div class="flex flex-col items-center gap-2 w-full">
+<div class="w-2 bg-primary rounded-full h-8"></div>
+<span class="font-label-sm text-[10px] text-on-surface-variant">W</span>
+</div>
+<!-- Thu -->
+<div class="flex flex-col items-center gap-2 w-full">
+<div class="w-2 bg-primary rounded-full h-20"></div>
+<span class="font-label-sm text-[10px] text-on-surface-variant">T</span>
+</div>
+<!-- Fri -->
+<div class="flex flex-col items-center gap-2 w-full">
+<div class="w-2 bg-primary rounded-full h-14"></div>
+<span class="font-label-sm text-[10px] text-on-surface-variant">F</span>
+</div>
+<!-- Sat -->
+<div class="flex flex-col items-center gap-2 w-full">
+<div class="w-2 bg-primary opacity-20 rounded-full h-6"></div>
+<span class="font-label-sm text-[10px] text-on-surface-variant">S</span>
+</div>
+<!-- Sun -->
+<div class="flex flex-col items-center gap-2 w-full">
+<div class="w-2 bg-primary opacity-20 rounded-full h-4"></div>
+<span class="font-label-sm text-[10px] text-on-surface-variant">S</span>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 pb-safe bg-surface-container-lowest shadow-sm border-t border-outline-variant dark:border-outline">
+<!-- Home (Active) -->
+<a class="flex flex-col items-center justify-center text-primary dark:text-primary-fixed-dim bg-secondary-container dark:bg-primary-container rounded-full px-4 py-1 active:scale-90 transition-all duration-150" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="font-label-sm text-label-sm">Home</span>
+</a>
+<!-- Library -->
+<a class="flex flex-col items-center justify-center text-on-surface dark:text-on-surface-variant opacity-40 hover:opacity-100 transition-opacity active:scale-90 duration-150" href="#">
+<span class="material-symbols-outlined">import_contacts</span>
+<span class="font-label-sm text-label-sm">Library</span>
+</a>
+<!-- Stats -->
+<a class="flex flex-col items-center justify-center text-on-surface dark:text-on-surface-variant opacity-40 hover:opacity-100 transition-opacity active:scale-90 duration-150" href="#">
+<span class="material-symbols-outlined">leaderboard</span>
+<span class="font-label-sm text-label-sm">Stats</span>
+</a>
+<!-- Profile -->
+<a class="flex flex-col items-center justify-center text-on-surface dark:text-on-surface-variant opacity-40 hover:opacity-100 transition-opacity active:scale-90 duration-150" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm">Profile</span>
+</a>
+</nav>
+<script>
+        // Micro-interaction for the "Continue Reading" button
+        const button = document.querySelector('button.bg-primary');
+        if (button) {
+            button.addEventListener('touchstart', () => {
+                button.style.backgroundColor = '#1e4f40'; // Tonal shift on press
+            });
+            button.addEventListener('touchend', () => {
+                button.style.backgroundColor = '#144637';
+            });
+        }
+
+        // Simulating a small progress update animation on load
+        window.addEventListener('DOMContentLoaded', () => {
+            const circle = document.querySelector('.progress-ring-circle');
+            if (circle) {
+                circle.style.strokeDashoffset = '251.2';
+                setTimeout(() => {
+                    circle.style.strokeDashoffset = '80'; // Animate to progress
+                }, 500);
+            }
+        });
+    </script>
+</body></html>

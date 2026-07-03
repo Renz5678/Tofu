@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<title>Tofu - Book Detail</title>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;family=Literata:opsz,wght@7..72,600;7..72,700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-container": "#a3d5c1",
+                        "inverse-on-surface": "#f2f1ec",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed": "#dbe5da",
+                        "surface-container-highest": "#e4e2dd",
+                        "on-secondary-fixed": "#151e17",
+                        "inverse-surface": "#30312e",
+                        "primary-container": "#2e5e4e",
+                        "secondary-fixed-dim": "#bfc9bf",
+                        "on-primary-fixed-variant": "#1e4f40",
+                        "on-secondary": "#ffffff",
+                        "background": "#fbf9f4",
+                        "on-error": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "primary-fixed": "#baeed9",
+                        "secondary": "#576158",
+                        "tertiary-container": "#774b1d",
+                        "outline-variant": "#c0c9c3",
+                        "on-primary": "#ffffff",
+                        "surface-container-high": "#eae8e3",
+                        "on-tertiary-fixed": "#2d1600",
+                        "on-secondary-fixed-variant": "#404941",
+                        "on-surface-variant": "#404945",
+                        "on-tertiary-container": "#fbbe85",
+                        "error": "#ba1a1a",
+                        "primary-fixed-dim": "#9fd1bd",
+                        "surface-tint": "#376757",
+                        "tertiary": "#5c3407",
+                        "on-error-container": "#93000a",
+                        "secondary-container": "#d8e2d7",
+                        "tertiary-fixed": "#ffdcbf",
+                        "on-surface": "#1b1c19",
+                        "surface": "#fbf9f4",
+                        "primary": "#144637",
+                        "on-background": "#1b1c19",
+                        "surface-dim": "#dbdad5",
+                        "on-secondary-container": "#5b655c",
+                        "tertiary-fixed-dim": "#f7ba82",
+                        "surface-container-low": "#f5f3ee",
+                        "surface-bright": "#fbf9f4",
+                        "surface-variant": "#e4e2dd",
+                        "inverse-primary": "#9fd1bd",
+                        "surface-container": "#f0eee9",
+                        "on-primary-fixed": "#002117",
+                        "outline": "#707974",
+                        "on-tertiary-fixed-variant": "#663d10"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "base": "8px",
+                        "stack-md": "24px",
+                        "container-padding": "20px",
+                        "stack-lg": "40px",
+                        "stack-sm": "12px"
+                    },
+                    "fontFamily": {
+                        "label-lg": ["Hanken Grotesk"],
+                        "numeric-xl": ["Hanken Grotesk"],
+                        "body-md": ["Hanken Grotesk"],
+                        "title-sm": ["Literata"],
+                        "label-sm": ["Hanken Grotesk"],
+                        "headline-md": ["Literata"],
+                        "display-lg": ["Literata"],
+                        "display-lg-mobile": ["Literata"]
+                    },
+                    "fontSize": {
+                        "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                        "numeric-xl": ["48px", {"lineHeight": "48px", "letterSpacing": "-0.04em", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "title-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "500"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "display-lg-mobile": ["28px", {"lineHeight": "34px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .active-interaction:active {
+            transform: scale(0.95);
+        }
+        .scroll-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .book-shadow {
+            box-shadow: 0px 4px 20px rgba(46, 94, 78, 0.12);
+        }
+        .tonal-glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body-md min-h-screen pb-24 selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- Top Navigation Bar -->
+<header class="w-full top-0 sticky z-40 bg-background/80 backdrop-blur-md flex items-center justify-between px-container-padding h-14 w-full">
+<button class="w-10 h-10 flex items-center justify-center text-primary rounded-full hover:bg-surface-container-low transition-colors active:scale-95 duration-200">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<span class="font-headline-md text-headline-md text-primary">Tofu</span>
+<div class="w-10 h-10 rounded-full overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="A clean, minimalist portrait photo of a professional woman with a friendly expression. The lighting is soft and natural, typical of a high-end editorial shoot. The color palette features soft creams, sage greens, and neutral tones to match the Tofu brand identity, evoking a sense of calm intelligence and approachability." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCCAoUgdLyozHx1hVsn-gZEbnhWH0pgnMcOdV81DATKn1Epjb1SuSZm2P9fAKjzJdWvmv_yv6RUCBXcb6pfuYJV4CRw8B-Y_yBo_3ZIO1x3XtXAXc18Dl6YwqCOjo3bYmBr120uKWektGsDYi9HNjTW41vIhl9bVyDkPlQFPzt6WD_2sb32IA3_l4MvWOWRuQ34kJTktNvqU95TDYtRqK522jdqq7eOdxTgqEg0T3d2WKruG6hiouJWxJM1EzFzmKy1p5WwrkOZ67Q"/>
+</div>
+</header>
+<main class="max-w-md mx-auto px-container-padding pt-6 space-y-stack-md">
+<!-- Large Book Cover Section -->
+<section class="relative flex flex-col items-center">
+<div class="w-56 h-80 rounded-xl overflow-hidden book-shadow transform -rotate-1 hover:rotate-0 transition-transform duration-500 ease-out">
+<img class="w-full h-full object-cover" data-alt="High-resolution editorial book cover art for a literary fiction novel. The design features an abstract watercolor painting of a dense forest in deep forest greens and soft sage hues. Minimalist elegant serif typography displays a fictional title. The lighting is moody and atmospheric, with a tactile linen paper texture visible on the cover surface, reflecting a premium editorial aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDzs3wzlArviY1unuIQDo_4PHC1YgHRx_E46JM5h8GXMUnL2o1ym2MSDpTgGZL1N-hXOuTeX1re5wrETWVA0-kG7sk-Db7D-h4MjbYR42kXVPqCnOTAaWD1f27o-Uipn733UeRqs1-wcvzRgeq0hRYpueq6GJLnpodmYRT76vDlqHIhLdpy_6Jo9kcqc-5VD7nrDE5r46m2x1NkMYQOoCPe8z0LdaTRn790TLyJpzXA6RSne4LmJuvxCQ1eNFKLeH3WwW7y8XEshKk"/>
+</div>
+<div class="mt-8 text-center space-y-2">
+<h1 class="font-display-lg-mobile text-display-lg-mobile text-primary">The Silent Archive</h1>
+<p class="font-title-sm text-title-sm text-on-surface-variant opacity-80">Elias Thorne</p>
+</div>
+</section>
+<!-- Progress Section -->
+<section class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/30 book-shadow space-y-4">
+<div class="flex justify-between items-end">
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Current Progress</span>
+<p class="font-numeric-xl text-numeric-xl text-primary">64<span class="text-headline-md font-display-lg-mobile">%</span></p>
+</div>
+<div class="text-right">
+<p class="font-label-lg text-label-lg text-on-surface">112 pages left</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">of 312 total</p>
+</div>
+</div>
+<!-- Slim Progress Bar -->
+<div class="w-full h-2 bg-primary/10 rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full transition-all duration-1000 ease-out" style="width: 64%"></div>
+</div>
+</section>
+<!-- Primary Action -->
+<button class="w-full py-4 bg-primary text-on-primary rounded-xl font-label-lg text-label-lg shadow-lg hover:shadow-xl active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+            Start Reading Session
+        </button>
+<!-- Quick Actions Cluster -->
+<div class="grid grid-cols-3 gap-3">
+<button class="flex flex-col items-center justify-center py-4 bg-secondary-container rounded-xl text-on-secondary-container hover:bg-secondary-fixed transition-colors active:scale-95">
+<span class="material-symbols-outlined mb-1">favorite</span>
+<span class="font-label-sm text-label-sm">Favorite</span>
+</button>
+<button class="flex flex-col items-center justify-center py-4 bg-secondary-container rounded-xl text-on-secondary-container hover:bg-secondary-fixed transition-colors active:scale-95">
+<span class="material-symbols-outlined mb-1">playlist_add</span>
+<span class="font-label-sm text-label-sm">Playlist</span>
+</button>
+<button class="flex flex-col items-center justify-center py-4 bg-secondary-container rounded-xl text-on-secondary-container hover:bg-secondary-fixed transition-colors active:scale-95">
+<span class="material-symbols-outlined mb-1">stacked_bar_chart</span>
+<span class="font-label-sm text-label-sm">Tier List</span>
+</button>
+</div>
+<!-- Session History -->
+<section class="space-y-4 pb-12">
+<div class="flex justify-between items-center">
+<h2 class="font-headline-md text-headline-md text-primary">Session History</h2>
+<button class="font-label-lg text-label-lg text-primary hover:underline">View All</button>
+</div>
+<div class="space-y-3">
+<!-- Session Item 1 -->
+<div class="flex items-center gap-4 p-4 bg-surface-container-low rounded-xl border border-outline-variant/20 hover:border-primary/30 transition-colors">
+<div class="w-12 h-12 rounded-full bg-primary-fixed flex items-center justify-center text-on-primary-fixed">
+<span class="material-symbols-outlined">menu_book</span>
+</div>
+<div class="flex-1">
+<p class="font-label-lg text-label-lg text-on-surface">Deep Focus Session</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Yesterday • 45 mins • 32 pages</p>
+</div>
+<span class="material-symbols-outlined text-outline">chevron_right</span>
+</div>
+<!-- Session Item 2 -->
+<div class="flex items-center gap-4 p-4 bg-surface-container-low rounded-xl border border-outline-variant/20 hover:border-primary/30 transition-colors">
+<div class="w-12 h-12 rounded-full bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed">
+<span class="material-symbols-outlined">history</span>
+</div>
+<div class="flex-1">
+<p class="font-label-lg text-label-lg text-on-surface">Morning Commute</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Oct 12 • 15 mins • 12 pages</p>
+</div>
+<span class="material-symbols-outlined text-outline">chevron_right</span>
+</div>
+<!-- Session Item 3 -->
+<div class="flex items-center gap-4 p-4 bg-surface-container-low rounded-xl border border-outline-variant/20 hover:border-primary/30 transition-colors opacity-70">
+<div class="w-12 h-12 rounded-full bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed">
+<span class="material-symbols-outlined">history</span>
+</div>
+<div class="flex-1">
+<p class="font-label-lg text-label-lg text-on-surface">Late Night Reading</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Oct 10 • 60 mins • 48 pages</p>
+</div>
+<span class="material-symbols-outlined text-outline">chevron_right</span>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar (Mandatory Shell) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 pb-safe bg-surface-container-lowest shadow-sm border-t border-outline-variant md:hidden">
+<a class="flex flex-col items-center justify-center text-on-surface dark:text-on-surface-variant opacity-40 hover:opacity-100 transition-opacity active:scale-90 duration-150" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-sm text-label-sm">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary dark:text-primary-fixed-dim bg-secondary-container dark:bg-primary-container rounded-full px-4 py-1 active:scale-90 transition-all duration-150" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">import_contacts</span>
+<span class="font-label-sm text-label-sm">Library</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface dark:text-on-surface-variant opacity-40 hover:opacity-100 transition-opacity active:scale-90 duration-150" href="#">
+<span class="material-symbols-outlined">leaderboard</span>
+<span class="font-label-sm text-label-sm">Stats</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface dark:text-on-surface-variant opacity-40 hover:opacity-100 transition-opacity active:scale-90 duration-150" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm">Profile</span>
+</a>
+</nav>
+<script>
+        // Simple micro-interaction for the start reading button
+        const startBtn = document.querySelector('button.bg-primary');
+        startBtn.addEventListener('click', () => {
+            startBtn.innerHTML = '<span class="material-symbols-outlined animate-spin">sync</span> Starting...';
+            setTimeout(() => {
+                startBtn.innerHTML = '<span class="material-symbols-outlined" style="font-variation-settings: \'FILL\' 1;">play_arrow</span> Start Reading Session';
+            }, 1500);
+        });
+
+        // Hover effect on the book cover to slightly lift it
+        const bookCover = document.querySelector('img[data-alt*="book cover"]');
+        if(bookCover) {
+            bookCover.parentElement.addEventListener('mouseenter', () => {
+                bookCover.parentElement.style.transform = 'translateY(-8px) rotate(0deg) scale(1.02)';
+            });
+            bookCover.parentElement.addEventListener('mouseleave', () => {
+                bookCover.parentElement.style.transform = 'translateY(0px) rotate(-1deg) scale(1)';
+            });
+        }
+    </script>
+</body></html>

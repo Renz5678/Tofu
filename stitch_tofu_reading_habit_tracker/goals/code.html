@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<title>Tofu - Goals</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;0,7..72,700;1,7..72,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-lowest": "#ffffff",
+                    "on-primary-container": "#a3d5c1",
+                    "inverse-on-surface": "#f2f1ec",
+                    "on-tertiary": "#ffffff",
+                    "secondary-fixed": "#dbe5da",
+                    "surface-container-highest": "#e4e2dd",
+                    "on-secondary-fixed": "#151e17",
+                    "inverse-surface": "#30312e",
+                    "primary-container": "#2e5e4e",
+                    "secondary-fixed-dim": "#bfc9bf",
+                    "on-primary-fixed-variant": "#1e4f40",
+                    "on-secondary": "#ffffff",
+                    "background": "#fbf9f4",
+                    "on-error": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "primary-fixed": "#baeed9",
+                    "secondary": "#576158",
+                    "tertiary-container": "#774b1d",
+                    "outline-variant": "#c0c9c3",
+                    "on-primary": "#ffffff",
+                    "surface-container-high": "#eae8e3",
+                    "on-tertiary-fixed": "#2d1600",
+                    "on-secondary-fixed-variant": "#404941",
+                    "on-surface-variant": "#404945",
+                    "on-tertiary-container": "#fbbe85",
+                    "error": "#ba1a1a",
+                    "primary-fixed-dim": "#9fd1bd",
+                    "surface-tint": "#376757",
+                    "tertiary": "#5c3407",
+                    "on-error-container": "#93000a",
+                    "secondary-container": "#d8e2d7",
+                    "tertiary-fixed": "#ffdcbf",
+                    "on-surface": "#1b1c19",
+                    "surface": "#fbf9f4",
+                    "primary": "#144637",
+                    "on-background": "#1b1c19",
+                    "surface-dim": "#dbdad5",
+                    "on-secondary-container": "#5b655c",
+                    "tertiary-fixed-dim": "#f7ba82",
+                    "surface-container-low": "#f5f3ee",
+                    "surface-bright": "#fbf9f4",
+                    "surface-variant": "#e4e2dd",
+                    "inverse-primary": "#9fd1bd",
+                    "surface-container": "#f0eee9",
+                    "on-primary-fixed": "#002117",
+                    "outline": "#707974",
+                    "on-tertiary-fixed-variant": "#663d10"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "16px",
+                    "base": "8px",
+                    "stack-md": "24px",
+                    "container-padding": "20px",
+                    "stack-lg": "40px",
+                    "stack-sm": "12px"
+            },
+            "fontFamily": {
+                    "label-lg": ["Hanken Grotesk"],
+                    "numeric-xl": ["Hanken Grotesk"],
+                    "body-md": ["Hanken Grotesk"],
+                    "title-sm": ["Literata"],
+                    "label-sm": ["Hanken Grotesk"],
+                    "headline-md": ["Literata"],
+                    "display-lg": ["Literata"],
+                    "display-lg-mobile": ["Literata"]
+            },
+            "fontSize": {
+                    "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                    "numeric-xl": ["48px", {"lineHeight": "48px", "letterSpacing": "-0.04em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "title-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "display-lg-mobile": ["28px", {"lineHeight": "34px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            -webkit-tap-highlight-color: transparent;
+            font-feature-settings: "kern" 1, "liga" 1;
+        }
+        .progress-ring-circle {
+            transition: stroke-dashoffset 0.6s ease-in-out;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+        .bento-card {
+            box-shadow: 0px 4px 20px rgba(46, 94, 78, 0.08);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface min-h-screen pb-32">
+<!-- Top App Bar -->
+<header class="w-full top-0 sticky z-40 bg-background flex items-center justify-between px-container-padding h-14">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-headline-md">menu</span>
+<h1 class="font-headline-md text-headline-md text-primary">Tofu</h1>
+</div>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="A clean, minimalist portrait of a modern reader in a bright studio environment. The style is editorial and sophisticated, featuring soft lighting and a warm beige and forest green color palette. The subject exudes a sense of intellectual calm and focus, perfectly aligned with the Tofu reading habit tracker aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCKtVCQDO7lfnM9F4znBk-oGsrAwVJIOCZ5bi7PXmqPFGYs3aPY_S8BFiom5rlg02V2ezLenxT4JcjYKDtyFZBHbIA7zH68TjBpaZGxs-3vXFVwdNBc3OncqFEpYtmcEMOX9QW2sVtYrBvZNm31cg-fhMkhv85VrS0RvTHq5q1pPJQQN2_E72TPRNfZ3EMmm0KN-890gPvIwQ3shdYLQLF0FEmyth22UWaMjsde1FLqfOQ-mzguMlE3WkQpQBB3AOBqEOiTMvkqGV8"/>
+</div>
+</header>
+<main class="px-container-padding py-stack-md max-w-xl mx-auto">
+<!-- Header Section -->
+<section class="mb-stack-lg">
+<h2 class="font-display-lg-mobile text-display-lg-mobile text-primary mb-2">My Goals</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Reading is a journey of consistency. Keep the momentum alive.</p>
+</section>
+<!-- Goals Bento Grid -->
+<div class="grid grid-cols-1 gap-stack-md">
+<!-- Goal Card 1 -->
+<div class="bento-card bg-surface-container-lowest rounded-xl p-6 flex items-center justify-between group active:scale-95 transition-transform duration-200">
+<div class="flex-1 pr-4">
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-wider mb-1 block">Daily Commitment</span>
+<h3 class="font-title-sm text-title-sm text-primary mb-2">Read 20 pages a day</h3>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[18px]">auto_stories</span>
+<p class="font-body-md text-body-md text-on-surface-variant">14 / 20 pages done</p>
+</div>
+</div>
+<div class="relative flex items-center justify-center w-24 h-24">
+<svg class="w-full h-full" viewbox="0 0 100 100">
+<circle class="text-primary opacity-10" cx="50" cy="50" fill="transparent" r="40" stroke="currentColor" stroke-width="8"></circle>
+<circle class="progress-ring-circle text-primary" cx="50" cy="50" fill="transparent" r="40" stroke="currentColor" stroke-dasharray="251.2" stroke-dashoffset="75.36" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<span class="absolute font-numeric-xl text-[16px] text-primary">70%</span>
+</div>
+</div>
+<!-- Goal Card 2 -->
+<div class="bento-card bg-surface-container-lowest rounded-xl p-6 flex items-center justify-between group active:scale-95 transition-transform duration-200">
+<div class="flex-1 pr-4">
+<span class="font-label-sm text-label-sm text-tertiary-container uppercase tracking-wider mb-1 block">Weekly Target</span>
+<h3 class="font-title-sm text-title-sm text-primary mb-2">Read 3 hours a week</h3>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[18px]">schedule</span>
+<p class="font-body-md text-body-md text-on-surface-variant">1.2 / 3 hours logged</p>
+</div>
+</div>
+<div class="relative flex items-center justify-center w-24 h-24">
+<svg class="w-full h-full" viewbox="0 0 100 100">
+<circle class="text-primary opacity-10" cx="50" cy="50" fill="transparent" r="40" stroke="currentColor" stroke-width="8"></circle>
+<circle class="progress-ring-circle text-primary" cx="50" cy="50" fill="transparent" r="40" stroke="currentColor" stroke-dasharray="251.2" stroke-dashoffset="150.72" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<span class="absolute font-numeric-xl text-[16px] text-primary">40%</span>
+</div>
+</div>
+<!-- Motivational Insight Card (Asymmetric Layout) -->
+<div class="bento-card bg-secondary-container rounded-xl p-6 overflow-hidden relative min-h-[160px] flex flex-col justify-end">
+<div class="absolute top-0 right-0 p-4 opacity-20">
+<span class="material-symbols-outlined text-[80px] text-primary">trending_up</span>
+</div>
+<div class="relative z-10">
+<h4 class="font-title-sm text-title-sm text-primary mb-1">Consistency Streak</h4>
+<p class="font-body-md text-body-md text-on-secondary-container">You've hit your daily goals for 5 days straight. Your focus is improving!</p>
+</div>
+</div>
+<!-- Suggestion Card -->
+<div class="bento-card bg-surface-container-lowest rounded-xl p-6 border border-outline-variant border-dashed">
+<div class="flex flex-col items-center justify-center text-center py-4">
+<div class="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-primary">psychology</span>
+</div>
+<h3 class="font-title-sm text-title-sm text-primary mb-2">Ready for a challenge?</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6">Users like you often aim for 'Complete one classic book per month'.</p>
+<button class="w-full bg-secondary-fixed text-primary font-label-lg py-3 rounded-full hover:bg-secondary-fixed-dim transition-colors active:scale-95">Explore Challenges</button>
+</div>
+</div>
+</div>
+</main>
+<!-- FAB -->
+<button class="fixed bottom-24 right-6 w-14 h-14 bg-primary text-white rounded-2xl shadow-xl flex items-center justify-center hover:scale-105 active:scale-90 transition-all z-50">
+<span class="material-symbols-outlined text-[28px]">add</span>
+</button>
+<!-- Bottom Nav Bar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 pb-safe bg-surface-container-lowest shadow-sm border-t border-outline-variant">
+<a class="flex flex-col items-center justify-center text-on-surface opacity-40 hover:opacity-100 transition-opacity" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-sm text-label-sm">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface opacity-40 hover:opacity-100 transition-opacity" href="#">
+<span class="material-symbols-outlined">import_contacts</span>
+<span class="font-label-sm text-label-sm">Library</span>
+</a>
+<div class="flex flex-col items-center justify-center text-primary bg-secondary-container rounded-full px-4 py-1">
+<span class="material-symbols-outlined">leaderboard</span>
+<span class="font-label-sm text-label-sm">Stats</span>
+</div>
+<a class="flex flex-col items-center justify-center text-on-surface opacity-40 hover:opacity-100 transition-opacity" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm">Profile</span>
+</a>
+</nav>
+<script>
+        // Simple ripple-like feedback for interaction
+        document.querySelectorAll('.active\\:scale-95').forEach(button => {
+            button.addEventListener('mousedown', () => {
+                button.classList.add('opacity-80');
+            });
+            button.addEventListener('mouseup', () => {
+                button.classList.remove('opacity-80');
+            });
+            button.addEventListener('mouseleave', () => {
+                button.classList.remove('opacity-80');
+            });
+        });
+    </script>
+</body></html>

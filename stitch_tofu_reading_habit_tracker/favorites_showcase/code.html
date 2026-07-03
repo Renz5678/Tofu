@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Tofu - Favorites</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;family=Literata:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind Config Verbatim -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-lowest": "#ffffff",
+                    "on-primary-container": "#a3d5c1",
+                    "inverse-on-surface": "#f2f1ec",
+                    "on-tertiary": "#ffffff",
+                    "secondary-fixed": "#dbe5da",
+                    "surface-container-highest": "#e4e2dd",
+                    "on-secondary-fixed": "#151e17",
+                    "inverse-surface": "#30312e",
+                    "primary-container": "#2e5e4e",
+                    "secondary-fixed-dim": "#bfc9bf",
+                    "on-primary-fixed-variant": "#1e4f40",
+                    "on-secondary": "#ffffff",
+                    "background": "#fbf9f4",
+                    "on-error": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "primary-fixed": "#baeed9",
+                    "secondary": "#576158",
+                    "tertiary-container": "#774b1d",
+                    "outline-variant": "#c0c9c3",
+                    "on-primary": "#ffffff",
+                    "surface-container-high": "#eae8e3",
+                    "on-tertiary-fixed": "#2d1600",
+                    "on-secondary-fixed-variant": "#404941",
+                    "on-surface-variant": "#404945",
+                    "on-tertiary-container": "#fbbe85",
+                    "error": "#ba1a1a",
+                    "primary-fixed-dim": "#9fd1bd",
+                    "surface-tint": "#376757",
+                    "tertiary": "#5c3407",
+                    "on-error-container": "#93000a",
+                    "secondary-container": "#d8e2d7",
+                    "tertiary-fixed": "#ffdcbf",
+                    "on-surface": "#1b1c19",
+                    "surface": "#fbf9f4",
+                    "primary": "#144637",
+                    "on-background": "#1b1c19",
+                    "surface-dim": "#dbdad5",
+                    "on-secondary-container": "#5b655c",
+                    "tertiary-fixed-dim": "#f7ba82",
+                    "surface-container-low": "#f5f3ee",
+                    "surface-bright": "#fbf9f4",
+                    "surface-variant": "#e4e2dd",
+                    "inverse-primary": "#9fd1bd",
+                    "surface-container": "#f0eee9",
+                    "on-primary-fixed": "#002117",
+                    "outline": "#707974",
+                    "on-tertiary-fixed-variant": "#663d10"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "16px",
+                    "base": "8px",
+                    "stack-md": "24px",
+                    "container-padding": "20px",
+                    "stack-lg": "40px",
+                    "stack-sm": "12px"
+            },
+            "fontFamily": {
+                    "label-lg": ["Hanken Grotesk"],
+                    "numeric-xl": ["Hanken Grotesk"],
+                    "body-md": ["Hanken Grotesk"],
+                    "title-sm": ["Literata"],
+                    "label-sm": ["Hanken Grotesk"],
+                    "headline-md": ["Literata"],
+                    "display-lg": ["Literata"],
+                    "display-lg-mobile": ["Literata"]
+            },
+            "fontSize": {
+                    "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                    "numeric-xl": ["48px", {"lineHeight": "48px", "letterSpacing": "-0.04em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "title-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "display-lg-mobile": ["28px", {"lineHeight": "34px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .active-nav-indicator {
+            box-shadow: 0 4px 12px rgba(46, 94, 78, 0.12);
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body-md min-h-screen pb-24">
+<!-- TopAppBar -->
+<header class="w-full top-0 sticky z-50 bg-background flex items-center justify-between px-container-padding h-14">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="menu">menu</span>
+</div>
+<h1 class="font-headline-md text-headline-md text-primary">Tofu</h1>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="A professional studio portrait of a young adult reader, softly lit with warm amber tones. The aesthetic is clean and modern, featuring a neutral cream background that complements the editorial design system's color palette of Forest Green and Sage. The subject has a calm, focused expression, suggesting the brand's 'Calm Productivity' identity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDsXGWF7alvG2zpod5cZvT0MKK4DYaqCd_QpNGWjgvICyIiOngq7Vauwq8lSTYOeYwxyKJa0qu4t0tut-JFH9Kxau98ld1tZelwCuO7Tz8YWL0r3Zh-aDRdliGChjiUkVXEFdzaiilBUU4JjgwtSS5bEF76NUkXMm0s06xnvkBiwvOynPoSKBDQXSJbzhaUdhkEciQfDbVReeRqZXTP3Yz376JjeqHThK0-FvbczV-9IknTOTMs9Nko7jYEvMDh5n8oje5ppTA3Pwo"/>
+</div>
+</header>
+<main class="mt-stack-md px-container-padding">
+<!-- Header Section -->
+<section class="mb-stack-md">
+<div class="flex items-end justify-between">
+<div>
+<p class="font-label-sm text-label-sm text-secondary uppercase tracking-widest mb-1">Curated List</p>
+<h2 class="font-display-lg-mobile text-display-lg-mobile text-primary">Top 5</h2>
+</div>
+<button class="bg-secondary-container text-on-secondary-container rounded-full px-4 py-2 font-label-lg text-label-lg active:scale-95 transition-transform">
+                    Edit List
+                </button>
+</div>
+<p class="font-body-md text-on-surface-variant mt-2 max-w-[80%]">
+                Your personal hall of fame. The five books that shaped your perspective this year.
+            </p>
+</section>
+<!-- Top 5 Horizontal Showcase -->
+<section class="relative -mx-container-padding">
+<div class="flex overflow-x-auto gap-gutter px-container-padding pb-8 pt-4 hide-scrollbar snap-x snap-mandatory">
+<!-- Rank #1 -->
+<div class="flex-none w-[200px] snap-center">
+<div class="relative aspect-[2/3] rounded-xl overflow-hidden shadow-[0px_4px_20px_rgba(46,94,78,0.08)] bg-surface-container-highest group cursor-pointer active:scale-95 transition-all">
+<img class="w-full h-full object-cover" data-alt="A minimalist book cover design for a classic philosophy novel. The cover features a deep Forest Green background with elegant gold serif typography and a single abstract geometric symbol in the center. The lighting is soft and editorial, highlighting the tactile paper texture of the book spine. Part of a high-end library aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCun5z5fGATJuO38IrID6kR14_i0Ng7eBoF4p00KbxSPuXDzYdNLuZYMUYNE2L7IHZ_WPI4K9MuYIlE9OW6tc7UngO1ytyNEIQIxwFohQuOEyDXHM1-Ogzq9Vhj8tl0j1wqgWfqsRFl--3z4YyxR21QNilMwTpxf3bS4KxiU3Uf0zC_61aUWKF1saU2cIB4ZCxBXh3fF48K5o_V9Tn7jSXSs9iV7_IHGhgjUrfa-zJVOKlXA0KGaRfFtdC_LSLl9D0umsJ5Fy0cXww"/>
+<div class="absolute top-3 left-3 w-10 h-10 bg-primary rounded-full flex items-center justify-center text-on-primary font-numeric-xl text-[20px] shadow-lg">
+                            1
+                        </div>
+</div>
+<div class="mt-3">
+<h3 class="font-title-sm text-title-sm text-on-surface line-clamp-1">Meditations</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Marcus Aurelius</p>
+</div>
+</div>
+<!-- Rank #2 -->
+<div class="flex-none w-[200px] snap-center">
+<div class="relative aspect-[2/3] rounded-xl overflow-hidden shadow-[0px_4px_20px_rgba(46,94,78,0.08)] bg-surface-container-highest group cursor-pointer active:scale-95 transition-all">
+<img class="w-full h-full object-cover" data-alt="Contemporary book cover for a design theory book. The cover is primarily Sage Green and Cream with bold, overlapping typography in a modern sans-serif font. A subtle shadow creates a sense of depth on the paper cover. The visual style is crisp and professional, reflecting a clean productivity theme." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBX-_kK-WBETwSpCjPoy57Nrqcc4QnV6qMR3gTitT_BfB3ABhnwoweZR-n0TGmM5rQjGn1KpGBe-bkxBG9oWX_Ln1Z-Q2s2fO3xiPgaWLv9tHpKhEVdYbY4dtUid2Fj9F0liAxSq_zZa_AXO7aX9mdMyBLPCaArCN8SVJEF61NSj_jeG3umMVpGNHrdIMJ7PFqvVI8n-uzOGZYyo6klXBWD73NU-IE6Hc791Wu6-_zofVKz7vnrzAeROLljL1GudiLQibgDP22oQIE"/>
+<div class="absolute top-3 left-3 w-10 h-10 bg-primary-container rounded-full flex items-center justify-center text-on-primary-container font-numeric-xl text-[20px] shadow-lg">
+                            2
+                        </div>
+</div>
+<div class="mt-3">
+<h3 class="font-title-sm text-title-sm text-on-surface line-clamp-1">The Design of Everyday Things</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Don Norman</p>
+</div>
+</div>
+<!-- Rank #3 -->
+<div class="flex-none w-[200px] snap-center">
+<div class="relative aspect-[2/3] rounded-xl overflow-hidden shadow-[0px_4px_20px_rgba(46,94,78,0.08)] bg-surface-container-highest group cursor-pointer active:scale-95 transition-all">
+<img class="w-full h-full object-cover" data-alt="Atmospheric book cover for a mystery novel set in a forest. The artwork shows a foggy woodland rendered in desaturated greens and charcoals. The title is embossed in white Literata font. High-quality editorial style with a soft-touch matte finish appearance, perfect for a tactile library collection." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDeCXJecxzHAXTRS9C4aHRJRz1wVKVrvEdRm5FoKPA87ZzbKC9yUirm94NFzIUJhNPB8ERdWWRVoxQvwKiUn6l61lcdfUgoSgVCw5b1nprf0Liqp0VF7iRG5u41GDLa0wi1_76OrCP6nPtuWcSHKP3rQeVS5AGUFpf67o5rs3rRPebL4H4fBxYc7UrVEN-z5AAbMG_uxRwuFkbg1mgnrcnKj4WD2-8r7FUMwIOBZWk7Ssw7a4roOxP6cbOmqR-X4-1_foJAHri_hJg"/>
+<div class="absolute top-3 left-3 w-10 h-10 bg-primary-container rounded-full flex items-center justify-center text-on-primary-container font-numeric-xl text-[20px] shadow-lg">
+                            3
+                        </div>
+</div>
+<div class="mt-3">
+<h3 class="font-title-sm text-title-sm text-on-surface line-clamp-1">The Secret History</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Donna Tartt</p>
+</div>
+</div>
+<!-- Rank #4 (Empty State) -->
+<div class="flex-none w-[200px] snap-center">
+<div class="relative aspect-[2/3] rounded-xl border-2 border-dashed border-outline-variant bg-surface-container-low flex flex-col items-center justify-center gap-2 group cursor-pointer hover:bg-surface-container-high transition-colors active:scale-95">
+<div class="w-12 h-12 rounded-full bg-surface-container-highest flex items-center justify-center text-secondary group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[32px]" data-icon="add">add</span>
+</div>
+<span class="font-label-lg text-label-lg text-secondary">Add Favorite</span>
+<div class="absolute top-3 left-3 w-10 h-10 bg-surface-container-highest rounded-full flex items-center justify-center text-secondary font-numeric-xl text-[20px] opacity-40">
+                            4
+                        </div>
+</div>
+<div class="mt-3 opacity-30">
+<h3 class="font-title-sm text-title-sm text-on-surface">Empty Slot</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Tap to rank a book</p>
+</div>
+</div>
+<!-- Rank #5 (Empty State) -->
+<div class="flex-none w-[200px] snap-center">
+<div class="relative aspect-[2/3] rounded-xl border-2 border-dashed border-outline-variant bg-surface-container-low flex flex-col items-center justify-center gap-2 group cursor-pointer hover:bg-surface-container-high transition-colors active:scale-95">
+<div class="w-12 h-12 rounded-full bg-surface-container-highest flex items-center justify-center text-secondary group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[32px]" data-icon="add">add</span>
+</div>
+<span class="font-label-lg text-label-lg text-secondary">Add Favorite</span>
+<div class="absolute top-3 left-3 w-10 h-10 bg-surface-container-highest rounded-full flex items-center justify-center text-secondary font-numeric-xl text-[20px] opacity-40">
+                            5
+                        </div>
+</div>
+<div class="mt-3 opacity-30">
+<h3 class="font-title-sm text-title-sm text-on-surface">Empty Slot</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Tap to rank a book</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Contextual Recommendation -->
+<section class="mt-stack-md">
+<h4 class="font-label-lg text-label-lg text-secondary uppercase tracking-widest mb-4">You might also rank</h4>
+<div class="grid grid-cols-1 gap-4">
+<div class="bg-surface-container-lowest p-4 rounded-xl flex items-center gap-4 shadow-sm">
+<div class="w-16 h-20 rounded-lg overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="A clean book cover for a productivity manual. Minimalist layout with Sage Green and white color scheme. Sharp typography in Hanken Grotesk. The background features a subtle linen texture." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCV9tTgpiVbhBdhfqXtAs1rceJn8zRQZauD6RF1f1u6GvNVGbvy82eP1zn50C_NXk4F43DcMae6G-F__Q8tqxv96L9EcRUO7oE-vcUi-539z1U0FIEy1bcyOlF86SXumTCkaZkLvRkWuTDhMe0ACzRAv15bGRpw088T7NTV7rgk9Wjxz097HuCbCJ7fNOxryJCyUXVYXhvyLBfkvbw8edE4d5u7fSiqOb4BEBE24hAvkwY7NyXU_exF2AwgMS8UZB9P0T7mmpuaNpg"/>
+</div>
+<div class="flex-grow">
+<h5 class="font-title-sm text-title-sm text-on-surface">Atomic Habits</h5>
+<p class="font-label-sm text-label-sm text-on-surface-variant">James Clear</p>
+</div>
+<button class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center text-primary active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="star" data-weight="fill">star</span>
+</button>
+</div>
+<div class="bg-surface-container-lowest p-4 rounded-xl flex items-center gap-4 shadow-sm opacity-80">
+<div class="w-16 h-20 rounded-lg overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="An artistic book cover for a literary fiction novel. Muted earthy tones like terracotta and forest green. Artistic brushstroke details on the cover. Elegant serif title font Literata." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAhhizrqINm4tVGSgf_jJF6szAoCrXEz5rI9u909KIAf_XFYugRQora2szWqc2zhMp9_AH8V1ZUnd3fQB5AcrjnNJEwXvExJnwPaN-LVE66mDCucjfgtTQTq7PlKiQWjDjREfad5WRkINuduKY-nnQcaus0Lo3DXDzj42vil4MqZNK_-CzAWq0ijrugX1wHWDd2Ew1PdVNzH-h0NGSjWBps0FHdxGyNbokpCXuLIus5VuNREEu8FTkTYdfG8GsddzBaSwKULlKbc4s"/>
+</div>
+<div class="flex-grow">
+<h5 class="font-title-sm text-title-sm text-on-surface">Circe</h5>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Madeline Miller</p>
+</div>
+<button class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center text-primary active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="star" data-weight="fill">star</span>
+</button>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 pb-safe bg-surface-container-lowest shadow-sm border-t border-outline-variant">
+<a class="flex flex-col items-center justify-center text-on-surface opacity-40 hover:opacity-100 transition-opacity active:scale-90 duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-sm text-label-sm">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface opacity-40 hover:opacity-100 transition-opacity active:scale-90 duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="import_contacts">import_contacts</span>
+<span class="font-label-sm text-label-sm">Library</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface opacity-40 hover:opacity-100 transition-opacity active:scale-90 duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="leaderboard">leaderboard</span>
+<span class="font-label-sm text-label-sm">Stats</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary bg-secondary-container rounded-full px-4 py-1 active-nav-indicator active:scale-90 duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="person" style="font-variation-settings: 'FILL' 1;">person</span>
+<span class="font-label-sm text-label-sm">Profile</span>
+</a>
+</nav>
+<script>
+        // Micro-interaction: Active state feedback for rank slots
+        document.querySelectorAll('.snap-center').forEach(slot => {
+            slot.addEventListener('click', () => {
+                slot.style.transform = 'scale(0.98)';
+                setTimeout(() => {
+                    slot.style.transform = 'scale(1)';
+                }, 150);
+            });
+        });
+
+        // Horizontal scroll fade effect logic
+        const scrollContainer = document.querySelector('.overflow-x-auto');
+        scrollContainer.addEventListener('scroll', () => {
+            // Logic for reveal/hide indicators could go here
+        });
+    </script>
+</body></html>

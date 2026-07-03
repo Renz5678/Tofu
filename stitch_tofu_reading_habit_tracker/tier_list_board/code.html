@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<title>Tofu | Book Tier List</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;family=Literata:ital,wght@0,600;0,700;1,600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-lowest": "#ffffff",
+                    "on-primary-container": "#a3d5c1",
+                    "inverse-on-surface": "#f2f1ec",
+                    "on-tertiary": "#ffffff",
+                    "secondary-fixed": "#dbe5da",
+                    "surface-container-highest": "#e4e2dd",
+                    "on-secondary-fixed": "#151e17",
+                    "inverse-surface": "#30312e",
+                    "primary-container": "#2e5e4e",
+                    "secondary-fixed-dim": "#bfc9bf",
+                    "on-primary-fixed-variant": "#1e4f40",
+                    "on-secondary": "#ffffff",
+                    "background": "#fbf9f4",
+                    "on-error": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "primary-fixed": "#baeed9",
+                    "secondary": "#576158",
+                    "tertiary-container": "#774b1d",
+                    "outline-variant": "#c0c9c3",
+                    "on-primary": "#ffffff",
+                    "surface-container-high": "#eae8e3",
+                    "on-tertiary-fixed": "#2d1600",
+                    "on-secondary-fixed-variant": "#404941",
+                    "on-surface-variant": "#404945",
+                    "on-tertiary-container": "#fbbe85",
+                    "error": "#ba1a1a",
+                    "primary-fixed-dim": "#9fd1bd",
+                    "surface-tint": "#376757",
+                    "tertiary": "#5c3407",
+                    "on-error-container": "#93000a",
+                    "secondary-container": "#d8e2d7",
+                    "tertiary-fixed": "#ffdcbf",
+                    "on-surface": "#1b1c19",
+                    "surface": "#fbf9f4",
+                    "primary": "#144637",
+                    "on-background": "#1b1c19",
+                    "surface-dim": "#dbdad5",
+                    "on-secondary-container": "#5b655c",
+                    "tertiary-fixed-dim": "#f7ba82",
+                    "surface-container-low": "#f5f3ee",
+                    "surface-bright": "#fbf9f4",
+                    "surface-variant": "#e4e2dd",
+                    "inverse-primary": "#9fd1bd",
+                    "surface-container": "#f0eee9",
+                    "on-primary-fixed": "#002117",
+                    "outline": "#707974",
+                    "on-tertiary-fixed-variant": "#663d10"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "16px",
+                    "base": "8px",
+                    "stack-md": "24px",
+                    "container-padding": "20px",
+                    "stack-lg": "40px",
+                    "stack-sm": "12px"
+            },
+            "fontFamily": {
+                    "label-lg": ["Hanken Grotesk"],
+                    "numeric-xl": ["Hanken Grotesk"],
+                    "body-md": ["Hanken Grotesk"],
+                    "title-sm": ["Literata"],
+                    "label-sm": ["Hanken Grotesk"],
+                    "headline-md": ["Literata"],
+                    "display-lg": ["Literata"],
+                    "display-lg-mobile": ["Literata"]
+            },
+            "fontSize": {
+                    "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                    "numeric-xl": ["48px", {"lineHeight": "48px", "letterSpacing": "-0.04em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "title-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "display-lg-mobile": ["28px", {"lineHeight": "34px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        .tier-row:last-child { border-bottom: none; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .drag-ghost { opacity: 0.4; }
+        .tier-drop-zone { min-height: 80px; }
+        .custom-scrollbar::-webkit-scrollbar { height: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #c0c9c3; border-radius: 10px; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="w-full top-0 sticky z-50 bg-background flex items-center justify-between px-container-padding h-14">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary">menu</span>
+<h1 class="font-headline-md text-headline-md text-primary">Tofu</h1>
+</div>
+<div class="w-8 h-8 rounded-full overflow-hidden bg-surface-container-high ring-2 ring-primary/10">
+<img class="w-full h-full object-cover" data-alt="A close-up high-quality portrait of a scholarly individual reading a book, styled in a warm editorial aesthetic with soft natural lighting. The color palette features rich forest greens and soft creams, echoing a professional library environment with a modern, clean digital finish." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCKJC5LEZGmUz6GOet8MxggyzuiDTYd0fh6RoLLX7ruGS0fa4EJ0HmW-JZ5TZTvbA9KbuOcgnkX-mNXx7PJLHzclhmQPuAYRz9o6L4dXvDZv-H0aW1Dxr2IUzvMKdT5Zn9p82f2vlZgL6banFy-YfkZBT-rb3pkU308CzytQmFCrzoZcg9Y8JKxzzWhxZaQfI4RHJY4fdZ4w-lFFhmwEQlmgu4TPWkFGNL4aZcdOIx1aAX7wCCboVcfpzn0-fbOoElx23_0ETkpuCI"/>
+</div>
+</header>
+<main class="max-w-screen-md mx-auto px-container-padding pt-6">
+<!-- Header Section -->
+<div class="mb-stack-md">
+<h2 class="font-display-lg-mobile text-display-lg-mobile text-primary mb-1">Book Tier List</h2>
+<p class="font-label-lg text-label-lg text-on-surface-variant">Rank your intellectual progress this quarter.</p>
+</div>
+<!-- Tier List Board -->
+<div class="bg-surface-container-lowest rounded-xl shadow-[0px_4px_20px_rgba(46,94,78,0.08)] overflow-hidden mb-stack-md">
+<!-- Tier S -->
+<div class="flex border-b border-outline-variant tier-row">
+<div class="w-20 sm:w-24 bg-primary text-white flex items-center justify-center font-display-lg-mobile text-display-lg-mobile shrink-0">S</div>
+<div class="flex-1 p-3 flex flex-wrap gap-3 items-center tier-drop-zone transition-colors duration-200" id="tier-s">
+<!-- Book Chips -->
+<div class="group relative w-12 h-16 sm:w-14 sm:h-20 rounded-md overflow-hidden shadow-sm hover:scale-105 transition-transform cursor-grab active:cursor-grabbing" draggable="true">
+<img class="w-full h-full object-cover" data-alt="The cover of a classic literature book with minimalist graphic design. The primary colors are deep forest green and ivory white, featuring a single elegant line-art illustration of an open book. High-end editorial aesthetic for a sophisticated reading habit tracker." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBnLL9iz2pXwxvCYP2jd6QqLndCxQW_sAU4TyL7BXUM97w5mezd1Nex79zjlrYAx0bMh2MizZ2DN_boZPg0W26EtZ_H3T90-9bcZ-Dr5pTnE9fB_YXcnPbbMNBk97TsAfqrI0ItIRAzFqRPLK5uG-WIoygI6N0PurfFE6REzJIWxomLejgXrGRKEAm7pzgSJb4nogymaG_xkT7oSjV3jt9dO4Oyp-jebk-3Jga0OZ0Ky1PfxAsOyCifF6lIldP3qrIy29nLqTYbavc"/>
+</div>
+</div>
+</div>
+<!-- Tier A -->
+<div class="flex border-b border-outline-variant tier-row">
+<div class="w-20 sm:w-24 bg-[#5E8C76] text-white flex items-center justify-center font-display-lg-mobile text-display-lg-mobile shrink-0">A</div>
+<div class="flex-1 p-3 flex flex-wrap gap-3 items-center tier-drop-zone transition-colors duration-200" id="tier-a">
+<div class="group relative w-12 h-16 sm:w-14 sm:h-20 rounded-md overflow-hidden shadow-sm hover:scale-105 transition-transform cursor-grab active:cursor-grabbing" draggable="true">
+<img class="w-full h-full object-cover" data-alt="A modern non-fiction book cover about philosophy. The design is clean and geometric, using a warm charcoal and sage green palette. The lighting in the product photography is soft and diffused, creating a tactile and premium feel for an intellectual brand." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBwuiCPs5H3aFYRrYHmc2cPFopMZlcrODLvGWRC1foTSlbHjghNBy4A7e6OEX5g7blu45jyTgEP3tDhHwtVARSJMhi38qZpKbswncUPIVn3OWZq6h6JngjpVhoR-yG_Ls5Wxk7wJHCAYXIRWxGlADRX53dl5heSHf8i8Jk3QG7xDi03MO0KNWhF8br7CXEguzC2davAsGwLx3LD-eWsIqD-kap-wz0Nj5UGJtys3miKxPPIyAy34ckbARqL0eDPGF1sL297vAXokaM"/>
+</div>
+<div class="group relative w-12 h-16 sm:w-14 sm:h-20 rounded-md overflow-hidden shadow-sm hover:scale-105 transition-transform cursor-grab active:cursor-grabbing" draggable="true">
+<img class="w-full h-full object-cover" data-alt="A poetry collection book cover with delicate floral line art against a soft cream background. The title is in a sophisticated serif font. The visual style is warm, minimal, and editorial, perfectly fitting a calm productivity app aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDvKgnwq9nIfPlB_b-XpPodClpxrM-KfB65uazFVMR7dZczeO45O-Nv0mcbdr8-7ETreP-6DOoP3JqrNNExKfeLDpGJpXqwKCHebpnsJnUSRccj7s5qTqEVXiPGYNrOgqvcDJM9u5OiMzD5svPDzKxiqbGgUkwcQOeUSp5vi4oE9ZigsLcalcG1c7qvZsKAiHiseBv1L90STaEmr-9HGJUxtIr-zGFabQrpaiKoH641PM644FyaAuWRysMGJjnkSU83GYjmaiyLKiw"/>
+</div>
+</div>
+</div>
+<!-- Tier B -->
+<div class="flex border-b border-outline-variant tier-row">
+<div class="w-20 sm:w-24 bg-[#A3BCB0] text-primary flex items-center justify-center font-display-lg-mobile text-display-lg-mobile shrink-0">B</div>
+<div class="flex-1 p-3 flex flex-wrap gap-3 items-center tier-drop-zone transition-colors duration-200" id="tier-b">
+</div>
+</div>
+<!-- Tier C -->
+<div class="flex border-b border-outline-variant tier-row">
+<div class="w-20 sm:w-24 bg-[#D1DAD5] text-on-surface flex items-center justify-center font-display-lg-mobile text-display-lg-mobile shrink-0">C</div>
+<div class="flex-1 p-3 flex flex-wrap gap-3 items-center tier-drop-zone transition-colors duration-200" id="tier-c">
+</div>
+</div>
+<!-- Tier D -->
+<div class="flex tier-row">
+<div class="w-20 sm:w-24 bg-surface-container-highest text-on-surface-variant flex items-center justify-center font-display-lg-mobile text-display-lg-mobile shrink-0">D</div>
+<div class="flex-1 p-3 flex flex-wrap gap-3 items-center tier-drop-zone transition-colors duration-200" id="tier-d">
+</div>
+</div>
+</div>
+<!-- Unsorted Tray -->
+<div class="mt-stack-lg">
+<div class="flex items-center justify-between mb-stack-sm px-1">
+<h3 class="font-title-sm text-title-sm text-primary">Unsorted Books</h3>
+<span class="material-symbols-outlined text-on-surface-variant text-sm">info</span>
+</div>
+<div class="bg-surface-container-low border border-dashed border-outline rounded-xl p-4 min-h-[120px] flex flex-wrap gap-4 items-center justify-start transition-all" id="unsorted-tray">
+<!-- Unsorted Book 1 -->
+<div class="group relative w-14 h-20 sm:w-16 sm:h-24 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all cursor-grab active:cursor-grabbing hover:scale-105" draggable="true">
+<img class="w-full h-full object-cover" data-alt="Book cover for a contemporary novel. Minimalist aesthetic with bold typography in Forest Green on a Sage background. High-quality editorial style, soft studio lighting, crisp textures, centered composition." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAbUAjVBgLJGA9OZjvbQ1sAzUfX78Yt5cGcyPyHmTG0XaURWDvO4ScomI_4q9nOWgPlQrQYyrt6Ugw3LITSKcLrWkM9AyEQSwybNR8Vdpc9eMPPzFOLFJmRUN6vM06EHKTM-l2E53davgnq0CdgYyYRYw_yyMIdOytA_Uqu6EFApb3FRr4vAdetFgi_rTaCcibv1AVuLn_56of5Ayvm9XBEpUF2REA3UPdLFj_ZChFzD5ly9MwYi4YiZNq0pdL1_C6Q4RlnFZZCy1A"/>
+<div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors"></div>
+</div>
+<!-- Unsorted Book 2 -->
+<div class="group relative w-14 h-20 sm:w-16 sm:h-24 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all cursor-grab active:cursor-grabbing hover:scale-105" draggable="true">
+<img class="w-full h-full object-cover" data-alt="Book cover for a design theory book. Abstract geometric patterns in tonal greens and warm creams. Sophisticated layout, matte paper texture effect, high-end editorial feel, premium minimalist design." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBiTV05MfNcKPYGMmfKGENNuS53UpQlzIvzqrD-xaJT_ulInvKT_SBIUbKYvf-9tjZISCpXwroBmUtxds6F8HSWVAOk7jSbj9qhIHF7IXj7A6208205cYscVNr-Ok_aSLpaQvm1x3Y1HFHv7t_sN0_hCoNk9utXkcMFAUlsqgLHd3fPkXVKFB0NFaUDZKQTs7oB1T9GjDmrj1SAJcnbScrToPOXNlbTFa0zLMWlZWsNYxansGFELMiaxhg3DGUS4iID7KYLuJHoeMg"/>
+</div>
+<!-- Unsorted Book 3 -->
+<div class="group relative w-14 h-20 sm:w-16 sm:h-24 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all cursor-grab active:cursor-grabbing hover:scale-105" draggable="true">
+<img class="w-full h-full object-cover" data-alt="Book cover for a science biography. Features a subtle, elegant constellation diagram in silver-toned ink on a deep emerald background. Editorial minimalist style, balanced white space, high contrast yet soft." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAjSvbOeZ-XrqfNf7_rHvqQm_x7_nhfanWs49xLeFtH72fvLDh2BpejPCfkfAbtSpEAzWEOgfmCqYyvdnx7yq5RYq9gnRnMrjmOwAKwKdmFuKRF7l56OyeiSBOcXKyyLHDUN2KeSQ_M6f8UqKjpiBgZeDHXhZk9N7OEKGdDmAB4L2dNLUSKmHGjgP9YSEAHBoPocIQfRcjprwG7IR7ZcLJgsRshXtcsB_8fBlaSeOwQbMSSKjfqnBxVduL2A0lPN96TFrEdAhSitEM"/>
+</div>
+<!-- Unsorted Book 4 -->
+<div class="group relative w-14 h-20 sm:w-16 sm:h-24 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all cursor-grab active:cursor-grabbing hover:scale-105" draggable="true">
+<img class="w-full h-full object-cover" data-alt="A classic book cover with modern typography. Elegant Literata-style font, centered on a pristine white background with a subtle cream border. Professional, clean, and intellectually stimulating visual style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCQ1FlwbfRC2c3sPM4otIHVaUtQU5IBtq-WwBz1zNLG3salaxuIE7fMu-zudjJa8RSK-8HDJ9waHEUGKok1bxZ6LfDyCuk2OuMxglhlOHpa1e0UL8Z8ad5CfR_ajSS4uFKA7uvjLuEcNnxr2s0CSVluVqlQGVIqFoSLvl8220vwZAqbWeirvRfKGPUnHte_6pC7laapN-Tx0d0ukpD6EOvWl3fMJaISdFDhm2oQwOv_WKDx6oBXRzDDFfqX1FlFaTQJ0-9u3YBkYHY"/>
+</div>
+</div>
+</div>
+<button class="mt-stack-lg w-full bg-primary text-white font-label-lg text-label-lg py-4 rounded-xl shadow-lg active:scale-[0.98] transition-transform flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">save</span>
+            Save Ranking
+        </button>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 pb-safe bg-surface-container-lowest border-t border-outline-variant shadow-sm">
+<div class="flex flex-col items-center justify-center text-on-surface opacity-40 hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-sm text-label-sm">Home</span>
+</div>
+<div class="flex flex-col items-center justify-center text-primary bg-secondary-container rounded-full px-4 py-1">
+<span class="material-symbols-outlined">import_contacts</span>
+<span class="font-label-sm text-label-sm">Library</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface opacity-40 hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined">leaderboard</span>
+<span class="font-label-sm text-label-sm">Stats</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface opacity-40 hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm">Profile</span>
+</div>
+</nav>
+<script>
+        // Micro-interaction: Drag and Drop Logic
+        document.addEventListener('DOMContentLoaded', () => {
+            const draggables = document.querySelectorAll('[draggable="true"]');
+            const dropZones = document.querySelectorAll('.tier-drop-zone, #unsorted-tray');
+
+            draggables.forEach(draggable => {
+                draggable.addEventListener('dragstart', () => {
+                    draggable.classList.add('drag-ghost');
+                });
+
+                draggable.addEventListener('dragend', () => {
+                    draggable.classList.remove('drag-ghost');
+                });
+            });
+
+            dropZones.forEach(zone => {
+                zone.addEventListener('dragover', e => {
+                    e.preventDefault();
+                    zone.classList.add('bg-primary/5');
+                });
+
+                zone.addEventListener('dragleave', () => {
+                    zone.classList.remove('bg-primary/5');
+                });
+
+                zone.addEventListener('drop', e => {
+                    e.preventDefault();
+                    zone.classList.remove('bg-primary/5');
+                    const dragging = document.querySelector('.drag-ghost');
+                    if (dragging) {
+                        zone.appendChild(dragging);
+                        
+                        // Subtle haptic-like scale effect on drop
+                        dragging.classList.add('scale-110');
+                        setTimeout(() => dragging.classList.remove('scale-110'), 200);
+                    }
+                });
+            });
+        });
+    </script>
+</body></html>

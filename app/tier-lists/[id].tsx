@@ -14,8 +14,8 @@ import { Colors, Typography, Spacing, Radius, Shadows } from '@/theme';
 import { MOCK_TIER_LIST } from '@/lib/mockData';
 
 const TIER_COLORS: Record<string, string> = {
-  S: '#144637',
-  A: '#2e5e4e',
+  S: '#2d3a47',
+  A: '#404e5d',
   B: '#576158',
   C: '#d8e2d7',
   D: '#e4e2dd',

@@ -7,16 +7,16 @@
 // Colors (Material Design 3 color scheme)
 // ─────────────────────────────────────────────
 export const Colors = {
-  // Primary brand — deep forest green
-  primary: '#144637',
+  // Primary brand — slate blue
+  primary: '#2d3a47',
   onPrimary: '#ffffff',
-  primaryContainer: '#2e5e4e',
-  onPrimaryContainer: '#a3d5c1',
-  inversePrimary: '#9fd1bd',
-  primaryFixed: '#baeed9',
-  primaryFixedDim: '#9fd1bd',
-  onPrimaryFixed: '#002117',
-  onPrimaryFixedVariant: '#1e4f40',
+  primaryContainer: '#404e5d',
+  onPrimaryContainer: '#d8e3f0',
+  inversePrimary: '#a5b5c9',
+  primaryFixed: '#d0e4ff',
+  primaryFixedDim: '#a8c8ec',
+  onPrimaryFixed: '#001d32',
+  onPrimaryFixedVariant: '#344758',
 
   // Secondary — muted sage
   secondary: '#576158',
@@ -51,7 +51,7 @@ export const Colors = {
   onSurface: '#1b1c19',
   surfaceDim: '#dbdad5',
   surfaceBright: '#fbf9f4',
-  surfaceTint: '#376757',
+  surfaceTint: '#4c5d70',
 
   // Surface containers (elevation layers)
   surfaceContainerLowest: '#ffffff',
@@ -74,7 +74,7 @@ export const Colors = {
   cardBackground: '#ffffff',
   tabBarBackground: '#ffffff',
   tabBarBorder: '#c0c9c3',
-  activeTab: '#144637',
+  activeTab: '#2d3a47',
   inactiveTab: '#1b1c19',
   chipActive: '#d8e2d7',
   chipActiveText: '#5b655c',
@@ -184,21 +184,21 @@ export const Radius = {
 // ─────────────────────────────────────────────
 export const Shadows = {
   card: {
-    shadowColor: '#2e5e4e',
+    shadowColor: '#2d3a47',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
     shadowRadius: 20,
     elevation: 3,
   },
   overlay: {
-    shadowColor: '#2e5e4e',
+    shadowColor: '#2d3a47',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.15,
     shadowRadius: 24,
     elevation: 6,
   },
   button: {
-    shadowColor: '#144637',
+    shadowColor: '#2d3a47',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.12,
     shadowRadius: 12,

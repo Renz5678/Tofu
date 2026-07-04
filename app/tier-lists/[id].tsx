@@ -5,6 +5,7 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
+  Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
@@ -70,7 +71,7 @@ export default function TierListDetailScreen() {
                     />
                   </View>
                 ))}
-                <TouchableOpacity style={styles.tierAddSlot}>
+                <TouchableOpacity style={styles.tierAddSlot} onPress={() => Alert.alert('Coming Soon', 'Drag-and-drop book reordering will be available in the next update!')}>
                   <MaterialIcons name="add" size={20} color={Colors.primary} style={{ opacity: 0.5 }} />
                 </TouchableOpacity>
               </ScrollView>

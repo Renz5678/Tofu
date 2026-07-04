@@ -75,9 +75,7 @@ export default function ActiveSessionScreen() {
           <MaterialIcons name="close" size={24} color={Colors.onPrimary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Reading Session</Text>
-        <TouchableOpacity hitSlop={12}>
-          <MaterialIcons name="more-vert" size={24} color={Colors.onPrimary} />
-        </TouchableOpacity>
+        <View style={{ width: 24 }} />
       </View>
 
       {/* Book info */}
@@ -104,19 +102,11 @@ export default function ActiveSessionScreen() {
 
       {/* Controls */}
       <View style={styles.controls}>
-        <TouchableOpacity style={styles.controlSecondary}>
-          <MaterialIcons name="replay-10" size={28} color={`${Colors.onPrimary}99`} />
-        </TouchableOpacity>
-
         <TouchableOpacity 
           style={styles.controlPrimary}
           onPress={() => isPaused ? resumeSession() : pauseSession()}
         >
           <MaterialIcons name={isPaused ? "play-arrow" : "pause"} size={36} color={Colors.primary} />
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.controlSecondary}>
-          <MaterialIcons name="forward-10" size={28} color={`${Colors.onPrimary}99`} />
         </TouchableOpacity>
       </View>
 

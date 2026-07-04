@@ -68,11 +68,11 @@ export default function RootLayout() {
           />
           <Stack.Screen
             name="session/active"
-            options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }}
+            options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom', gestureEnabled: false }}
           />
           <Stack.Screen
             name="session/finish"
-            options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }}
+            options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom', gestureEnabled: false }}
           />
           <Stack.Screen name="favorites/index" />
           <Stack.Screen name="tier-lists/index" />

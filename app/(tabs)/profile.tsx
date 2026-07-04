@@ -35,6 +35,7 @@ export default function ProfileScreen() {
 
   const totalBooksRead = library.filter(b => b.status === 'finished').length;
   const currentStreak = profile?.streak?.current_streak ?? 0;
+  const isStreakActive = currentStreak >= 3;
   const totalPagesRead = sessions.reduce((acc, s) => acc + s.pages_read, 0);
 
   const displayName = profile?.display_name || 'Reader';
@@ -79,8 +80,12 @@ export default function ProfileScreen() {
             </View>
             <View style={styles.quickStatDivider} />
             <View style={styles.quickStatItem}>
-              <Text style={styles.quickStatValue}>{currentStreak}</Text>
-              <Text style={styles.quickStatLabel}>Day Streak</Text>
+              <Text style={[styles.quickStatValue, !isStreakActive && { color: Colors.onSurfaceVariant, opacity: 0.6 }]}>
+                {isStreakActive ? currentStreak : `${currentStreak}/3`}
+              </Text>
+              <Text style={styles.quickStatLabel}>
+                {isStreakActive ? 'Day Streak' : 'to Streak'}
+              </Text>
             </View>
             <View style={styles.quickStatDivider} />
             <View style={styles.quickStatItem}>

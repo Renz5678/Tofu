@@ -9,6 +9,8 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { MaterialIcons } from '@expo/vector-icons';
+import Animated, { FadeInDown, useSharedValue, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated';
 import { Colors, Typography, Spacing, Radius, Shadows } from '@/theme';
 import { useProfile } from '@/hooks/useProfile';
 import { useReadingSessions } from '@/hooks/useReadingSessions';
@@ -56,6 +58,7 @@ export default function StatsScreen() {
   const minuteProgress = Math.min(1, todayMinutes / dailyMinuteGoal);
   const pageProgress = Math.min(1, todayPages / dailyPageGoal);
   const currentStreak = profile?.streak?.current_streak ?? 0;
+  const isStreakActive = currentStreak >= 3;
 
   const chartData: number[] = [];
   const chartLabels: string[] = [];
@@ -96,6 +99,7 @@ export default function StatsScreen() {
     else dateDisplay = format(new Date(s.start_time), 'MMM d');
     
     return {
+      id: s.id,
       book: book?.title ?? 'Unknown Book',
       minutes: Math.round(s.duration_seconds / 60),
       pages: s.pages_read,
@@ -110,44 +114,49 @@ export default function StatsScreen() {
         <Text style={styles.headerTitle}>Statistics</Text>
       </View>
 
-      {/* Period toggle */}
-      <View style={styles.periodRow}>
-        <View style={styles.periodPills}>
-          {PERIOD_TABS.map((tab) => (
-            <TouchableOpacity
-              key={tab.value}
-              onPress={() => setPeriod(tab.value)}
-              style={[styles.periodPill, period === tab.value && styles.periodPillActive]}
-            >
-              <Text style={[styles.periodPillText, period === tab.value && styles.periodPillTextActive]}>
-                {tab.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-
       <ScrollView
         contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 80 }]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Aggregate stats */}
-        <View style={styles.statsGrid}>
-          <StatCard value={`${totalBooksRead}`} label="Books Read" />
-          <StatCard value={`${totalPagesRead.toLocaleString()}`} label="Pages Read" />
-          <StatCard value={`${currentStreak}`} label="Day Streak" />
-          <StatCard value={`${avgPagesPerHour}`} label="Pages / Hour" />
-        </View>
+        {/* Top Summary */}
+        <Animated.View entering={FadeInDown.duration(400).delay(100)} style={styles.summaryContainer}>
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryVal}>{totalBooksRead}</Text>
+            <Text style={styles.summaryLabel}>Books Read</Text>
+          </View>
+          <View style={styles.summaryDivider} />
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryVal}>{totalPagesRead.toLocaleString()}</Text>
+            <Text style={styles.summaryLabel}>Pages Read</Text>
+          </View>
+          <View style={styles.summaryDivider} />
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryVal}>{Math.round(totalMinutes / 60)}</Text>
+            <Text style={styles.summaryLabel}>Hours Read</Text>
+          </View>
+        </Animated.View>
 
         {/* Progress ring cluster */}
-        <View style={[styles.ringCard, Shadows.card]}>
-          <Text style={styles.cardTitle}>Today's Goals</Text>
+        <Animated.View entering={FadeInDown.duration(400).delay(200)} style={[styles.ringCard, Shadows.card]}>
+          <View style={styles.chartHeader}>
+            <Text style={styles.cardTitle}>Today's Goals</Text>
+            <View style={[styles.streakBadge, !isStreakActive && { backgroundColor: Colors.surfaceContainerHigh }]}>
+              <MaterialIcons 
+                name="local-fire-department" 
+                size={16} 
+                color={isStreakActive ? Colors.onTertiaryContainer : Colors.onSurfaceVariant} 
+              />
+              <Text style={[styles.streakText, !isStreakActive && { color: Colors.onSurfaceVariant }]}>
+                {isStreakActive ? `${currentStreak} Day Streak` : `${currentStreak}/3 to Streak`}
+              </Text>
+            </View>
+          </View>
           <View style={styles.ringRow}>
             <View style={styles.ringItem}>
               <ProgressRing
                 progress={minuteProgress}
-                size={88}
-                strokeWidth={8}
+                size={100}
+                strokeWidth={10}
                 showLabel
                 labelText={`${todayMinutes}m`}
               />
@@ -156,58 +165,53 @@ export default function StatsScreen() {
             <View style={styles.ringItem}>
               <ProgressRing
                 progress={pageProgress}
-                size={88}
-                strokeWidth={8}
+                size={100}
+                strokeWidth={10}
                 showLabel
                 labelText={`${todayPages}p`}
               />
               <Text style={styles.ringLabel}>Pages</Text>
             </View>
-            <View style={styles.ringItem}>
-              <ProgressRing
-                progress={currentStreak > 0 ? 1 : 0}
-                size={88}
-                strokeWidth={8}
-                showLabel
-                labelText={`${currentStreak}`}
-                color={Colors.tertiaryFixedDim}
-              />
-              <Text style={styles.ringLabel}>Streak</Text>
-            </View>
           </View>
-        </View>
+        </Animated.View>
 
         {/* Bar chart */}
-        <View style={[styles.chartCard, Shadows.card]}>
+        <Animated.View entering={FadeInDown.duration(400).delay(300)} style={[styles.chartCard, Shadows.card]}>
           <View style={styles.chartHeader}>
             <Text style={styles.cardTitle}>Minutes Read</Text>
-            <Text style={styles.chartSubtitle}>Last 7 days</Text>
+          </View>
+          
+          <View style={styles.periodPills}>
+            {PERIOD_TABS.map((tab) => (
+              <TouchableOpacity
+                key={tab.value}
+                onPress={() => setPeriod(tab.value)}
+                style={[styles.periodPill, period === tab.value && styles.periodPillActive]}
+              >
+                <Text style={[styles.periodPillText, period === tab.value && styles.periodPillTextActive]}>
+                  {tab.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
           <View style={styles.barChart}>
             {chartData.map((val, i) => {
-              const barH = maxChartVal > 0 ? (val / maxChartVal) * 100 : 4;
+              const barH = maxChartVal > 0 ? (val / maxChartVal) * 80 : 0;
               const isToday = period === 'week' && i === 6;
+              const targetHeight = barH;
               return (
                 <View key={i} style={styles.barColumn}>
-                  <Text style={styles.barValue}>{val}</Text>
-                  <View
-                    style={[
-                      styles.bar,
-                      {
-                        height: Math.max(4, barH),
-                        backgroundColor: isToday ? Colors.primary : `${Colors.primary}33`,
-                      },
-                    ]}
-                  />
+                  {val > 0 && <Text style={styles.barValue}>{val}</Text>}
+                  <AnimatedBar targetHeight={targetHeight} isToday={isToday} />
                   <Text style={styles.barLabel}>{chartLabels[i]}</Text>
                 </View>
               );
             })}
           </View>
-        </View>
+        </Animated.View>
 
         {/* Recent sessions */}
-        <View style={[styles.sessionsCard, Shadows.card]}>
+        <Animated.View entering={FadeInDown.duration(400).delay(400)} style={[styles.sessionsCard, Shadows.card]}>
           <Text style={styles.cardTitle}>Recent Sessions</Text>
           {recentSessions.length === 0 ? (
             <Text style={{ ...Typography.styles.bodyMd, color: Colors.onSurfaceVariant, paddingVertical: Spacing.stackSm }}>
@@ -215,7 +219,7 @@ export default function StatsScreen() {
             </Text>
           ) : (
             recentSessions.map((s, i) => (
-              <View key={i} style={[styles.sessionRow, i > 0 && styles.sessionRowBorder]}>
+              <View key={s.id} style={[styles.sessionRow, i > 0 && styles.sessionRowBorder]}>
                 <View style={styles.sessionInfo}>
                   <Text style={styles.sessionBook} numberOfLines={1}>{s.book}</Text>
                   <Text style={styles.sessionDate}>{s.date}</Text>
@@ -229,18 +233,38 @@ export default function StatsScreen() {
               </View>
             ))
           )}
-        </View>
+        </Animated.View>
       </ScrollView>
     </View>
   );
 }
 
-function StatCard({ value, label }: { value: string; label: string }) {
+
+
+function AnimatedBar({ targetHeight, isToday }: { targetHeight: number; isToday: boolean }) {
+  const height = useSharedValue(0);
+
+  React.useEffect(() => {
+    height.value = withTiming(targetHeight, { 
+      duration: 1000, 
+      easing: Easing.out(Easing.cubic) 
+    });
+  }, [targetHeight]);
+
+  const animStyle = useAnimatedStyle(() => {
+    return {
+      height: height.value,
+    };
+  });
+
   return (
-    <View style={[styles.statCard, Shadows.card]}>
-      <Text style={styles.statValue}>{value}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
-    </View>
+    <Animated.View
+      style={[
+        styles.bar,
+        { backgroundColor: isToday ? Colors.primary : `${Colors.primary}33` },
+        animStyle,
+      ]}
+    />
   );
 }
 
@@ -264,10 +288,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.outlineVariant,
     padding: 4,
+    width: '100%',
+    marginBottom: Spacing.stackSm,
   },
   periodPill: {
     flex: 1,
-    paddingVertical: 8,
+    paddingVertical: 6,
     borderRadius: Radius.full,
     alignItems: 'center',
   },
@@ -275,7 +301,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surfaceContainerLowest,
   },
   periodPillText: {
-    ...Typography.styles.labelLg,
+    ...Typography.styles.labelSm,
     color: Colors.onSurfaceVariant,
   },
   periodPillTextActive: {
@@ -286,28 +312,34 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.base,
     gap: Spacing.stackMd,
   },
-  statsGrid: {
+  summaryContainer: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.base,
-  },
-  statCard: {
-    width: '48%',
+    alignItems: 'center',
     backgroundColor: Colors.surfaceContainerLowest,
     borderRadius: Radius.xl,
     borderWidth: 1,
     borderColor: Colors.outlineVariant,
-    padding: Spacing.stackMd,
+    paddingVertical: Spacing.stackMd,
+    paddingHorizontal: Spacing.gutter,
+  },
+  summaryItem: {
+    flex: 1,
+    alignItems: 'center',
     gap: 4,
   },
-  statValue: {
+  summaryVal: {
     ...Typography.styles.numericXl,
-    fontSize: 32,
+    fontSize: 24,
     color: Colors.primary,
   },
-  statLabel: {
+  summaryLabel: {
     ...Typography.styles.labelSm,
     color: Colors.onSurfaceVariant,
+  },
+  summaryDivider: {
+    width: 1,
+    height: '60%',
+    backgroundColor: Colors.outlineVariant,
   },
   ringCard: {
     backgroundColor: Colors.surfaceContainerLowest,
@@ -345,6 +377,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  streakBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.tertiaryContainer,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: Radius.full,
+    gap: 4,
+  },
+  streakText: {
+    ...Typography.styles.labelSm,
+    color: Colors.onTertiaryContainer,
+    fontWeight: 'bold',
   },
   chartSubtitle: {
     ...Typography.styles.labelSm,

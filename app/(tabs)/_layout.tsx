@@ -17,15 +17,18 @@ function TabIcon({ name, label, focused }: TabIconProps) {
     <View style={[styles.tabItem, focused && styles.tabItemActive]}>
       <MaterialIcons
         name={name}
-        size={22}
+        size={24}
         color={focused ? Colors.activeTab : Colors.inactiveTab}
-        style={{ opacity: focused ? 1 : 0.4 }}
+        style={{ opacity: focused ? 1 : 0.6 }}
       />
       <Text
         style={[
           styles.tabLabel,
-          { color: focused ? Colors.activeTab : Colors.inactiveTab, opacity: focused ? 1 : 0.4 },
+          { color: focused ? Colors.activeTab : Colors.inactiveTab, opacity: focused ? 1 : 0.6 },
+          focused && { fontWeight: '600' }
         ]}
+        numberOfLines={1}
+        adjustsFontSizeToFit={true}
       >
         {label}
       </Text>
@@ -54,6 +57,7 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
+        animation: 'shift',
         tabBarStyle: {
           backgroundColor: Colors.tabBarBackground,
           borderTopWidth: StyleSheet.hairlineWidth,
@@ -113,13 +117,12 @@ export default function TabsLayout() {
 
 const styles = StyleSheet.create({
   tabItem: {
+    width: 72,
+    height: 52,
     alignItems: 'center',
     justifyContent: 'center',
+    borderRadius: 16,
     gap: 2,
-    paddingHorizontal: Spacing.base,
-    paddingVertical: 4,
-    borderRadius: 9999,
-    minWidth: 56,
   },
   tabItemActive: {
     backgroundColor: Colors.secondaryContainer,
@@ -127,5 +130,6 @@ const styles = StyleSheet.create({
   tabLabel: {
     ...Typography.styles.labelSm,
     fontSize: 10,
+    textAlign: 'center',
   },
 });

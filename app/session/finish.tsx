@@ -6,14 +6,15 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
+  Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, Radius, Shadows } from '@/theme';
+import { useLibrary, useUpdateBook } from '@/hooks/useLibrary';
 import { useSessionStore } from '@/store/sessionStore';
-import { useLibrary } from '@/hooks/useLibrary';
 import { useLogSession } from '@/hooks/useReadingSessions';
 import { ActivityIndicator } from 'react-native';
 
@@ -23,7 +24,9 @@ export default function SessionFinishScreen() {
   const { activeSession, clearSession } = useSessionStore();
   const { data: libraryBooks = [] } = useLibrary();
   const book = libraryBooks.find((b) => b.id === activeSession?.userBookId);
-  const { mutateAsync: logSession, isPending } = useLogSession();
+  const { mutateAsync: logSession, isPending: isLogging } = useLogSession();
+  const { mutateAsync: updateBook, isPending: isUpdating } = useUpdateBook();
+  const isPending = isLogging || isUpdating;
 
   const [endTime] = useState(() => new Date());
   const [endPage, setEndPage] = useState(book ? String(book.current_page) : '');
@@ -43,10 +46,29 @@ export default function SessionFinishScreen() {
   const durationSeconds = Math.max(0, Math.floor((endTime.getTime() - new Date(activeSession.startTime).getTime()) / 1000) - (activeSession.totalPausedSeconds || 0));
   const durationMinutes = Math.max(1, Math.round(durationSeconds / 60));
   const parsedEnd = parseInt(endPage, 10);
+  const isValidNumber = !isNaN(parsedEnd);
+  
+  // Real-time validation state
+  let errorMessage: string | null = null;
+  if (isValidNumber) {
+    if (parsedEnd < activeSession.startPage) {
+      errorMessage = `Must be at least page ${activeSession.startPage}.`;
+    } else if (book.total_pages && parsedEnd > book.total_pages) {
+      errorMessage = `Cannot exceed total pages (${book.total_pages}).`;
+    }
+  }
+
+  const isSaveDisabled = isPending || (isValidNumber && errorMessage !== null);
+
   const pagesRead = Math.max(0, (isNaN(parsedEnd) ? book.current_page : parsedEnd) - activeSession.startPage);
   const pace = durationMinutes > 0 ? Math.round(pagesRead / (durationMinutes / 60)) : 0;
 
   const handleSave = async () => {
+    if (errorMessage) {
+      Alert.alert('Invalid Page', errorMessage);
+      return;
+    }
+
     try {
       await logSession({
         userBookId: activeSession.userBookId,
@@ -57,8 +79,25 @@ export default function SessionFinishScreen() {
         pausedSeconds: activeSession.totalPausedSeconds || 0,
         notes: notes.trim() || undefined,
       });
+
+      let isFinished = false;
+      const finalPage = isNaN(parsedEnd) ? book.current_page : parsedEnd;
+      if (book.total_pages && finalPage >= book.total_pages) {
+        await updateBook({ userBookId: activeSession.userBookId, status: 'finished' });
+        isFinished = true;
+      }
+
       await clearSession();
-      router.replace('/(tabs)/dashboard');
+
+      if (isFinished) {
+        Alert.alert(
+          'Congratulations! 🎉',
+          "You've finished this book! It has been moved to your 'Finished' tab.",
+          [{ text: 'Awesome', onPress: () => router.replace('/(tabs)/dashboard') }]
+        );
+      } else {
+        router.replace('/(tabs)/dashboard');
+      }
     } catch (e) {
       console.warn('Failed to save session', e);
     }
@@ -111,14 +150,16 @@ export default function SessionFinishScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>CURRENT PAGE</Text>
           <TextInput
-            style={styles.pageInput}
+            style={[styles.pageInput, errorMessage ? { borderColor: Colors.error, borderWidth: 1 } : null]}
             value={endPage}
             onChangeText={setEndPage}
             keyboardType="numeric"
             placeholder={String(book.current_page)}
             placeholderTextColor={`${Colors.onSurfaceVariant}66`}
           />
-          <Text style={styles.pageHint}>Update your last page read</Text>
+          <Text style={[styles.pageHint, errorMessage ? { color: Colors.error } : null]}>
+            {errorMessage || 'Update your last page read'}
+          </Text>
         </View>
 
         {/* Notes */}
@@ -138,9 +179,9 @@ export default function SessionFinishScreen() {
 
         {/* Actions */}
         <TouchableOpacity
-          style={styles.primaryButton}
+          style={[styles.primaryButton, isSaveDisabled && { opacity: 0.5 }]}
           onPress={handleSave}
-          disabled={isPending}
+          disabled={isSaveDisabled}
           activeOpacity={0.85}
         >
           {isPending ? (

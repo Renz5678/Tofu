@@ -11,6 +11,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Colors, Typography, Spacing, Radius, Shadows } from '@/theme';
 import { TopBar } from '@/components/TopBar';
 import { ProgressRing, ProgressBar } from '@/components/ProgressRing';
@@ -102,15 +103,15 @@ export default function DashboardScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Welcome */}
-        <View style={styles.section}>
+        <Animated.View entering={FadeInDown.duration(400).delay(100)} style={styles.section}>
           <Text style={styles.welcomeHeading}>
             Good {getGreeting()}, {profile?.display_name || profile?.username || 'Reader'}
           </Text>
           <Text style={styles.welcomeSub}>Your reading sanctuary is ready.</Text>
-        </View>
+        </Animated.View>
 
         {/* Stats Bento Grid */}
-        <View style={styles.bentoGrid}>
+        <Animated.View entering={FadeInDown.duration(400).delay(200)} style={styles.bentoGrid}>
           {/* Reading Time Ring */}
           <View style={[styles.bentoCard, styles.bentoCardHalf]}>
             <ProgressRing
@@ -139,10 +140,10 @@ export default function DashboardScreen() {
               Goal: {dailyPageGoal}
             </Text>
           </View>
-        </View>
+        </Animated.View>
 
         {/* Current Read */}
-        <View style={styles.section}>
+        <Animated.View entering={FadeInDown.duration(400).delay(300)} style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Current Read</Text>
             <TouchableOpacity onPress={() => router.push('/(tabs)/library')}>
@@ -158,6 +159,7 @@ export default function DashboardScreen() {
                   source={{ uri: currentBook.cover_url ?? undefined }}
                   style={StyleSheet.absoluteFillObject}
                   contentFit="cover"
+                  transition={200}
                 />
                 <View style={styles.readBadge}>
                   <Text style={styles.readBadgeText}>
@@ -209,10 +211,10 @@ export default function DashboardScreen() {
               </TouchableOpacity>
             </View>
           )}
-        </View>
+        </Animated.View>
 
         {/* Weekly Progress */}
-        <View style={[styles.weeklyCard, Shadows.card]}>
+        <Animated.View entering={FadeInDown.duration(400).delay(400)} style={[styles.weeklyCard, Shadows.card]}>
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, Typography.styles.labelLg]}>Weekly Progress</Text>
             <Text style={styles.weeklySubtitle}>Last 7 Days</Text>
@@ -237,7 +239,7 @@ export default function DashboardScreen() {
               );
             })}
           </View>
-        </View>
+        </Animated.View>
       </ScrollView>
     </View>
   );

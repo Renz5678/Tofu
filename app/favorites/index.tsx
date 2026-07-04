@@ -5,6 +5,7 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
+  Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
@@ -75,7 +76,7 @@ export default function FavoritesScreen() {
                         ))}
                       </View>
                     </View>
-                    <TouchableOpacity hitSlop={12}>
+                    <TouchableOpacity hitSlop={12} onPress={() => Alert.alert('Coming Soon', 'Drag-and-drop reordering will be available in the next update!')}>
                       <MaterialIcons name="drag-handle" size={20} color={Colors.onSurfaceVariant} style={{ opacity: 0.4 }} />
                     </TouchableOpacity>
                   </>

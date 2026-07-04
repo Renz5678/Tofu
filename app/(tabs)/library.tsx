@@ -87,7 +87,7 @@ export default function LibraryScreen() {
           ]}
           columnWrapperStyle={styles.gridRow}
           renderItem={({ item }) => (
-            <View style={{ flex: 1 }}>
+            <View style={{ flex: 1, maxWidth: '31%' }}>
               <BookCard
                 id={item.id}
                 title={item.title}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -25,7 +25,7 @@ export default function PlaylistDetailScreen() {
           <MaterialIcons name="arrow-back" size={24} color={Colors.onSurface} />
         </TouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={1}>{playlist.title}</Text>
-        <TouchableOpacity hitSlop={12}>
+        <TouchableOpacity hitSlop={12} onPress={() => Alert.alert('Coming Soon', 'Playlist settings will be available in the next update!')}>
           <MaterialIcons name="more-vert" size={22} color={Colors.onSurface} />
         </TouchableOpacity>
       </View>

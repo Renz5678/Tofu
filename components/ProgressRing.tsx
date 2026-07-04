@@ -1,7 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
+import Animated, { useSharedValue, useAnimatedProps, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated';
 import { Colors, Typography } from '@/theme';
+
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 // ─────────────────────────────────────────────
 // ProgressRing
@@ -27,12 +30,25 @@ export function ProgressRing({
 }: ProgressRingProps) {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference * (1 - Math.min(1, Math.max(0, progress)));
   const cx = size / 2;
   const cy = size / 2;
   const defaultTrack = trackColor ?? `${color}1A`; // 10% opacity
 
   const displayLabel = labelText ?? `${Math.round(progress * 100)}%`;
+
+  const animatedProgress = useSharedValue(0);
+
+  React.useEffect(() => {
+    animatedProgress.value = withTiming(Math.min(1, Math.max(0, progress)), {
+      duration: 1000,
+      easing: Easing.out(Easing.cubic)
+    });
+  }, [progress]);
+
+  const animatedProps = useAnimatedProps(() => {
+    const strokeDashoffset = circumference * (1 - animatedProgress.value);
+    return { strokeDashoffset };
+  });
 
   return (
     <View style={{ width: size, height: size }}>
@@ -47,7 +63,7 @@ export function ProgressRing({
           strokeWidth={strokeWidth}
         />
         {/* Progress */}
-        <Circle
+        <AnimatedCircle
           cx={cx}
           cy={cy}
           r={radius}
@@ -55,7 +71,7 @@ export function ProgressRing({
           stroke={color}
           strokeWidth={strokeWidth}
           strokeDasharray={`${circumference} ${circumference}`}
-          strokeDashoffset={strokeDashoffset}
+          animatedProps={animatedProps}
           strokeLinecap="round"
         />
       </Svg>
@@ -86,7 +102,20 @@ export function ProgressBar({
   trackColor = Colors.secondaryContainer,
   style,
 }: ProgressBarProps) {
-  const fillWidth = Math.min(100, Math.max(0, progress * 100));
+  const animatedProgress = useSharedValue(0);
+
+  React.useEffect(() => {
+    animatedProgress.value = withTiming(Math.min(1, Math.max(0, progress)), {
+      duration: 1000,
+      easing: Easing.out(Easing.cubic)
+    });
+  }, [progress]);
+
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      width: `${animatedProgress.value * 100}%`,
+    };
+  });
 
   return (
     <View
@@ -96,13 +125,15 @@ export function ProgressBar({
         style,
       ]}
     >
-      <View
-        style={{
-          width: `${fillWidth}%` as `${number}%`,
-          height,
-          backgroundColor: color,
-          borderRadius: height / 2,
-        }}
+      <Animated.View
+        style={[
+          {
+            height,
+            backgroundColor: color,
+            borderRadius: height / 2,
+          },
+          animatedStyle
+        ]}
       />
     </View>
   );

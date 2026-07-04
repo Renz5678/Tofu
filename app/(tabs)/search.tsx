@@ -276,24 +276,11 @@ export default function SearchScreen() {
                 ) : null}
                 
                 <TouchableOpacity 
-                  style={[
-                    styles.modalAddButton, 
-                    libraryBooks.some(b => b.open_library_id === selectedBook.open_library_id) && { opacity: 0.5, backgroundColor: Colors.surfaceContainerHigh }
-                  ]}
-                  onPress={async () => {
-                    const isAdded = libraryBooks.some(b => b.open_library_id === selectedBook.open_library_id);
-                    if (!isAdded) {
-                      // We can just trigger the same hook, but actually we'd need to call useAddBook here.
-                      // Since useAddBook is in SearchResultCard, let's just close modal for now or instruct them to use the list button.
-                      // Better: let's not reimplement adding here, just use it for details!
-                      setSelectedBook(null);
-                    }
-                  }}
-                  disabled={true} // For now, disabled, they use the plus button outside
+                  style={styles.modalAddButton}
+                  onPress={() => setSelectedBook(null)}
+                  activeOpacity={0.8}
                 >
-                  <Text style={[styles.modalAddText, libraryBooks.some(b => b.open_library_id === selectedBook.open_library_id) && { color: Colors.primary }]}>
-                    {libraryBooks.some(b => b.open_library_id === selectedBook.open_library_id) ? 'Already in Library' : 'Close Details'}
-                  </Text>
+                  <Text style={styles.modalAddText}>Close Details</Text>
                 </TouchableOpacity>
               </ScrollView>
             )}
@@ -336,8 +323,15 @@ function SearchResultCard({ book, isAdded, onPress }: { book: BookItem; isAdded:
           <Text style={styles.resultAuthor} numberOfLines={1}>{book.author}</Text>
         )}
         {book.genres.length > 0 && (
-          <View style={styles.genreChip}>
-            <Text style={styles.genreChipText}>{book.genres[0]}</Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 2 }}>
+            {Array.from(new Set(book.genres.flatMap(g => g.split(',').map(s => s.trim())))).slice(0, 2).map((g, i) => {
+              const formatted = g.replace(/series:/i, '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+              return (
+                <View key={i} style={styles.genreChip}>
+                  <Text style={styles.genreChipText} numberOfLines={1}>{formatted}</Text>
+                </View>
+              );
+            })}
           </View>
         )}
         {book.total_pages && (

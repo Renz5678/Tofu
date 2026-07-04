@@ -12,7 +12,7 @@ import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, Radius, Shadows } from '@/theme';
 import { EmptyState } from '@/components/EmptyState';
-import { MOCK_FAVORITES } from '@/lib/mockData';
+import { useFavorites } from '@/hooks/useFavorites';
 
 const SLOTS = [1, 2, 3, 4, 5];
 
@@ -20,7 +20,8 @@ export default function FavoritesScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
-  const hasFavorites = MOCK_FAVORITES.length > 0;
+  const { data: favorites = [] } = useFavorites();
+  const hasFavorites = favorites.length > 0;
 
   return (
     <View style={{ flex: 1, backgroundColor: Colors.background }}>
@@ -30,7 +31,7 @@ export default function FavoritesScreen() {
           <MaterialIcons name="arrow-back" size={24} color={Colors.onSurface} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>My Favorites</Text>
-        <TouchableOpacity hitSlop={12}>
+        <TouchableOpacity onPress={() => router.push('/share/favorites/me' as any)} hitSlop={12}>
           <MaterialIcons name="share" size={22} color={Colors.primary} />
         </TouchableOpacity>
       </View>
@@ -51,7 +52,8 @@ export default function FavoritesScreen() {
           <Text style={styles.sectionSub}>Your top 5 all-time favorites</Text>
 
           {SLOTS.map((rank) => {
-            const fav = MOCK_FAVORITES.find((f: any) => f.rank === rank);
+            const favItem = favorites.find(f => f.rank === rank);
+            const fav = favItem?.book;
             return (
               <View key={rank} style={[styles.favoriteCard, Shadows.card]}>
                 <View style={styles.rankBadge}>
@@ -66,7 +68,7 @@ export default function FavoritesScreen() {
                       <Text style={styles.favTitle} numberOfLines={2}>{fav.title}</Text>
                       <Text style={styles.favAuthor}>{fav.author}</Text>
                       <View style={styles.favChips}>
-                        {fav.genres.slice(0, 2).map((g: string) => (
+                        {fav.genres?.slice(0, 2).map((g: string) => (
                           <View key={g} style={styles.chip}>
                             <Text style={styles.chipText}>{g}</Text>
                           </View>

@@ -11,7 +11,7 @@ import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, Radius, Shadows } from '@/theme';
-import { MOCK_TIER_LIST } from '@/lib/mockData';
+import { useTierLists, useTierListItems } from '@/hooks/useTierLists';
 
 const TIER_COLORS: Record<string, string> = {
   S: '#2d3a47',
@@ -25,9 +25,13 @@ export default function TierListDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const tierList = MOCK_TIER_LIST; // In real app: fetch by id
+  const { data: tierLists = [] } = useTierLists();
+  const { data: items = [] } = useTierListItems(id);
+  const tierList = tierLists.find(t => t.id === id);
 
-  const tiers = tierList.tiers as string[];
+  if (!tierList) return null;
+
+  const tiers = tierList.tiers || [];
 
   return (
     <View style={{ flex: 1, backgroundColor: Colors.background }}>
@@ -36,7 +40,7 @@ export default function TierListDetailScreen() {
           <MaterialIcons name="arrow-back" size={24} color={Colors.onSurface} />
         </TouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={1}>{tierList.title}</Text>
-        <TouchableOpacity hitSlop={12}>
+        <TouchableOpacity onPress={() => router.push(`/share/tier-list/${id}` as any)} hitSlop={12}>
           <MaterialIcons name="share" size={22} color={Colors.primary} />
         </TouchableOpacity>
       </View>
@@ -49,17 +53,15 @@ export default function TierListDetailScreen() {
           Drag-and-drop tier placement will be enabled in a follow-up build.
         </Text>
 
-        {tiers.map((tier) => {
-          const items = tierList.items.filter((i) => i.tier === tier);
-          return (
+        {tiers.map((tier) => (
             <View key={tier} style={styles.tierRow}>
               <View style={[styles.tierLabel, { backgroundColor: TIER_COLORS[tier] ?? Colors.surfaceContainer }]}>
                 <Text style={[styles.tierLabelText, { color: ['S', 'A', 'B'].includes(tier) ? Colors.onPrimary : Colors.onSurface }]}>
-                  {tier}
+                  {tier.substring(0, 2)}
                 </Text>
               </View>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tierBooks}>
-                {items.map((item) => (
+                {items.filter(i => i.tier === tier).map((item) => (
                   <View key={item.id} style={styles.tierBook}>
                     <Image
                       source={{ uri: item.book.cover_url }}
@@ -73,8 +75,7 @@ export default function TierListDetailScreen() {
                 </TouchableOpacity>
               </ScrollView>
             </View>
-          );
-        })}
+          ))}
       </ScrollView>
     </View>
   );

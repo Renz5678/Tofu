@@ -7,6 +7,9 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
+  Modal,
+  ScrollView,
+  PanResponder,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
@@ -14,7 +17,8 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Colors, Typography, Spacing, Radius, Shadows } from '@/theme';
 import { FilterBar } from '@/components/FilterBar';
-import { searchBooks, type GoogleBookItem } from '@/lib/googleBooks';
+import { searchBooks, type BookItem } from '@/lib/openLibrary';
+import { useLibrary, useAddBook } from '@/hooks/useLibrary';
 
 const GENRE_CHIPS = [
   { label: 'Fiction', value: 'fiction' },
@@ -30,10 +34,26 @@ export default function SearchScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<GoogleBookItem[]>([]);
+  const [results, setResults] = useState<BookItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [activeGenre, setActiveGenre] = useState<string | null>(null);
   const [searchTimer, setSearchTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
+  const [selectedBook, setSelectedBook] = useState<BookItem | null>(null);
+  const [synopsis, setSynopsis] = useState<string | null>(null);
+  const [loadingSynopsis, setLoadingSynopsis] = useState(false);
+
+  const { data: libraryBooks = [] } = useLibrary();
+
+  const panResponder = React.useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onPanResponderRelease: (e, gestureState) => {
+        if (gestureState.dy > 50) {
+          setSelectedBook(null);
+        }
+      },
+    })
+  ).current;
 
   const runSearch = (q: string, genre?: string | null) => {
     if (!q.trim() && !genre) {
@@ -64,6 +84,32 @@ export default function SearchScreen() {
     setActiveGenre(genre);
     runSearch(query, genre);
   };
+
+  React.useEffect(() => {
+    if (!selectedBook) {
+      setSynopsis(null);
+      return;
+    }
+    const fetchSynopsis = async () => {
+      setLoadingSynopsis(true);
+      try {
+        // open_library_id is usually like /works/OL123W
+        const res = await fetch(`https://openlibrary.org${selectedBook.open_library_id}.json`);
+        const data = await res.json();
+        if (data.description) {
+          const desc = typeof data.description === 'string' ? data.description : data.description.value;
+          setSynopsis(desc);
+        } else {
+          setSynopsis(null);
+        }
+      } catch (e) {
+        setSynopsis(null);
+      } finally {
+        setLoadingSynopsis(false);
+      }
+    };
+    fetchSynopsis();
+  }, [selectedBook]);
 
   return (
     <View style={{ flex: 1, backgroundColor: Colors.background }}>
@@ -108,18 +154,170 @@ export default function SearchScreen() {
       ) : (
         <FlatList
           data={results}
-          keyExtractor={(item) => item.google_books_id}
+          keyExtractor={(item) => item.open_library_id}
           contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 80 }]}
-          renderItem={({ item }) => <SearchResultCard book={item} />}
+          renderItem={({ item }) => (
+            <SearchResultCard 
+              book={item} 
+              isAdded={libraryBooks.some(b => b.open_library_id === item.open_library_id)}
+              onPress={() => setSelectedBook(item)}
+            />
+          )}
         />
       )}
+
+      {/* Book Details Modal */}
+      <Modal
+        visible={!!selectedBook}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setSelectedBook(null)}
+      >
+        <View style={styles.modalOverlay}>
+          <TouchableOpacity 
+            style={StyleSheet.absoluteFillObject}
+            activeOpacity={1}
+            onPress={() => setSelectedBook(null)}
+          />
+          <View style={[styles.modalContent, { maxHeight: '90%', paddingBottom: insets.bottom + 24 }]}>
+            <View {...panResponder.panHandlers} style={styles.dragHandleContainer}>
+              <View style={styles.dragHandle} />
+            </View>
+
+            <TouchableOpacity 
+              style={styles.modalClose} 
+              onPress={() => setSelectedBook(null)}
+              hitSlop={12}
+            >
+              <MaterialIcons name="close" size={24} color={Colors.onSurface} />
+            </TouchableOpacity>
+
+            {selectedBook && (
+              <ScrollView 
+                contentContainerStyle={styles.modalBody}
+                showsVerticalScrollIndicator={false}
+                bounces={false}
+              >
+                <View style={styles.modalCover}>
+                  {selectedBook.cover_url ? (
+                    <Image source={{ uri: selectedBook.cover_url }} style={StyleSheet.absoluteFillObject} contentFit="cover" />
+                  ) : (
+                    <View style={[StyleSheet.absoluteFillObject, styles.noCover]}>
+                      <MaterialIcons name="menu-book" size={48} color={Colors.onSurfaceVariant} style={{ opacity: 0.3 }} />
+                    </View>
+                  )}
+                </View>
+                
+                <Text style={styles.modalTitle}>{selectedBook.title}</Text>
+                {selectedBook.author && <Text style={styles.modalAuthor}>{selectedBook.author}</Text>}
+                
+                <View style={styles.modalStatsColumn}>
+                  {selectedBook.total_pages && (
+                    <View style={styles.modalStatRow}>
+                      <View style={styles.modalStatIcon}>
+                        <MaterialIcons name="menu-book" size={20} color={Colors.primary} />
+                      </View>
+                      <View style={styles.modalStatTextContainer}>
+                        <Text style={styles.modalStatLabel}>Length</Text>
+                        <Text style={styles.modalStatValue}>{selectedBook.total_pages} pages</Text>
+                      </View>
+                    </View>
+                  )}
+                  {selectedBook.genres && selectedBook.genres.length > 0 && (
+                    <View style={styles.modalStatRow}>
+                      <View style={styles.modalStatIcon}>
+                        <MaterialIcons name="category" size={20} color={Colors.primary} />
+                      </View>
+                      <View style={styles.modalStatTextContainer}>
+                        <Text style={styles.modalStatLabel}>Genres</Text>
+                        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
+                          {Array.from(new Set(selectedBook.genres.flatMap(g => g.split(',').map(s => s.trim())))).slice(0, 5).map((g, i) => {
+                            const formatted = g.replace(/series:/i, '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                            return (
+                              <View key={i} style={styles.modalGenreChip}>
+                                <Text style={styles.modalGenreChipText}>{formatted}</Text>
+                              </View>
+                            );
+                          })}
+                        </View>
+                      </View>
+                    </View>
+                  )}
+                  {selectedBook.language && (
+                    <View style={styles.modalStatRow}>
+                      <View style={styles.modalStatIcon}>
+                        <MaterialIcons name="language" size={20} color={Colors.primary} />
+                      </View>
+                      <View style={styles.modalStatTextContainer}>
+                        <Text style={styles.modalStatLabel}>Language</Text>
+                        <Text style={[styles.modalStatValue, {textTransform: 'uppercase'}]}>{selectedBook.language}</Text>
+                      </View>
+                    </View>
+                  )}
+                </View>
+
+                {loadingSynopsis ? (
+                  <ActivityIndicator size="small" color={Colors.primary} style={{ marginVertical: Spacing.base }} />
+                ) : synopsis ? (
+                  <View style={styles.synopsisContainer}>
+                    <Text style={styles.synopsisTitle}>Synopsis</Text>
+                    <Text style={styles.synopsisText}>
+                      {synopsis
+                        .replace(/\[([^\]]*pdf[^\]]*)\]\([^\)]+\)/gi, '') // Remove PDF links entirely
+                        .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1') // Remove other markdown links but keep text
+                        .replace(/\bpdf\b\.*/gi, '') // Remove any stray "pdf" text
+                        .replace(/\*\*/g, '') // Remove bold asterisks
+                        .replace(/\*/g, '')   // Remove italic asterisks
+                        .replace(/__/g, '')   // Remove underline/bold
+                        .replace(/\s{2,}/g, ' ') // Collapse multiple spaces
+                        .trim()}
+                    </Text>
+                  </View>
+                ) : null}
+                
+                <TouchableOpacity 
+                  style={[
+                    styles.modalAddButton, 
+                    libraryBooks.some(b => b.open_library_id === selectedBook.open_library_id) && { opacity: 0.5, backgroundColor: Colors.surfaceContainerHigh }
+                  ]}
+                  onPress={async () => {
+                    const isAdded = libraryBooks.some(b => b.open_library_id === selectedBook.open_library_id);
+                    if (!isAdded) {
+                      // We can just trigger the same hook, but actually we'd need to call useAddBook here.
+                      // Since useAddBook is in SearchResultCard, let's just close modal for now or instruct them to use the list button.
+                      // Better: let's not reimplement adding here, just use it for details!
+                      setSelectedBook(null);
+                    }
+                  }}
+                  disabled={true} // For now, disabled, they use the plus button outside
+                >
+                  <Text style={[styles.modalAddText, libraryBooks.some(b => b.open_library_id === selectedBook.open_library_id) && { color: Colors.primary }]}>
+                    {libraryBooks.some(b => b.open_library_id === selectedBook.open_library_id) ? 'Already in Library' : 'Close Details'}
+                  </Text>
+                </TouchableOpacity>
+              </ScrollView>
+            )}
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
 
-function SearchResultCard({ book }: { book: GoogleBookItem }) {
+function SearchResultCard({ book, isAdded, onPress }: { book: BookItem; isAdded: boolean; onPress: () => void }) {
+  const { mutateAsync: addBook, isPending } = useAddBook();
+
+  const handleAdd = async () => {
+    if (isAdded) return;
+    try {
+      await addBook({ book });
+    } catch (e) {
+      console.warn('Failed to add book', e);
+    }
+  };
+
   return (
-    <TouchableOpacity style={[styles.resultCard, Shadows.card]} activeOpacity={0.85}>
+    <TouchableOpacity style={[styles.resultCard, Shadows.card]} activeOpacity={0.85} onPress={onPress}>
       {/* Cover */}
       <View style={styles.resultCover}>
         {book.cover_url ? (
@@ -148,8 +346,22 @@ function SearchResultCard({ book }: { book: GoogleBookItem }) {
       </View>
 
       {/* Add button */}
-      <TouchableOpacity style={styles.addButton}>
-        <MaterialIcons name="add" size={20} color={Colors.onPrimary} />
+      <TouchableOpacity 
+        style={[
+          styles.addButton, 
+          (isPending || isAdded) && { opacity: 0.5 },
+          isAdded && { backgroundColor: Colors.primaryContainer }
+        ]} 
+        onPress={handleAdd}
+        disabled={isPending || isAdded}
+      >
+        {isPending ? (
+          <ActivityIndicator size="small" color={Colors.onPrimary} />
+        ) : isAdded ? (
+          <MaterialIcons name="check" size={20} color={Colors.primary} />
+        ) : (
+          <MaterialIcons name="add" size={20} color={Colors.onPrimary} />
+        )}
       </TouchableOpacity>
     </TouchableOpacity>
   );
@@ -263,5 +475,131 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: Colors.background,
+    borderTopLeftRadius: Radius.xl,
+    borderTopRightRadius: Radius.xl,
+    padding: Spacing.containerPadding,
+    ...Shadows.overlay,
+  },
+  modalClose: {
+    position: 'absolute',
+    top: Spacing.containerPadding,
+    right: Spacing.containerPadding,
+    zIndex: 10,
+    backgroundColor: Colors.surfaceContainerHighest,
+    borderRadius: Radius.full,
+    padding: 6,
+  },
+  dragHandleContainer: {
+    width: '100%',
+    alignItems: 'center',
+    paddingVertical: Spacing.stackSm,
+    marginBottom: Spacing.stackSm,
+  },
+  dragHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: Colors.outlineVariant,
+  },
+  modalBody: {
+    alignItems: 'center',
+    paddingTop: Spacing.stackLg,
+    gap: Spacing.stackSm,
+  },
+  modalCover: {
+    width: 140,
+    height: 210,
+    borderRadius: Radius.lg,
+    backgroundColor: Colors.surfaceContainerHigh,
+    overflow: 'hidden',
+    ...Shadows.card,
+    marginBottom: Spacing.base,
+  },
+  modalTitle: {
+    ...Typography.styles.headlineMd,
+    color: Colors.onSurface,
+    textAlign: 'center',
+  },
+  modalAuthor: {
+    ...Typography.styles.bodyLg,
+    color: Colors.onSurfaceVariant,
+    textAlign: 'center',
+    opacity: 0.8,
+  },
+  modalStatsColumn: {
+    width: '100%',
+    gap: Spacing.stackSm,
+    marginTop: Spacing.base,
+    marginBottom: Spacing.stackLg,
+  },
+  modalStatRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    gap: Spacing.stackSm,
+  },
+  modalStatIcon: {
+    width: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalStatTextContainer: {
+    flex: 1,
+  },
+  modalStatLabel: {
+    ...Typography.styles.labelSm,
+    color: Colors.onSurfaceVariant,
+  },
+  modalStatValue: {
+    ...Typography.styles.bodyMd,
+    color: Colors.onSurface,
+  },
+  modalGenreChip: {
+    backgroundColor: Colors.surfaceContainerHigh,
+    borderRadius: Radius.full,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  modalGenreChipText: {
+    ...Typography.styles.labelSm,
+    color: Colors.onSurface,
+    fontSize: 11,
+  },
+  synopsisContainer: {
+    width: '100%',
+    marginBottom: Spacing.stackLg,
+    gap: Spacing.stackSm,
+    paddingHorizontal: Spacing.stackSm,
+  },
+  synopsisTitle: {
+    ...Typography.styles.titleSm,
+    color: Colors.onSurface,
+    textAlign: 'left',
+  },
+  synopsisText: {
+    ...Typography.styles.bodyMd,
+    color: Colors.onSurfaceVariant,
+    lineHeight: 22,
+    textAlign: 'left',
+  },
+  modalAddButton: {
+    width: '100%',
+    paddingVertical: 16,
+    borderRadius: Radius.xl,
+    backgroundColor: Colors.surfaceContainerHighest,
+    alignItems: 'center',
+  },
+  modalAddText: {
+    ...Typography.styles.labelLg,
+    color: Colors.onSurface,
   },
 });

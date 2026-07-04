@@ -29,7 +29,7 @@ create policy "profiles_insert_own" on profiles
 -- ─────────────────────────────────────────────
 create table if not exists books (
   id uuid primary key default gen_random_uuid(),
-  google_books_id text unique not null,
+  open_library_id text unique not null,
   title text not null,
   author text,
   cover_url text,
@@ -255,3 +255,26 @@ drop trigger if exists on_profile_created on profiles;
 create trigger on_profile_created
   after insert on profiles
   for each row execute function create_streak_row();
+
+-- ─────────────────────────────────────────────
+-- Trigger: auto-create profile when auth user signs up
+-- ─────────────────────────────────────────────
+create or replace function public.handle_new_user()
+returns trigger language plpgsql security definer as $$
+begin
+  insert into public.profiles (id, username, display_name, avatar_url)
+  values (
+    new.id, 
+    coalesce(new.raw_user_meta_data->>'username', split_part(new.email, '@', 1)), 
+    coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1)),
+    coalesce(new.raw_user_meta_data->>'avatar_url', null)
+  )
+  on conflict (id) do nothing;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();

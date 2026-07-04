@@ -1,65 +1,374 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+/**
+ * Share Preview Screen — Strava-style photo + stats overlay
+ *
+ * Flow:
+ * 1. User arrives from session finish / favorites / tier-list
+ * 2. They pick a background photo (camera or gallery)
+ * 3. Stats are overlaid on the photo in a branded card
+ * 4. User can toggle Light / Dark overlay theme
+ * 5. Tapping "Share" captures the card with view-shot and opens share sheet
+ */
+import React, { useRef, useState } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  ActivityIndicator,
+  ScrollView,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-import { Colors, Typography, Spacing, Radius } from '@/theme';
+import { captureRef } from 'react-native-view-shot';
+import * as Sharing from 'expo-sharing';
+import { Colors, Typography, Spacing, Radius, Shadows } from '@/theme';
+import { formatDuration } from '@/lib/metrics';
+import { useProfile } from '@/hooks/useProfile';
+import { useReadingSessions } from '@/hooks/useReadingSessions';
+import { useLibrary } from '@/hooks/useLibrary';
+import { useFavorites } from '@/hooks/useFavorites';
+import { useTierLists } from '@/hooks/useTierLists';
+import { usePlaylists } from '@/hooks/usePlaylists';
 
-export default function SharePreviewScreen() {
-  const { type, id } = useLocalSearchParams<{ type: string; id: string }>();
-  const router = useRouter();
-  const insets = useSafeAreaInsets();
+// ─────────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────────
+type OverlayTheme = 'dark' | 'light';
+
+function getTypeLabel(type?: string): string {
+  switch (type) {
+    case 'session':   return 'Reading Session';
+    case 'favorites': return 'My Favorites';
+    case 'tier-list': return 'Tier List';
+    case 'playlist':  return 'Reading List';
+    default:          return 'Reading Recap';
+  }
+}
+
+// ─────────────────────────────────────────────
+// Stats overlay card — the piece that gets screenshot
+// ─────────────────────────────────────────────
+interface StatsCardProps {
+  backgroundUri: string | null;
+  theme: OverlayTheme;
+  type: string;
+  title: string;
+  subtitle: string;
+  metrics: { label: string; value: string }[];
+  cardRef: React.RefObject<View>;
+}
+
+function StatsCard({ backgroundUri, theme, type, title, subtitle, metrics, cardRef }: StatsCardProps) {
+  const isDark = theme === 'dark';
+  const textColor = isDark ? '#ffffff' : Colors.primary;
+  const overlayBg = isDark ? 'rgba(0,0,0,0.58)' : 'rgba(255,255,255,0.82)';
+  const dividerColor = isDark ? 'rgba(255,255,255,0.25)' : `${Colors.outlineVariant}88`;
 
   return (
-    <View style={{ flex: 1, backgroundColor: Colors.background }}>
-      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-        <TouchableOpacity onPress={() => router.back()} hitSlop={12}>
-          <MaterialIcons name="close" size={24} color={Colors.onSurface} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Share Recap</Text>
-        <View style={{ width: 24 }} />
+    <View ref={cardRef} style={styles.card} collapsable={false}>
+      {/* Background photo or gradient placeholder */}
+      {backgroundUri ? (
+        <Image
+          source={{ uri: backgroundUri }}
+          style={StyleSheet.absoluteFillObject}
+          contentFit="cover"
+        />
+      ) : (
+        <View style={[StyleSheet.absoluteFillObject, styles.cardPlaceholderBg]} />
+      )}
+
+      {/* Dark/Light gradient vignette at bottom */}
+      <View
+        style={[
+          StyleSheet.absoluteFillObject,
+          {
+            background: isDark
+              ? 'linear-gradient(transparent 30%, rgba(0,0,0,0.7) 100%)'
+              : undefined,
+          },
+        ]}
+        pointerEvents="none"
+      />
+
+      {/* Brand watermark — top left */}
+      <View style={styles.watermark}>
+        <MaterialIcons name="menu-book" size={16} color={textColor} style={{ opacity: 0.8 }} />
+        <Text style={[styles.watermarkText, { color: textColor }]}>Tofu</Text>
       </View>
 
-      <View style={styles.previewArea}>
-        {/* Share card placeholder — full rendering is a follow-up task */}
-        <View style={styles.shareCard}>
-          <View style={styles.shareCardHeader}>
-            <MaterialIcons name="menu-book" size={32} color={Colors.onPrimary} />
-            <Text style={styles.shareCardBrand}>Tofu</Text>
+      {/* Stats overlay panel — bottom */}
+      <View style={[styles.statsPanel, { backgroundColor: overlayBg }]}>
+        {/* Book info */}
+        <View style={styles.bookRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.statBookTitle, { color: textColor }]} numberOfLines={2}>
+              {title}
+            </Text>
+            <Text style={[styles.statAuthor, { color: textColor, opacity: 0.7 }]} numberOfLines={1}>
+              {subtitle}
+            </Text>
           </View>
-          <Text style={styles.shareCardType}>{getTypeLabel(type)}</Text>
-          <Text style={styles.shareCardId}>ID: {id}</Text>
-          <Text style={styles.shareCardNote}>
-            Share card rendering will be implemented in a follow-up task.{'\n'}
-            (react-native-view-shot + expo-sharing)
-          </Text>
+          <View style={[styles.typeBadge, { borderColor: dividerColor }]}>
+            <Text style={[styles.typeBadgeText, { color: textColor }]}>
+              {getTypeLabel(type)}
+            </Text>
+          </View>
         </View>
-      </View>
 
-      <View style={[styles.actions, { paddingBottom: insets.bottom + 16 }]}>
-        <TouchableOpacity style={styles.shareButton} activeOpacity={0.85}>
-          <MaterialIcons name="share" size={20} color={Colors.onPrimary} />
-          <Text style={styles.shareButtonText}>Share Image</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.downloadButton} activeOpacity={0.85}>
-          <MaterialIcons name="download" size={20} color={Colors.primary} />
-          <Text style={styles.downloadButtonText}>Save to Photos</Text>
-        </TouchableOpacity>
+        {/* Divider */}
+        <View style={[styles.divider, { backgroundColor: dividerColor }]} />
+
+        {/* Numbers row */}
+        <View style={styles.numbersRow}>
+          {metrics.map((m, i) => (
+            <React.Fragment key={i}>
+              <View style={styles.statItem}>
+                <Text style={[styles.statValue, { color: textColor }]}>{m.value}</Text>
+                <Text style={[styles.statLabel, { color: textColor, opacity: 0.6 }]}>{m.label}</Text>
+              </View>
+              {i < metrics.length - 1 && (
+                <View style={[styles.statDivider, { backgroundColor: dividerColor }]} />
+              )}
+            </React.Fragment>
+          ))}
+        </View>
       </View>
     </View>
   );
 }
 
-function getTypeLabel(type?: string): string {
-  switch (type) {
-    case 'session': return 'Reading Session Recap';
-    case 'favorites': return 'My Favorites';
-    case 'tier-list': return 'Tier List';
-    case 'playlist': return 'Reading List';
-    default: return 'Reading Recap';
+// ─────────────────────────────────────────────
+// Main screen
+// ─────────────────────────────────────────────
+export default function SharePreviewScreen() {
+  const { type, id } = useLocalSearchParams<{ type: string; id: string }>();
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+
+  const cardRef = useRef<View>(null);
+  const [backgroundUri, setBackgroundUri] = useState<string | null>(null);
+  const [theme, setTheme] = useState<OverlayTheme>('dark');
+  const [sharing, setSharing] = useState(false);
+
+  // Use live data hooks
+  const { data: profile } = useProfile();
+  const { data: sessions = [] } = useReadingSessions();
+  const { data: library = [] } = useLibrary();
+  const { data: favorites = [] } = useFavorites();
+  const { data: tierLists = [] } = useTierLists();
+  const { data: playlists = [] } = usePlaylists();
+
+  // Compute metrics based on type
+  let title = 'Tofu Recap';
+  let subtitle = 'My Reading Journey';
+  let metrics: { label: string; value: string }[] = [];
+
+  const streak = profile?.streak?.current_streak ?? 0;
+
+  if (type === 'session') {
+    const session = id === 'latest' ? sessions[0] : sessions.find(s => s.id === id);
+    const book = library.find(b => b.id === session?.user_book_id);
+    if (session && book) {
+      title = book.title;
+      subtitle = book.author || 'Unknown Author';
+      metrics = [
+        { label: 'Duration', value: formatDuration(session.duration_seconds) },
+        { label: 'Pages', value: `${session.pages_read}` },
+        { label: 'Pgs/hr', value: `${session.pages_per_hour || 0}` },
+        { label: 'Streak', value: `${streak}` }
+      ];
+    }
+  } else if (type === 'favorites') {
+    title = 'All-Time Favorites';
+    subtitle = `Top ${favorites.length} Books`;
+    metrics = [
+      { label: '#1 Book', value: favorites.find(f => f.rank === 1)?.book.title.substring(0, 10) || 'None' },
+      { label: 'Total Favs', value: `${favorites.length}` },
+      { label: 'Streak', value: `${streak}` }
+    ];
+  } else if (type === 'tier-list') {
+    const list = tierLists.find(t => t.id === id);
+    if (list) {
+      title = list.title;
+      subtitle = 'Tier List';
+      metrics = [
+        { label: 'Tiers', value: `${list.tiers.length}` },
+        { label: 'Streak', value: `${streak}` }
+      ];
+    }
+  } else if (type === 'playlist') {
+    const list = playlists.find(p => p.id === id);
+    if (list) {
+      title = list.title;
+      subtitle = list.description || 'Reading List';
+      metrics = [
+        { label: 'Status', value: list.is_public ? 'Public' : 'Private' },
+        { label: 'Streak', value: `${streak}` }
+      ];
+    }
   }
+
+  // ── Media Picker (uses expo-image-picker when installed) ──
+  async function pickFromGallery() {
+    try {
+      // Dynamic import so the app doesn't crash if expo-image-picker isn't installed yet
+      const ImagePicker = await import('expo-image-picker');
+      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permission.granted) {
+        Alert.alert('Permission needed', 'Please allow photo library access in Settings.');
+        return;
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 0.85,
+        allowsEditing: true,
+        aspect: [9, 16],
+      });
+      if (!result.canceled && result.assets[0]) {
+        setBackgroundUri(result.assets[0].uri);
+      }
+    } catch {
+      Alert.alert('Error', 'Could not open photo library. Make sure expo-image-picker is installed.');
+    }
+  }
+
+  async function takePhoto() {
+    try {
+      const ImagePicker = await import('expo-image-picker');
+      const permission = await ImagePicker.requestCameraPermissionsAsync();
+      if (!permission.granted) {
+        Alert.alert('Permission needed', 'Please allow camera access in Settings.');
+        return;
+      }
+      const result = await ImagePicker.launchCameraAsync({
+        quality: 0.85,
+        allowsEditing: true,
+        aspect: [9, 16],
+      });
+      if (!result.canceled && result.assets[0]) {
+        setBackgroundUri(result.assets[0].uri);
+      }
+    } catch {
+      Alert.alert('Error', 'Could not open camera. Make sure expo-image-picker is installed.');
+    }
+  }
+
+  // ── Export & Share ──
+  async function handleShare() {
+    if (!cardRef.current) return;
+    setSharing(true);
+    try {
+      const uri = await captureRef(cardRef, {
+        format: 'png',
+        quality: 1,
+        result: 'tmpfile',
+      });
+      const canShare = await Sharing.isAvailableAsync();
+      if (canShare) {
+        await Sharing.shareAsync(uri, { mimeType: 'image/png' });
+      } else {
+        Alert.alert('Sharing not available on this device.');
+      }
+    } catch (e) {
+      Alert.alert('Export failed', 'Could not capture the card. Please try again.');
+    } finally {
+      setSharing(false);
+    }
+  }
+
+  return (
+    <View style={{ flex: 1, backgroundColor: Colors.background }}>
+      {/* Header */}
+      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+        <TouchableOpacity onPress={() => router.back()} hitSlop={12}>
+          <MaterialIcons name="close" size={24} color={Colors.onSurface} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Share Recap</Text>
+        {/* Theme toggle */}
+        <TouchableOpacity
+          onPress={() => setTheme(t => (t === 'dark' ? 'light' : 'dark'))}
+          style={styles.themeToggle}
+          hitSlop={8}
+        >
+          <MaterialIcons
+            name={theme === 'dark' ? 'light-mode' : 'dark-mode'}
+            size={20}
+            color={Colors.primary}
+          />
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView
+        contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 24 }]}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Card preview */}
+        <StatsCard
+          backgroundUri={backgroundUri}
+          theme={theme}
+          type={type}
+          title={title}
+          subtitle={subtitle}
+          metrics={metrics}
+          cardRef={cardRef as React.RefObject<View>}
+        />
+
+        {/* Photo picker controls */}
+        <View style={styles.pickerRow}>
+          <TouchableOpacity style={styles.pickerButton} onPress={takePhoto} activeOpacity={0.85}>
+            <MaterialIcons name="photo-camera" size={20} color={Colors.primary} />
+            <Text style={styles.pickerButtonText}>Take Photo</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.pickerButton} onPress={pickFromGallery} activeOpacity={0.85}>
+            <MaterialIcons name="photo-library" size={20} color={Colors.primary} />
+            <Text style={styles.pickerButtonText}>From Gallery</Text>
+          </TouchableOpacity>
+          {backgroundUri && (
+            <TouchableOpacity
+              style={styles.pickerButton}
+              onPress={() => setBackgroundUri(null)}
+              activeOpacity={0.85}
+            >
+              <MaterialIcons name="close" size={20} color={Colors.error} />
+              <Text style={[styles.pickerButtonText, { color: Colors.error }]}>Remove</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* Hint text */}
+        <Text style={styles.hint}>
+          {backgroundUri
+            ? 'Looking great! Tap the sun/moon to toggle overlay contrast.'
+            : 'Add a photo of your book, reading nook, or desk as a background.'}
+        </Text>
+
+        {/* Share + Save buttons */}
+        <TouchableOpacity
+          style={[styles.shareButton, sharing && { opacity: 0.7 }]}
+          onPress={handleShare}
+          activeOpacity={0.85}
+          disabled={sharing}
+        >
+          {sharing ? (
+            <ActivityIndicator color={Colors.onPrimary} />
+          ) : (
+            <>
+              <MaterialIcons name="share" size={20} color={Colors.onPrimary} />
+              <Text style={styles.shareButtonText}>Share Image</Text>
+            </>
+          )}
+        </TouchableOpacity>
+      </ScrollView>
+    </View>
+  );
 }
 
+// ─────────────────────────────────────────────
+// Styles
+// ─────────────────────────────────────────────
 const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
@@ -71,54 +380,136 @@ const styles = StyleSheet.create({
     borderBottomColor: Colors.outlineVariant,
   },
   headerTitle: { ...Typography.styles.titleSm, color: Colors.onSurface },
-  previewArea: {
+  themeToggle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.surfaceContainerLow,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  scroll: {
+    paddingHorizontal: Spacing.containerPadding,
+    paddingTop: Spacing.stackMd,
+    gap: Spacing.stackMd,
+    alignItems: 'center',
+  },
+
+  // ── Card ──
+  card: {
+    width: '100%',
+    aspectRatio: 9 / 16,
+    borderRadius: Radius.xl,
+    overflow: 'hidden',
+    ...Shadows.overlay,
+  },
+  cardPlaceholderBg: {
+    backgroundColor: Colors.primaryContainer,
+  },
+  watermark: {
+    position: 'absolute',
+    top: Spacing.stackMd,
+    left: Spacing.stackMd,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  watermarkText: {
+    ...Typography.styles.labelLg,
+    letterSpacing: 1,
+  },
+  statsPanel: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: Spacing.stackMd,
+    gap: Spacing.stackSm,
+  },
+  bookRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing.base,
+  },
+  statBookTitle: {
+    ...Typography.styles.titleSm,
+    fontSize: 17,
+  },
+  statAuthor: {
+    ...Typography.styles.bodyMd,
+    fontSize: 13,
+    marginTop: 2,
+  },
+  typeBadge: {
+    borderWidth: 1,
+    borderRadius: Radius.full,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    flexShrink: 0,
+    marginTop: 2,
+  },
+  typeBadgeText: {
+    ...Typography.styles.labelSm,
+    fontSize: 10,
+  },
+  divider: {
+    height: StyleSheet.hairlineWidth,
+  },
+  numbersRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  statItem: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
-    padding: Spacing.containerPadding,
+    gap: 2,
   },
-  shareCard: {
-    width: '100%',
-    maxWidth: 320,
-    backgroundColor: Colors.primary,
-    borderRadius: Radius.xl,
-    padding: Spacing.stackMd,
-    alignItems: 'center',
-    gap: Spacing.stackSm,
-    aspectRatio: 9 / 16,
+  statValue: {
+    ...Typography.styles.labelLg,
+    fontSize: 16,
+  },
+  statLabel: {
+    ...Typography.styles.labelSm,
+    fontSize: 10,
+  },
+  statDivider: {
+    width: StyleSheet.hairlineWidth,
+    height: 32,
+  },
+
+  // ── Controls ──
+  pickerRow: {
+    flexDirection: 'row',
+    gap: Spacing.base,
+    flexWrap: 'wrap',
     justifyContent: 'center',
   },
-  shareCardHeader: {
+  pickerButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
+    backgroundColor: Colors.surfaceContainerLow,
+    borderRadius: Radius.xl,
+    paddingHorizontal: Spacing.stackSm,
+    paddingVertical: Spacing.base,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Colors.outlineVariant,
   },
-  shareCardBrand: {
-    ...Typography.styles.headlineMd,
-    color: Colors.onPrimary,
+  pickerButtonText: {
+    ...Typography.styles.labelLg,
+    color: Colors.primary,
   },
-  shareCardType: {
-    ...Typography.styles.titleSm,
-    color: Colors.onPrimaryContainer,
+  hint: {
+    ...Typography.styles.bodyMd,
+    color: Colors.onSurfaceVariant,
     textAlign: 'center',
-  },
-  shareCardId: {
-    ...Typography.styles.labelSm,
-    color: `${Colors.onPrimary}88`,
-  },
-  shareCardNote: {
-    ...Typography.styles.labelSm,
-    color: `${Colors.onPrimary}66`,
-    textAlign: 'center',
-    marginTop: Spacing.stackMd,
-    fontSize: 11,
-  },
-  actions: {
-    paddingHorizontal: Spacing.containerPadding,
-    paddingTop: Spacing.stackSm,
-    gap: Spacing.stackSm,
+    opacity: 0.7,
+    fontSize: 13,
+    paddingHorizontal: Spacing.stackMd,
   },
   shareButton: {
+    width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -126,16 +517,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     borderRadius: Radius.xl,
     paddingVertical: 16,
+    ...Shadows.button,
   },
   shareButtonText: { ...Typography.styles.labelLg, color: Colors.onPrimary },
-  downloadButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: Colors.secondaryContainer,
-    borderRadius: Radius.xl,
-    paddingVertical: 16,
-  },
-  downloadButtonText: { ...Typography.styles.labelLg, color: Colors.primary },
 });

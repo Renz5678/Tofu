@@ -6,13 +6,17 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, Radius, Shadows } from '@/theme';
 import { BookCard } from '@/components/BookCard';
-import { MOCK_PLAYLISTS } from '@/lib/mockData';
+import { usePlaylists, usePlaylistItems } from '@/hooks/usePlaylists';
 
 export default function PlaylistDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const playlist = MOCK_PLAYLISTS.find((p) => p.id === id) ?? MOCK_PLAYLISTS[0];
+  const { data: playlists = [] } = usePlaylists();
+  const { data: items = [] } = usePlaylistItems(id);
+  
+  const playlist = playlists.find((p) => p.id === id);
+  if (!playlist) return null;
 
   return (
     <View style={{ flex: 1, backgroundColor: Colors.background }}>
@@ -33,18 +37,16 @@ export default function PlaylistDetailScreen() {
         {playlist.description && (
           <Text style={styles.description}>{playlist.description}</Text>
         )}
-        <Text style={styles.meta}>{playlist.books.length} books · {playlist.is_public ? 'Public' : 'Private'}</Text>
+        <Text style={styles.meta}>{items.length} books · {playlist.is_public ? 'Public' : 'Private'}</Text>
 
         <View style={styles.grid}>
-          {playlist.books.map((book) => (
-            <View key={book.id} style={{ width: '48%' }}>
+          {items.map((item) => (
+            <View key={item.id} style={{ width: '48%' }}>
               <BookCard
-                id={book.id}
-                title={book.title}
-                author={book.author}
-                coverUrl={book.cover_url}
-                currentPage={book.current_page}
-                totalPages={book.total_pages}
+                id={item.book.id}
+                title={item.book.title}
+                author={item.book.author}
+                coverUrl={item.book.cover_url}
               />
             </View>
           ))}

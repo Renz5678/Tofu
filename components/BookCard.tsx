@@ -73,6 +73,8 @@ const styles = StyleSheet.create({
   coverWrapper: {
     aspectRatio: 2 / 3,
     borderRadius: Radius.xl,
+    borderWidth: 1,
+    borderColor: Colors.outlineVariant,
     overflow: 'hidden',
     backgroundColor: Colors.surfaceContainerHigh,
     marginBottom: Spacing.stackSm,

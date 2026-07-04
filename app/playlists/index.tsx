@@ -12,11 +12,23 @@ import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, Radius, Shadows } from '@/theme';
 import { EmptyState } from '@/components/EmptyState';
-import { MOCK_PLAYLISTS } from '@/lib/mockData';
+import { usePlaylists, useCreatePlaylist } from '@/hooks/usePlaylists';
 
 export default function PlaylistsIndexScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+
+  const { data: playlists = [] } = usePlaylists();
+  const { mutateAsync: createPlaylist } = useCreatePlaylist();
+
+  const handleCreate = async () => {
+    try {
+      const list = await createPlaylist('My Reading List');
+      router.push(`/playlists/${list.id}`);
+    } catch (e) {
+      console.error('Failed to create playlist', e);
+    }
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: Colors.background }}>
@@ -25,50 +37,34 @@ export default function PlaylistsIndexScreen() {
           <MaterialIcons name="arrow-back" size={24} color={Colors.onSurface} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Reading Lists</Text>
-        <TouchableOpacity style={styles.addButton} hitSlop={12}>
+        <TouchableOpacity style={styles.addButton} onPress={handleCreate} hitSlop={12}>
           <MaterialIcons name="add" size={22} color={Colors.onPrimary} />
         </TouchableOpacity>
       </View>
 
-      {MOCK_PLAYLISTS.length === 0 ? (
+      {playlists.length === 0 ? (
         <EmptyState
           icon="playlist-play"
           title="No reading lists yet"
           description="Create curated lists of books to read next."
           actionLabel="Create a List"
+          onAction={handleCreate}
         />
       ) : (
         <ScrollView
           contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 24 }]}
           showsVerticalScrollIndicator={false}
         >
-          {MOCK_PLAYLISTS.map((pl) => (
+          {playlists.map((pl) => (
             <TouchableOpacity
               key={pl.id}
               style={[styles.card, Shadows.card]}
               onPress={() => router.push(`/playlists/${pl.id}` as any)}
               activeOpacity={0.85}
             >
-              {/* Cover collage */}
+              {/* Cover collage fallback */}
               <View style={styles.collage}>
-                {pl.books.slice(0, 4).map((book, i) => (
-                  <View
-                    key={book.id}
-                    style={[
-                      styles.collageCell,
-                      i === 0 && { borderTopLeftRadius: Radius.md },
-                      i === 1 && { borderTopRightRadius: Radius.md },
-                      i === 2 && { borderBottomLeftRadius: Radius.md },
-                      i === 3 && { borderBottomRightRadius: Radius.md },
-                    ]}
-                  >
-                    <Image
-                      source={{ uri: book.cover_url }}
-                      style={StyleSheet.absoluteFillObject}
-                      contentFit="cover"
-                    />
-                  </View>
-                ))}
+                <MaterialIcons name="auto-awesome-motion" size={32} color={Colors.primary} style={{ margin: 'auto' }} />
               </View>
               <View style={{ flex: 1, gap: 4 }}>
                 <Text style={styles.cardTitle}>{pl.title}</Text>
@@ -76,7 +72,7 @@ export default function PlaylistsIndexScreen() {
                   <Text style={styles.cardDesc} numberOfLines={2}>{pl.description}</Text>
                 )}
                 <Text style={styles.cardMeta}>
-                  {pl.books.length} books · {pl.is_public ? 'Public' : 'Private'}
+                  {pl.is_public ? 'Public' : 'Private'}
                 </Text>
               </View>
               <MaterialIcons name="chevron-right" size={20} color={Colors.onSurfaceVariant} style={{ opacity: 0.4 }} />

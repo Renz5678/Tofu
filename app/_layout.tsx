@@ -7,6 +7,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { Colors } from '@/theme';
+import { useSessionStore } from '@/store/sessionStore';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -38,6 +39,12 @@ export default function RootLayout() {
     HankenGrotesk_600SemiBold: require('../assets/fonts/HankenGrotesk-SemiBold.ttf'),
     HankenGrotesk_700Bold: require('../assets/fonts/HankenGrotesk-Bold.ttf'),
   });
+
+  const hydrateFromStorage = useSessionStore((s) => s.hydrateFromStorage);
+
+  useEffect(() => {
+    hydrateFromStorage();
+  }, [hydrateFromStorage]);
 
   useEffect(() => {
     if (fontsLoaded || fontError) {

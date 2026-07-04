@@ -12,9 +12,9 @@ import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, Radius, Shadows } from '@/theme';
-import { ProgressBar } from '@/components/ProgressRing';
-import { MOCK_BOOKS } from '@/lib/mockData';
 import { readingProgress } from '@/lib/metrics';
+import { useLibrary } from '@/hooks/useLibrary';
+import { useSessionStore } from '@/store/sessionStore';
 
 export default function BookDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -22,8 +22,26 @@ export default function BookDetailScreen() {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
 
-  const book = MOCK_BOOKS.find((b) => b.id === id) ?? MOCK_BOOKS[0];
-  const progress = readingProgress(book.current_page, book.total_pages);
+  const { data: libraryBooks = [] } = useLibrary();
+  const book = libraryBooks.find((b) => b.id === id);
+  const startSession = useSessionStore((s) => s.startSession);
+  const activeSession = useSessionStore((s) => s.activeSession);
+
+  if (!book) return null; // Or a loading/not-found state
+
+  const progress = readingProgress(book.current_page, book.total_pages || 1);
+
+  const handleStartReading = async () => {
+    if (activeSession?.userBookId !== book.id) {
+      await startSession({
+        userBookId: book.id,
+        startPage: book.current_page,
+        startTime: new Date().toISOString(),
+        totalPausedSeconds: 0,
+      });
+    }
+    router.push('/session/active');
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: Colors.background }}>
@@ -64,14 +82,16 @@ export default function BookDetailScreen() {
           <Text style={styles.bookTitle}>{book.title}</Text>
           <Text style={styles.bookAuthor}>{book.author}</Text>
           <View style={styles.metaRow}>
-            {book.genres.map((g) => (
+            {book.genres?.map((g) => (
               <View key={g} style={styles.genreChip}>
                 <Text style={styles.genreChipText}>{g}</Text>
               </View>
             ))}
-            <View style={styles.genreChip}>
-              <Text style={styles.genreChipText}>{book.language.toUpperCase()}</Text>
-            </View>
+            {book.language && (
+              <View style={styles.genreChip}>
+                <Text style={styles.genreChipText}>{book.language.toUpperCase()}</Text>
+              </View>
+            )}
           </View>
         </View>
 
@@ -99,7 +119,7 @@ export default function BookDetailScreen() {
         {/* Start/Continue reading button */}
         <TouchableOpacity
           style={styles.primaryButton}
-          onPress={() => router.push('/session/active')}
+          onPress={handleStartReading}
           activeOpacity={0.85}
         >
           <MaterialIcons name="play-circle" size={22} color={Colors.onPrimary} />
@@ -132,7 +152,7 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.stackMd,
   },
   heroOverlay: {
-    backgroundColor: 'rgba(20,70,55,0.65)',
+    backgroundColor: 'rgba(45,58,71,0.70)',
   },
   backButton: {
     position: 'absolute',

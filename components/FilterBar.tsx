@@ -30,30 +30,32 @@ export function FilterBar({ chips, activeValue, onSelect, style }: FilterBarProp
   };
 
   return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={[styles.container, style]}
-    >
-      {chips.map((chip) => {
-        const active = selected === chip.value;
-        return (
-          <TouchableOpacity
-            key={chip.value}
-            onPress={() => handlePress(chip.value)}
-            activeOpacity={0.75}
-            style={[
-              styles.chip,
-              active ? styles.chipActive : styles.chipInactive,
-            ]}
-          >
-            <Text style={[styles.chipText, active ? styles.chipTextActive : styles.chipTextInactive]}>
-              {chip.label}
-            </Text>
-          </TouchableOpacity>
-        );
-      })}
-    </ScrollView>
+    <View>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={[styles.container, style]}
+      >
+        {chips.map((chip) => {
+          const active = selected === chip.value;
+          return (
+            <TouchableOpacity
+              key={chip.value}
+              onPress={() => handlePress(chip.value)}
+              activeOpacity={0.75}
+              style={[
+                styles.chip,
+                active ? styles.chipActive : styles.chipInactive,
+              ]}
+            >
+              <Text style={[styles.chipText, active ? styles.chipTextActive : styles.chipTextInactive]}>
+                {chip.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+    </View>
   );
 }
 
@@ -88,6 +90,7 @@ export function StatusTabs({ tabs, activeValue, onSelect }: StatusTabsProps) {
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
+    alignItems: 'center',
     gap: Spacing.base,
     paddingVertical: 4,
   },
@@ -97,21 +100,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.gutter,
     paddingVertical: Spacing.base,
     borderRadius: Radius.full,
+    borderWidth: 1,
   },
   chipActive: {
-    backgroundColor: Colors.secondaryContainer,
+    backgroundColor: Colors.chipActive,
+    borderColor: Colors.chipActive,
   },
   chipInactive: {
-    backgroundColor: Colors.surfaceContainer,
+    backgroundColor: Colors.chipInactive,
+    borderColor: Colors.outlineVariant,
   },
   chipText: {
     ...Typography.styles.labelLg,
   },
   chipTextActive: {
-    color: Colors.onSecondaryContainer,
+    color: Colors.chipActiveText,
   },
   chipTextInactive: {
-    color: Colors.onSurfaceVariant,
+    color: Colors.chipInactiveText,
   },
   tabRow: {
     flexDirection: 'row',

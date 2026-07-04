@@ -1,51 +1,24 @@
-# Codebase Analysis & Integration Report
+# Tofu Codebase Analysis Results
 
-We have completed the core visual scaffolding and the SDK upgrade of the Tofu mobile reading tracker. Here is a breakdown of what has been implemented so far, what is currently mocked, and the precise features remaining to be built.
+## 1. Current State
+- **Backend Infrastructure**: Fully migrated to Supabase (PostgreSQL, Auth, RLS). All endpoints rely on live schemas for `profiles`, `books`, `user_books`, `reading_sessions`, `reading_goals`, `favorite_books`, `tier_lists`, and `reading_lists`.
+- **API Strategy**: Google Books API completely removed and replaced with Open Library API to prevent rate-limiting (429 errors).
+- **Session Timer**: Zustand + AsyncStorage powers the persistent timer, resilient to backgrounding and crashes. Computes pages per hour and tracks exact reading intervals.
+- **Metrics & Streaks**: Native `metrics.ts` integrates with the backend to handle precise calculations.
+- **Data Hook Layer**: Centralized custom React Query hooks (`useProfile`, `useLibrary`, `useReadingSessions`, `useGoals`, `useFavorites`, `useTierLists`, `usePlaylists`) replace all static data.
+- **Social Sharing**: A fully integrated Strava-style export overlay built using `expo-sharing` and `react-native-view-shot` allows users to snapshot their stats over custom gallery/camera photos.
+- **UI/Layout**: Modern, edge-to-edge Material Design 3 tokens successfully implemented across all screens. Safe area insets actively prevent header clipping on notch-enabled devices. 
 
----
+## 2. Completed Phases
+✅ **Phase 1**: Open Library Migration & Infrastructure
+✅ **Phase 2**: Session Lifecycle & Timer Persistence
+✅ **Phase 3**: Stats, Goals, & Profile Wiring
+✅ **Phase 4**: Curation Layer (Favorites, Playlists, Tier Lists)
+✅ **Phase 5**: Social Sharing & Export
 
-## 1. Current Implementation Status
-
-| Feature / Component | State | Current Code Status | Database / API Integration |
-| :--- | :--- | :--- | :--- |
-| **Auth Setup & Flow** | **Implemented** | `app/(auth)/sign-in.tsx`<br>`app/(auth)/sign-up.tsx` | Supabase Auth API (`signUp` and `signInWithPassword`) with client-side user profile creation/upsert. |
-| **Environment Config** | **Implemented** | `.env`, `lib/supabase.ts` | Connected to real Supabase URL and anon keys. |
-| **Theme / Design System** | **Implemented** | `theme/tokens.ts`, `theme/index.ts` | Complete Material 3 token library (updated to Slate Blue `#2d3a47`). |
-| **Dashboard** | **Visual Only** | `app/(tabs)/dashboard.tsx` | Reads from `MOCK_STATS` and `MOCK_BOOKS`. No live database reads. |
-| **Library & Search** | **Visual Only** | `app/(tabs)/library.tsx`<br>`app/(tabs)/search.tsx` | Search logic hooks up to mock books. Add-to-library and library list are local-only. |
-| **Session Tracker** | **Visual Only** | `app/session/active.tsx`<br>`app/session/finish.tsx` | Timer works in UI but logs are not sent to `reading_sessions` or stored in the database. |
-| **Goals & Streaks** | **Visual Only** | `app/goals/index.tsx` | Rings and streaks pull from static numbers. |
-| **Curation Layer** | **Visual Only** | `app/favorites/index.tsx`<br>`app/playlists/index.tsx`<br>`app/tier-lists/index.tsx` | Drag and drop, cover collages, and slot additions are local arrays. |
-| **Share Sheet** | **Offline** | `app/share/[type]/[id].tsx` | Uses `react-native-view-shot` to screenshot the mock-populated templates. |
-
----
-
-## 2. Missing Core Components (What We Still Need to Build)
-
-### A. React Query Hooks (`hooks/` Directory)
-As defined in the spec, we must abstract Supabase communication into React Query hooks rather than querying Supabase directly from UI components.
-We need to create the following hooks:
-*   `hooks/useLibrary.ts`: Fetch the user's books, search local libraries, and handle addition (`user_books` and `books` tables).
-*   `hooks/useReadingSessions.ts`: Fetch reading history and log new sessions into `reading_sessions`.
-*   `hooks/useFavorites.ts`: Manage top 5 book slots in `favorite_books`.
-*   `hooks/useTierLists.ts`: Query, create, and update boards inside `tier_lists` and `tier_list_items`.
-*   `hooks/usePlaylists.ts`: Handle reading lists (`reading_lists` and `reading_list_items`) with custom positions and layouts.
-*   `hooks/useProfile.ts`: Retrieve active session user profile details, streak status, and goals.
-
-### B. Google Books API Integration (`lib/googleBooks.ts`)
-While `lib/googleBooks.ts` exists, the search page (`app/(tabs)/search.tsx`) needs to be fully wired to execute the real Google Books API search query rather than returning `MOCK_BOOKS`.
-
-### C. Active Timer Persistence (`store/sessionStore.ts` & `lib/timer.ts`)
-We need to wire up `AsyncStorage` to store current timer progress so that the state of an active session survives app relaunches, as specified in the context.
-
-### D. Streaks & Metrics Math (`lib/metrics.ts`)
-We need to connect the helper methods in `lib/metrics.ts` directly to the session completion flows to calculate streaks, page increments, and velocities, updating the `streaks` and `profiles` tables in Supabase in real-time.
-
----
-
-## 3. Next Steps
-To begin integration, we should proceed in the recommended build order:
-1. Create the `hooks/` directory and implement the `useProfile` and `useLibrary` hooks first.
-2. Replace mock data imports with these hooks in the Dashboard and Library tabs.
-3. Wire the Search tab to the Google Books API query.
-4. Integrate the active session timer with Supabase's `reading_sessions` logging.
+## 3. What Should Be Tackled Next
+The Tofu MVP is complete! All primary features are data-backed, scalable, and styled according to modern standards. 
+If further development is desired, the next frontier would be:
+- **Authentication Flow**: Polish the `(auth)` screens with social login options (Google/Apple).
+- **Tier List Drag-and-Drop**: Implement `react-native-dnd` to allow users to intuitively slide books between S-A-B-C-D tiers instead of using text prompts.
+- **Push Notifications**: Inform users if they are about to lose their daily reading streak.

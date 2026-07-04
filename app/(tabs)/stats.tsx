@@ -5,11 +5,17 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
+  useWindowDimensions,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Typography, Spacing, Radius, Shadows } from '@/theme';
-import { ProgressRing } from '@/components/ProgressRing';
-import { MOCK_STATS } from '@/lib/mockData';
+import { useProfile } from '@/hooks/useProfile';
+import { useReadingSessions } from '@/hooks/useReadingSessions';
+import { useGoals } from '@/hooks/useGoals';
+import { useLibrary } from '@/hooks/useLibrary';
+import { ProgressRing, ProgressBar } from '@/components/ProgressRing';
+import { format } from 'date-fns';
 
 type Period = 'day' | 'week' | 'month';
 
@@ -22,9 +28,80 @@ const PERIOD_TABS: { label: string; value: Period }[] = [
 const WEEK_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 export default function StatsScreen() {
+  const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
+
   const [period, setPeriod] = useState<Period>('week');
-  const maxWeekly = Math.max(...MOCK_STATS.weeklyData);
+
+  const { data: profile } = useProfile();
+  const { data: sessions = [] } = useReadingSessions();
+  const { data: goals = [] } = useGoals();
+  const { data: libraryBooks = [] } = useLibrary();
+
+  const totalBooksRead = libraryBooks.filter(b => b.status === 'finished').length;
+  const totalPagesRead = sessions.reduce((acc, s) => acc + s.pages_read, 0);
+  
+  const totalMinutes = sessions.reduce((acc, s) => acc + s.duration_seconds, 0) / 60;
+  const avgPagesPerHour = totalMinutes > 0 ? Math.round(totalPagesRead / (totalMinutes / 60)) : 0;
+
+  const dailyMinuteGoal = goals.find(g => g.goal_type === 'minutes_per_day')?.target_value || 30;
+  const dailyPageGoal = goals.find(g => g.goal_type === 'pages_per_day')?.target_value || 20;
+
+  const todayStr = new Date().toISOString().split('T')[0];
+  const todaySessions = sessions.filter(s => s.start_time.startsWith(todayStr));
+  const todayMinutes = Math.round(todaySessions.reduce((acc, s) => acc + s.duration_seconds, 0) / 60);
+  const todayPages = todaySessions.reduce((acc, s) => acc + s.pages_read, 0);
+
+  const minuteProgress = Math.min(1, todayMinutes / dailyMinuteGoal);
+  const pageProgress = Math.min(1, todayPages / dailyPageGoal);
+  const currentStreak = profile?.streak?.current_streak ?? 0;
+
+  const chartData: number[] = [];
+  const chartLabels: string[] = [];
+  const today = new Date();
+  
+  if (period === 'week') {
+    const last7Dates = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(today);
+      d.setDate(today.getDate() - (6 - i));
+      return d.toISOString().split('T')[0];
+    });
+    last7Dates.forEach(dateStr => {
+      const d = new Date(dateStr);
+      chartLabels.push(WEEK_DAYS[d.getDay() === 0 ? 6 : d.getDay() - 1]);
+      const dayMins = sessions
+        .filter(s => s.start_time.startsWith(dateStr))
+        .reduce((acc, s) => acc + s.duration_seconds, 0) / 60;
+      chartData.push(Math.round(dayMins));
+    });
+  } else if (period === 'day') {
+    chartData.push(todayMinutes);
+    chartLabels.push('Today');
+  } else {
+    // simplified month view for now
+    chartData.push(0, 0, 0, 0);
+    chartLabels.push('W1', 'W2', 'W3', 'W4');
+  }
+
+  const maxChartVal = Math.max(...chartData, 1);
+
+  // Recent Sessions
+  const recentSessions = sessions.slice(0, 5).map(s => {
+    const book = libraryBooks.find(b => b.id === s.user_book_id);
+    const dateStr = s.start_time.split('T')[0];
+    let dateDisplay = dateStr;
+    if (dateStr === todayStr) dateDisplay = 'Today';
+    else if (dateStr === new Date(Date.now() - 86400000).toISOString().split('T')[0]) dateDisplay = 'Yesterday';
+    else dateDisplay = format(new Date(s.start_time), 'MMM d');
+    
+    return {
+      book: book?.title ?? 'Unknown Book',
+      minutes: Math.round(s.duration_seconds / 60),
+      pages: s.pages_read,
+      date: dateDisplay
+    };
+  });
 
   return (
     <View style={{ flex: 1, backgroundColor: Colors.background }}>
@@ -56,10 +133,10 @@ export default function StatsScreen() {
       >
         {/* Aggregate stats */}
         <View style={styles.statsGrid}>
-          <StatCard value={`${MOCK_STATS.totalBooksRead}`} label="Books Read" />
-          <StatCard value={`${MOCK_STATS.totalPagesRead.toLocaleString()}`} label="Pages Read" />
-          <StatCard value={`${MOCK_STATS.currentStreak}`} label="Day Streak 🔥" />
-          <StatCard value={`${MOCK_STATS.avgPagesPerHour}`} label="Pages / Hour" />
+          <StatCard value={`${totalBooksRead}`} label="Books Read" />
+          <StatCard value={`${totalPagesRead.toLocaleString()}`} label="Pages Read" />
+          <StatCard value={`${currentStreak}`} label="Day Streak" />
+          <StatCard value={`${avgPagesPerHour}`} label="Pages / Hour" />
         </View>
 
         {/* Progress ring cluster */}
@@ -68,31 +145,31 @@ export default function StatsScreen() {
           <View style={styles.ringRow}>
             <View style={styles.ringItem}>
               <ProgressRing
-                progress={MOCK_STATS.todayMinutes / MOCK_STATS.dailyGoalMinutes}
+                progress={minuteProgress}
                 size={88}
                 strokeWidth={8}
                 showLabel
-                labelText={`${MOCK_STATS.todayMinutes}m`}
+                labelText={`${todayMinutes}m`}
               />
               <Text style={styles.ringLabel}>Minutes</Text>
             </View>
             <View style={styles.ringItem}>
               <ProgressRing
-                progress={MOCK_STATS.todayPages / MOCK_STATS.dailyGoalPages}
+                progress={pageProgress}
                 size={88}
                 strokeWidth={8}
                 showLabel
-                labelText={`${MOCK_STATS.todayPages}p`}
+                labelText={`${todayPages}p`}
               />
               <Text style={styles.ringLabel}>Pages</Text>
             </View>
             <View style={styles.ringItem}>
               <ProgressRing
-                progress={0.6}
+                progress={currentStreak > 0 ? 1 : 0}
                 size={88}
                 strokeWidth={8}
                 showLabel
-                labelText="60%"
+                labelText={`${currentStreak}`}
                 color={Colors.tertiaryFixedDim}
               />
               <Text style={styles.ringLabel}>Streak</Text>
@@ -107,9 +184,9 @@ export default function StatsScreen() {
             <Text style={styles.chartSubtitle}>Last 7 days</Text>
           </View>
           <View style={styles.barChart}>
-            {MOCK_STATS.weeklyData.map((val, i) => {
-              const barH = maxWeekly > 0 ? (val / maxWeekly) * 100 : 4;
-              const isToday = i === new Date().getDay() - 1;
+            {chartData.map((val, i) => {
+              const barH = maxChartVal > 0 ? (val / maxChartVal) * 100 : 4;
+              const isToday = period === 'week' && i === 6;
               return (
                 <View key={i} style={styles.barColumn}>
                   <Text style={styles.barValue}>{val}</Text>
@@ -122,34 +199,36 @@ export default function StatsScreen() {
                       },
                     ]}
                   />
-                  <Text style={styles.barLabel}>{WEEK_DAYS[i]}</Text>
+                  <Text style={styles.barLabel}>{chartLabels[i]}</Text>
                 </View>
               );
             })}
           </View>
         </View>
 
-        {/* Recent sessions placeholder */}
+        {/* Recent sessions */}
         <View style={[styles.sessionsCard, Shadows.card]}>
           <Text style={styles.cardTitle}>Recent Sessions</Text>
-          {[
-            { book: 'The Midnight Library', minutes: 32, pages: 18, date: 'Today' },
-            { book: 'Midnight in Kyoto', minutes: 45, pages: 28, date: 'Yesterday' },
-            { book: 'The Silent Garden', minutes: 20, pages: 12, date: '2 days ago' },
-          ].map((s, i) => (
-            <View key={i} style={[styles.sessionRow, i > 0 && styles.sessionRowBorder]}>
-              <View style={styles.sessionInfo}>
-                <Text style={styles.sessionBook} numberOfLines={1}>{s.book}</Text>
-                <Text style={styles.sessionDate}>{s.date}</Text>
+          {recentSessions.length === 0 ? (
+            <Text style={{ ...Typography.styles.bodyMd, color: Colors.onSurfaceVariant, paddingVertical: Spacing.stackSm }}>
+              No reading sessions yet.
+            </Text>
+          ) : (
+            recentSessions.map((s, i) => (
+              <View key={i} style={[styles.sessionRow, i > 0 && styles.sessionRowBorder]}>
+                <View style={styles.sessionInfo}>
+                  <Text style={styles.sessionBook} numberOfLines={1}>{s.book}</Text>
+                  <Text style={styles.sessionDate}>{s.date}</Text>
+                </View>
+                <View style={styles.sessionStats}>
+                  <Text style={styles.sessionStat}>{s.minutes}m</Text>
+                  <Text style={[styles.sessionStat, { color: Colors.onSurfaceVariant, opacity: 0.5 }]}>
+                    · {s.pages}p
+                  </Text>
+                </View>
               </View>
-              <View style={styles.sessionStats}>
-                <Text style={styles.sessionStat}>{s.minutes}m</Text>
-                <Text style={[styles.sessionStat, { color: Colors.onSurfaceVariant, opacity: 0.5 }]}>
-                  · {s.pages}p
-                </Text>
-              </View>
-            </View>
-          ))}
+            ))
+          )}
         </View>
       </ScrollView>
     </View>
@@ -182,6 +261,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: Colors.surfaceContainer,
     borderRadius: Radius.full,
+    borderWidth: 1,
+    borderColor: Colors.outlineVariant,
     padding: 4,
   },
   periodPill: {
@@ -214,6 +295,8 @@ const styles = StyleSheet.create({
     width: '48%',
     backgroundColor: Colors.surfaceContainerLowest,
     borderRadius: Radius.xl,
+    borderWidth: 1,
+    borderColor: Colors.outlineVariant,
     padding: Spacing.stackMd,
     gap: 4,
   },
@@ -229,6 +312,8 @@ const styles = StyleSheet.create({
   ringCard: {
     backgroundColor: Colors.surfaceContainerLowest,
     borderRadius: Radius.xl,
+    borderWidth: 1,
+    borderColor: Colors.outlineVariant,
     padding: Spacing.stackMd,
     gap: Spacing.stackMd,
   },
@@ -251,6 +336,8 @@ const styles = StyleSheet.create({
   chartCard: {
     backgroundColor: Colors.surfaceContainerLowest,
     borderRadius: Radius.xl,
+    borderWidth: 1,
+    borderColor: Colors.outlineVariant,
     padding: Spacing.stackMd,
     gap: Spacing.stackSm,
   },
@@ -294,6 +381,8 @@ const styles = StyleSheet.create({
   sessionsCard: {
     backgroundColor: Colors.surfaceContainerLowest,
     borderRadius: Radius.xl,
+    borderWidth: 1,
+    borderColor: Colors.outlineVariant,
     padding: Spacing.stackMd,
     gap: Spacing.stackSm,
   },

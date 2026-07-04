@@ -12,15 +12,57 @@ import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, Radius, Shadows } from '@/theme';
-import { MOCK_BOOKS } from '@/lib/mockData';
-
-const BOOK = MOCK_BOOKS[0];
+import { useSessionStore } from '@/store/sessionStore';
+import { useLibrary } from '@/hooks/useLibrary';
+import { useLogSession } from '@/hooks/useReadingSessions';
+import { ActivityIndicator } from 'react-native';
 
 export default function SessionFinishScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const [endPage, setEndPage] = useState(String(BOOK.current_page));
+  const { activeSession, clearSession } = useSessionStore();
+  const { data: libraryBooks = [] } = useLibrary();
+  const book = libraryBooks.find((b) => b.id === activeSession?.userBookId);
+  const { mutateAsync: logSession, isPending } = useLogSession();
+
+  const [endTime] = useState(() => new Date());
+  const [endPage, setEndPage] = useState(book ? String(book.current_page) : '');
   const [notes, setNotes] = useState('');
+
+  if (!activeSession || !book) {
+    return (
+      <View style={{ flex: 1, backgroundColor: Colors.background, alignItems: 'center', justifyContent: 'center' }}>
+         <Text style={{ color: Colors.onSurface }}>No active session to finish.</Text>
+         <TouchableOpacity onPress={() => router.back()} style={{ marginTop: 16 }}>
+            <Text style={{ color: Colors.primary }}>Go Back</Text>
+         </TouchableOpacity>
+      </View>
+    );
+  }
+
+  const durationSeconds = Math.max(0, Math.floor((endTime.getTime() - new Date(activeSession.startTime).getTime()) / 1000) - (activeSession.totalPausedSeconds || 0));
+  const durationMinutes = Math.max(1, Math.round(durationSeconds / 60));
+  const parsedEnd = parseInt(endPage, 10);
+  const pagesRead = Math.max(0, (isNaN(parsedEnd) ? book.current_page : parsedEnd) - activeSession.startPage);
+  const pace = durationMinutes > 0 ? Math.round(pagesRead / (durationMinutes / 60)) : 0;
+
+  const handleSave = async () => {
+    try {
+      await logSession({
+        userBookId: activeSession.userBookId,
+        startTime: new Date(activeSession.startTime),
+        endTime,
+        startPage: activeSession.startPage,
+        endPage: isNaN(parsedEnd) ? book.current_page : parsedEnd,
+        pausedSeconds: activeSession.totalPausedSeconds || 0,
+        notes: notes.trim() || undefined,
+      });
+      await clearSession();
+      router.replace('/(tabs)/dashboard');
+    } catch (e) {
+      console.warn('Failed to save session', e);
+    }
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: Colors.background }}>
@@ -39,9 +81,9 @@ export default function SessionFinishScreen() {
       >
         {/* Trophy / celebration */}
         <View style={styles.celebrationCard}>
-          <Text style={styles.trophyEmoji}>🎉</Text>
+          <MaterialIcons name="emoji-events" size={48} color={Colors.onPrimaryContainer} />
           <Text style={styles.celebrationText}>Great reading session!</Text>
-          <Text style={styles.celebrationSub}>32 minutes · 18 pages</Text>
+          <Text style={styles.celebrationSub}>{durationMinutes} minutes · {pagesRead} pages</Text>
         </View>
 
         {/* Session recap */}
@@ -49,19 +91,19 @@ export default function SessionFinishScreen() {
           {/* Book */}
           <View style={styles.bookRow}>
             <View style={styles.cover}>
-              <Image source={{ uri: BOOK.cover_url }} style={StyleSheet.absoluteFillObject} contentFit="cover" />
+              <Image source={{ uri: book.cover_url ?? undefined }} style={StyleSheet.absoluteFillObject} contentFit="cover" />
             </View>
             <View style={{ flex: 1, gap: 4 }}>
-              <Text style={styles.bookTitle} numberOfLines={2}>{BOOK.title}</Text>
-              <Text style={styles.bookAuthor}>{BOOK.author}</Text>
+              <Text style={styles.bookTitle} numberOfLines={2}>{book.title}</Text>
+              <Text style={styles.bookAuthor}>{book.author ?? 'Unknown'}</Text>
             </View>
           </View>
 
           {/* Stats */}
           <View style={styles.statsRow}>
-            <StatItem label="Duration" value="32m" />
-            <StatItem label="Pages Read" value="18" />
-            <StatItem label="Pace" value="42 p/h" />
+            <StatItem label="Duration" value={`${durationMinutes}m`} />
+            <StatItem label="Pages Read" value={String(pagesRead)} />
+            <StatItem label="Pace" value={`${pace} p/h`} />
           </View>
         </View>
 
@@ -73,7 +115,7 @@ export default function SessionFinishScreen() {
             value={endPage}
             onChangeText={setEndPage}
             keyboardType="numeric"
-            placeholder={String(BOOK.current_page)}
+            placeholder={String(book.current_page)}
             placeholderTextColor={`${Colors.onSurfaceVariant}66`}
           />
           <Text style={styles.pageHint}>Update your last page read</Text>
@@ -97,10 +139,15 @@ export default function SessionFinishScreen() {
         {/* Actions */}
         <TouchableOpacity
           style={styles.primaryButton}
-          onPress={() => router.replace('/(tabs)/dashboard')}
+          onPress={handleSave}
+          disabled={isPending}
           activeOpacity={0.85}
         >
-          <Text style={styles.primaryButtonText}>Save Session</Text>
+          {isPending ? (
+            <ActivityIndicator size="small" color={Colors.onPrimary} />
+          ) : (
+            <Text style={styles.primaryButtonText}>Save Session</Text>
+          )}
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -166,8 +213,11 @@ const styles = StyleSheet.create({
   recapCard: {
     backgroundColor: Colors.surfaceContainerLowest,
     borderRadius: Radius.xl,
+    borderWidth: 1,
+    borderColor: Colors.outlineVariant,
     padding: Spacing.stackMd,
     gap: Spacing.stackMd,
+    ...Shadows.card,
   },
   bookRow: {
     flexDirection: 'row',

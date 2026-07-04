@@ -10,13 +10,62 @@ import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, Radius, Shadows } from '@/theme';
-import { MOCK_BOOKS } from '@/lib/mockData';
-
-const BOOK = MOCK_BOOKS[0];
+import { useEffect, useState } from 'react';
+import { useSessionStore } from '@/store/sessionStore';
+import { useLibrary } from '@/hooks/useLibrary';
 
 export default function ActiveSessionScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+
+  const { activeSession, pauseSession, resumeSession, isLoading } = useSessionStore();
+  const { data: libraryBooks = [] } = useLibrary();
+
+  const book = libraryBooks.find((b) => b.id === activeSession?.userBookId);
+  const [elapsed, setElapsed] = useState(0);
+
+  useEffect(() => {
+    if (!activeSession) return;
+    
+    const calculateElapsed = () => {
+      const end = activeSession.pausedAt ? new Date(activeSession.pausedAt).getTime() : Date.now();
+      return Math.floor((end - new Date(activeSession.startTime).getTime()) / 1000) - (activeSession.totalPausedSeconds || 0);
+    };
+
+    setElapsed(Math.max(0, calculateElapsed()));
+    
+    if (activeSession.pausedAt) return; // Don't run interval if paused
+
+    const interval = setInterval(() => {
+      setElapsed(Math.max(0, calculateElapsed()));
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  }, [activeSession]);
+
+  const formatTime = (seconds: number) => {
+    const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
+    const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+    const s = (seconds % 60).toString().padStart(2, '0');
+    return `${h === '00' ? '' : h + ':'}${m}:${s}`;
+  };
+
+  if (isLoading) {
+    return <View style={{ flex: 1, backgroundColor: Colors.primary }} />;
+  }
+
+  if (!activeSession || !book) {
+    return (
+      <View style={{ flex: 1, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center' }}>
+        <Text style={{ color: Colors.onPrimary, opacity: 0.8, marginBottom: 20 }}>No active session found.</Text>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Text style={{ color: Colors.onPrimary, fontWeight: '600' }}>Go Back</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  const isPaused = !!activeSession.pausedAt;
 
   return (
     <View style={{ flex: 1, backgroundColor: Colors.primary }}>
@@ -35,22 +84,22 @@ export default function ActiveSessionScreen() {
       <View style={styles.bookRow}>
         <View style={styles.sessionCover}>
           <Image
-            source={{ uri: BOOK.cover_url }}
+            source={{ uri: book.cover_url ?? undefined }}
             style={StyleSheet.absoluteFillObject}
             contentFit="cover"
           />
         </View>
         <View style={styles.bookInfo}>
-          <Text style={styles.bookTitle} numberOfLines={2}>{BOOK.title}</Text>
-          <Text style={styles.bookAuthor}>{BOOK.author}</Text>
-          <Text style={styles.bookPage}>Page {BOOK.current_page} of {BOOK.total_pages}</Text>
+          <Text style={styles.bookTitle} numberOfLines={2}>{book.title}</Text>
+          <Text style={styles.bookAuthor}>{book.author ?? 'Unknown'}</Text>
+          <Text style={styles.bookPage}>Page {activeSession.startPage} of {book.total_pages ?? '?'}</Text>
         </View>
       </View>
 
       {/* Timer display */}
       <View style={styles.timerContainer}>
-        <Text style={styles.timerValue}>00:00:00</Text>
-        <Text style={styles.timerLabel}>Session Time</Text>
+        <Text style={[styles.timerValue, isPaused && { opacity: 0.7 }]}>{formatTime(elapsed)}</Text>
+        <Text style={styles.timerLabel}>{isPaused ? 'Session Paused' : 'Session Time'}</Text>
       </View>
 
       {/* Controls */}
@@ -59,8 +108,11 @@ export default function ActiveSessionScreen() {
           <MaterialIcons name="replay-10" size={28} color={`${Colors.onPrimary}99`} />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.controlPrimary}>
-          <MaterialIcons name="pause" size={36} color={Colors.primary} />
+        <TouchableOpacity 
+          style={styles.controlPrimary}
+          onPress={() => isPaused ? resumeSession() : pauseSession()}
+        >
+          <MaterialIcons name={isPaused ? "play-arrow" : "pause"} size={36} color={Colors.primary} />
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.controlSecondary}>
@@ -77,9 +129,6 @@ export default function ActiveSessionScreen() {
         >
           <Text style={styles.finishButtonText}>Finish Session</Text>
         </TouchableOpacity>
-        <Text style={styles.finishNote}>
-          Session timer behavior will be implemented in next phase
-        </Text>
       </View>
     </View>
   );

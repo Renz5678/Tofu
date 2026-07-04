@@ -28,7 +28,7 @@ export function TopBar({
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container, { paddingTop: insets.top, height: 56 + insets.top }]}>
       {/* Left: menu + title */}
       <View style={styles.left}>
         <TouchableOpacity onPress={onMenuPress} hitSlop={8}>
@@ -67,8 +67,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.containerPadding,
-    height: 56 + 0, // 56 + safeArea padding added dynamically
-    paddingBottom: 0,
+    paddingBottom: Spacing.base,
   },
   left: {
     flexDirection: 'row',

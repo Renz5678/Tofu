@@ -10,29 +10,29 @@ export const Colors = {
   // Primary brand — slate blue
   primary: '#2d3a47',
   onPrimary: '#ffffff',
-  primaryContainer: '#404e5d',
-  onPrimaryContainer: '#d8e3f0',
+  primaryContainer: '#e1e5e9',
+  onPrimaryContainer: '#1c252d',
   inversePrimary: '#a5b5c9',
   primaryFixed: '#d0e4ff',
   primaryFixedDim: '#a8c8ec',
   onPrimaryFixed: '#001d32',
   onPrimaryFixedVariant: '#344758',
 
-  // Secondary — muted sage
-  secondary: '#576158',
+  // Secondary — muted parchment/sage
+  secondary: '#8c867b',
   onSecondary: '#ffffff',
-  secondaryContainer: '#d8e2d7',
-  onSecondaryContainer: '#5b655c',
+  secondaryContainer: '#f4f0ea',
+  onSecondaryContainer: '#3d3932',
   secondaryFixed: '#dbe5da',
   secondaryFixedDim: '#bfc9bf',
   onSecondaryFixed: '#151e17',
   onSecondaryFixedVariant: '#404941',
 
   // Tertiary — soft terracotta (streak/milestone highlights)
-  tertiary: '#5c3407',
+  tertiary: '#9c6644',
   onTertiary: '#ffffff',
-  tertiaryContainer: '#774b1d',
-  onTertiaryContainer: '#fbbe85',
+  tertiaryContainer: '#eddfd8',
+  onTertiaryContainer: '#54301c',
   tertiaryFixed: '#ffdcbf',
   tertiaryFixedDim: '#f7ba82',
   onTertiaryFixed: '#2d1600',
@@ -44,42 +44,42 @@ export const Colors = {
   errorContainer: '#ffdad6',
   onErrorContainer: '#93000a',
 
-  // Background / Surface
-  background: '#fbf9f4',         // soft cream
-  onBackground: '#1b1c19',
-  surface: '#fbf9f4',
-  onSurface: '#1b1c19',
+  // Background / Surface - Soft book theme
+  background: '#fdfbf7',         // Warm, soft off-white canvas
+  onBackground: '#2d3a47',       // Use primary color instead of pure black
+  surface: '#fdfbf7',
+  onSurface: '#2d3a47',
   surfaceDim: '#dbdad5',
   surfaceBright: '#fbf9f4',
   surfaceTint: '#4c5d70',
 
   // Surface containers (elevation layers)
-  surfaceContainerLowest: '#ffffff',
-  surfaceContainerLow: '#f5f3ee',
-  surfaceContainer: '#f0eee9',
-  surfaceContainerHigh: '#eae8e3',
-  surfaceContainerHighest: '#e4e2dd',
+  surfaceContainerLowest: '#ffffff', // Pure white for highest contrast cards
+  surfaceContainerLow: '#faf7f2',
+  surfaceContainer: '#f4f0ea',
+  surfaceContainerHigh: '#efeae2',
+  surfaceContainerHighest: '#e8e2d8',
 
   // On-surface / variants
-  onSurfaceVariant: '#404945',
-  surfaceVariant: '#e4e2dd',
+  onSurfaceVariant: '#687076',   // Muted gray-blue
+  surfaceVariant: '#f0ede6',
   inverseSurface: '#30312e',
   inverseOnSurface: '#f2f1ec',
 
   // Borders / outlines
-  outline: '#707974',
-  outlineVariant: '#c0c9c3',
+  outline: '#d6d1c9', // Visible outline
+  outlineVariant: '#e3dfd6', // Subtle outline
 
   // Convenience aliases for usage in components
   cardBackground: '#ffffff',
   tabBarBackground: '#ffffff',
-  tabBarBorder: '#c0c9c3',
+  tabBarBorder: '#e3dfd6',
   activeTab: '#2d3a47',
-  inactiveTab: '#1b1c19',
-  chipActive: '#d8e2d7',
-  chipActiveText: '#5b655c',
-  chipInactive: '#f0eee9',
-  chipInactiveText: '#404945',
+  inactiveTab: '#8c867b',
+  chipActive: '#2d3a47',
+  chipActiveText: '#ffffff',
+  chipInactive: '#f4f0ea',
+  chipInactiveText: '#687076',
 } as const;
 
 // ─────────────────────────────────────────────
@@ -171,11 +171,12 @@ export const Spacing = {
 // Border radius
 // ─────────────────────────────────────────────
 export const Radius = {
-  sm: 4,      // 0.25rem — book cover spine edge
-  md: 8,      // 0.5rem  — default / inputs
-  lg: 12,     // 0.75rem — buttons/inputs (named md in mockup but 12px)
-  xl: 16,     // 1rem    — standard cards
-  xxl: 24,    // 1.5rem  — rounded-xl
+  xs: 4,      // Tiny chips, inner badges
+  sm: 6,      // Buttons, small inputs
+  md: 10,     // Cards, panels
+  lg: 14,     // Modals, drawers, large cards
+  xl: 18,     // Hero blocks, feature sections
+  xxl: 24,    // rounded-2xl
   full: 9999, // pill shapes
 } as const;
 
@@ -185,24 +186,24 @@ export const Radius = {
 export const Shadows = {
   card: {
     shadowColor: '#2d3a47',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 20,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   overlay: {
     shadowColor: '#2d3a47',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.09,
     shadowRadius: 24,
     elevation: 6,
   },
   button: {
     shadowColor: '#2d3a47',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 1,
   },
 } as const;
 

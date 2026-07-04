@@ -13,7 +13,9 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { Colors, Typography, Spacing, Radius, Shadows } from '@/theme';
-import { MOCK_USER, MOCK_STATS } from '@/lib/mockData';
+import { useProfile } from '@/hooks/useProfile';
+import { useReadingSessions } from '@/hooks/useReadingSessions';
+import { useLibrary } from '@/hooks/useLibrary';
 
 const MENU_ITEMS = [
   { icon: 'favorite' as const, label: 'My Favorites', route: '/favorites' },
@@ -26,6 +28,17 @@ const MENU_ITEMS = [
 export default function ProfileScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  
+  const { data: profile } = useProfile();
+  const { data: sessions = [] } = useReadingSessions();
+  const { data: library = [] } = useLibrary();
+
+  const totalBooksRead = library.filter(b => b.status === 'finished').length;
+  const currentStreak = profile?.streak?.current_streak ?? 0;
+  const totalPagesRead = sessions.reduce((acc, s) => acc + s.pages_read, 0);
+
+  const displayName = profile?.display_name || 'Reader';
+  const username = profile?.username || 'user';
 
   async function handleSignOut() {
     Alert.alert('Sign Out', 'Are you sure?', [
@@ -55,23 +68,23 @@ export default function ProfileScreen() {
           <View style={styles.avatarLarge}>
             <MaterialIcons name="person" size={48} color={Colors.onSurfaceVariant} style={{ opacity: 0.5 }} />
           </View>
-          <Text style={styles.displayName}>{MOCK_USER.display_name}</Text>
-          <Text style={styles.username}>@{MOCK_USER.username}</Text>
+          <Text style={styles.displayName}>{displayName}</Text>
+          <Text style={styles.username}>@{username}</Text>
 
           {/* Quick stats row */}
           <View style={styles.quickStats}>
             <View style={styles.quickStatItem}>
-              <Text style={styles.quickStatValue}>{MOCK_STATS.totalBooksRead}</Text>
+              <Text style={styles.quickStatValue}>{totalBooksRead}</Text>
               <Text style={styles.quickStatLabel}>Books</Text>
             </View>
             <View style={styles.quickStatDivider} />
             <View style={styles.quickStatItem}>
-              <Text style={styles.quickStatValue}>{MOCK_STATS.currentStreak}</Text>
+              <Text style={styles.quickStatValue}>{currentStreak}</Text>
               <Text style={styles.quickStatLabel}>Day Streak</Text>
             </View>
             <View style={styles.quickStatDivider} />
             <View style={styles.quickStatItem}>
-              <Text style={styles.quickStatValue}>{Math.round(MOCK_STATS.totalPagesRead / 1000)}k</Text>
+              <Text style={styles.quickStatValue}>{totalPagesRead > 1000 ? `${Math.round(totalPagesRead / 1000)}k` : totalPagesRead}</Text>
               <Text style={styles.quickStatLabel}>Pages</Text>
             </View>
           </View>
@@ -142,6 +155,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: Colors.surfaceContainerLowest,
     borderRadius: Radius.xl,
+    borderWidth: 1,
+    borderColor: Colors.outlineVariant,
     padding: Spacing.stackMd,
     gap: Spacing.stackMd,
     marginTop: Spacing.base,
@@ -169,6 +184,8 @@ const styles = StyleSheet.create({
   menuCard: {
     backgroundColor: Colors.surfaceContainerLowest,
     borderRadius: Radius.xl,
+    borderWidth: 1,
+    borderColor: Colors.outlineVariant,
     overflow: 'hidden',
   },
   menuRow: {

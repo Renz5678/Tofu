@@ -14,9 +14,11 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, Radius, Shadows } from '@/theme';
 import { TopBar } from '@/components/TopBar';
 import { ProgressRing, ProgressBar } from '@/components/ProgressRing';
-import { MOCK_BOOKS, MOCK_STATS, MOCK_USER } from '@/lib/mockData';
-
-const CURRENT_BOOK = MOCK_BOOKS[0];
+import { useLibrary } from '@/hooks/useLibrary';
+import { useSessionStore } from '@/store/sessionStore';
+import { useProfile } from '@/hooks/useProfile';
+import { useReadingSessions } from '@/hooks/useReadingSessions';
+import { useGoals } from '@/hooks/useGoals';
 const WEEK_DAYS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
 export default function DashboardScreen() {
@@ -24,17 +26,73 @@ export default function DashboardScreen() {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
 
-  const minuteProgress = MOCK_STATS.todayMinutes / MOCK_STATS.dailyGoalMinutes;
-  const pageProgress = MOCK_STATS.todayPages / MOCK_STATS.dailyGoalPages;
-  const bookProgress = CURRENT_BOOK.current_page / CURRENT_BOOK.total_pages;
+  const { data: profile } = useProfile();
+  const { data: sessions = [] } = useReadingSessions();
+  const { data: goals = [] } = useGoals();
+  const { data: readingBooks = [] } = useLibrary('reading');
 
-  const maxWeekly = Math.max(...MOCK_STATS.weeklyData);
+  const currentBook = readingBooks[0];
+  const bookProgress = currentBook ? (currentBook.current_page / (currentBook.total_pages || 1)) : 0;
+  const startSession = useSessionStore((s) => s.startSession);
+  const activeSession = useSessionStore((s) => s.activeSession);
 
+  const dailyMinuteGoal = goals.find(g => g.goal_type === 'minutes_per_day')?.target_value || 30;
+  const dailyPageGoal = goals.find(g => g.goal_type === 'pages_per_day')?.target_value || 20;
+
+  const todayStr = new Date().toISOString().split('T')[0];
+  const todaySessions = sessions.filter(s => s.start_time.startsWith(todayStr));
+  
+  const todayMinutes = Math.round(todaySessions.reduce((acc, s) => acc + s.duration_seconds, 0) / 60);
+  const todayPages = todaySessions.reduce((acc, s) => acc + s.pages_read, 0);
+
+  const minuteProgress = Math.min(1, todayMinutes / dailyMinuteGoal);
+  const pageProgress = Math.min(1, todayPages / dailyPageGoal);
+
+  // Weekly data (last 7 days ending today)
+  const weeklyData = [0, 0, 0, 0, 0, 0, 0];
+  const weekDays = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+  const today = new Date();
+  
+  const last7Dates = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(today);
+    d.setDate(today.getDate() - (6 - i));
+    return d.toISOString().split('T')[0];
+  });
+
+  const last7Labels = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(today);
+    d.setDate(today.getDate() - (6 - i));
+    return weekDays[d.getDay() === 0 ? 6 : d.getDay() - 1]; 
+  });
+
+  sessions.forEach(s => {
+    const dateStr = s.start_time.split('T')[0];
+    const idx = last7Dates.indexOf(dateStr);
+    if (idx !== -1) {
+      weeklyData[idx] += Math.round(s.duration_seconds / 60);
+    }
+  });
+
+
+  const handleContinueReading = async () => {
+    if (!currentBook) return;
+    if (activeSession?.userBookId !== currentBook.id) {
+      await startSession({
+        userBookId: currentBook.id,
+        startPage: currentBook.current_page,
+        startTime: new Date().toISOString(),
+        totalPausedSeconds: 0,
+      });
+    }
+    router.push('/session/active');
+  };
+
+  const maxWeekly = Math.max(...weeklyData, 1);
   return (
     <View style={{ flex: 1, backgroundColor: Colors.background }}>
       <TopBar
-        streak={MOCK_STATS.currentStreak}
-        avatarUrl={MOCK_USER.avatar_url}
+        streak={profile?.streak?.current_streak ?? 0}
+        avatarUrl={profile?.avatar_url ?? undefined}
         onAvatarPress={() => router.push('/(tabs)/profile')}
       />
 
@@ -46,7 +104,7 @@ export default function DashboardScreen() {
         {/* Welcome */}
         <View style={styles.section}>
           <Text style={styles.welcomeHeading}>
-            Good{getGreeting()}, {MOCK_USER.display_name}
+            Good {getGreeting()}, {profile?.display_name || profile?.username || 'Reader'}
           </Text>
           <Text style={styles.welcomeSub}>Your reading sanctuary is ready.</Text>
         </View>
@@ -60,17 +118,17 @@ export default function DashboardScreen() {
               size={96}
               strokeWidth={8}
               showLabel
-              labelText={`${MOCK_STATS.todayMinutes}`}
+              labelText={`${todayMinutes}`}
             />
             <Text style={styles.bentoLabel}>Daily Goal</Text>
             <Text style={[styles.bentoSublabel, { opacity: 0.5 }]}>
-              {MOCK_STATS.todayMinutes}/{MOCK_STATS.dailyGoalMinutes} min
+              {todayMinutes}/{dailyMinuteGoal} min
             </Text>
           </View>
 
           {/* Pages Today */}
           <View style={[styles.bentoCard, styles.bentoCardHalf]}>
-            <Text style={styles.bentoStat}>{MOCK_STATS.todayPages}</Text>
+            <Text style={styles.bentoStat}>{todayPages}</Text>
             <Text style={styles.bentoSublabel}>Pages today</Text>
             <ProgressBar
               progress={pageProgress}
@@ -78,7 +136,7 @@ export default function DashboardScreen() {
               style={{ marginTop: Spacing.stackSm }}
             />
             <Text style={[styles.bentoSublabel, { marginTop: 6, opacity: 0.6 }]}>
-              Goal: {MOCK_STATS.dailyGoalPages}
+              Goal: {dailyPageGoal}
             </Text>
           </View>
         </View>
@@ -92,51 +150,65 @@ export default function DashboardScreen() {
             </TouchableOpacity>
           </View>
 
-          <View style={[styles.currentReadCard, Shadows.card]}>
-            {/* Cover */}
-            <View style={styles.currentReadCover}>
-              <Image
-                source={{ uri: CURRENT_BOOK.cover_url }}
-                style={StyleSheet.absoluteFillObject}
-                contentFit="cover"
-              />
-              <View style={styles.readBadge}>
-                <Text style={styles.readBadgeText}>
-                  {Math.round(bookProgress * 100)}% READ
-                </Text>
-              </View>
-            </View>
-
-            {/* Info */}
-            <View style={styles.currentReadInfo}>
-              <View>
-                <Text style={styles.currentReadTitle}>{CURRENT_BOOK.title}</Text>
-                <Text style={styles.currentReadAuthor}>
-                  {CURRENT_BOOK.author} · {CURRENT_BOOK.genres[0]}
-                </Text>
-              </View>
-              <View style={styles.progressSection}>
-                <View style={styles.progressRow}>
-                  <Text style={styles.progressLabel}>
-                    Page {CURRENT_BOOK.current_page} of {CURRENT_BOOK.total_pages}
-                  </Text>
-                  <Text style={[styles.progressLabel, { color: Colors.primary, fontWeight: '700' }]}>
-                    ~12m left
+          {currentBook ? (
+            <View style={[styles.currentReadCard, Shadows.card]}>
+              {/* Cover */}
+              <View style={styles.currentReadCover}>
+                <Image
+                  source={{ uri: currentBook.cover_url ?? undefined }}
+                  style={StyleSheet.absoluteFillObject}
+                  contentFit="cover"
+                />
+                <View style={styles.readBadge}>
+                  <Text style={styles.readBadgeText}>
+                    {Math.round(bookProgress * 100)}% READ
                   </Text>
                 </View>
-                <ProgressBar progress={bookProgress} height={4} />
               </View>
 
+              {/* Info */}
+              <View style={styles.currentReadInfo}>
+                <View>
+                  <Text style={styles.currentReadTitle}>{currentBook.title}</Text>
+                  <Text style={styles.currentReadAuthor}>
+                    {currentBook.author ?? 'Unknown'} {currentBook.genres?.[0] ? `· ${currentBook.genres[0]}` : ''}
+                  </Text>
+                </View>
+                <View style={styles.progressSection}>
+                  <View style={styles.progressRow}>
+                    <Text style={styles.progressLabel}>
+                      Page {currentBook.current_page} of {currentBook.total_pages ?? '?'}
+                    </Text>
+                  </View>
+                  <ProgressBar progress={bookProgress} height={4} />
+                </View>
+
+                <TouchableOpacity
+                  style={styles.continueButton}
+                  onPress={handleContinueReading}
+                  activeOpacity={0.85}
+                >
+                  <MaterialIcons name="play-circle" size={20} color={Colors.onPrimary} />
+                  <Text style={styles.continueButtonText}>Continue Reading</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : (
+            <View style={[styles.currentReadCard, Shadows.card, { padding: Spacing.stackMd, alignItems: 'center', flexDirection: 'column' }]}>
+              <MaterialIcons name="auto-stories" size={48} color={Colors.primary} style={{ opacity: 0.3 }} />
+              <Text style={{ ...Typography.styles.titleSm, color: Colors.onSurface, marginTop: 8 }}>No Active Books</Text>
+              <Text style={{ ...Typography.styles.bodyMd, color: Colors.onSurfaceVariant, textAlign: 'center', opacity: 0.7, marginTop: 4 }}>
+                Search for a book to start tracking your reading habit.
+              </Text>
               <TouchableOpacity
-                style={styles.continueButton}
-                onPress={() => router.push('/session/active')}
-                activeOpacity={0.85}
+                style={[styles.continueButton, { marginTop: 16, width: '100%' }]}
+                onPress={() => router.push('/(tabs)/search')}
               >
-                <MaterialIcons name="play-circle" size={20} color={Colors.onPrimary} />
-                <Text style={styles.continueButtonText}>Continue Reading</Text>
+                <MaterialIcons name="search" size={20} color={Colors.onPrimary} />
+                <Text style={styles.continueButtonText}>Find a Book</Text>
               </TouchableOpacity>
             </View>
-          </View>
+          )}
         </View>
 
         {/* Weekly Progress */}
@@ -146,9 +218,9 @@ export default function DashboardScreen() {
             <Text style={styles.weeklySubtitle}>Last 7 Days</Text>
           </View>
           <View style={styles.barChart}>
-            {MOCK_STATS.weeklyData.map((val, i) => {
-              const barH = maxWeekly > 0 ? (val / maxWeekly) * 80 : 4;
-              const isToday = i === new Date().getDay() - 1;
+            {weeklyData.map((val, i) => {
+              const barH = (val / maxWeekly) * 80;
+              const isToday = i === 6;
               return (
                 <View key={i} style={styles.barColumn}>
                   <View
@@ -160,7 +232,7 @@ export default function DashboardScreen() {
                       },
                     ]}
                   />
-                  <Text style={styles.barLabel}>{WEEK_DAYS[i]}</Text>
+                  <Text style={styles.barLabel}>{last7Labels[i]}</Text>
                 </View>
               );
             })}
@@ -215,6 +287,8 @@ const styles = StyleSheet.create({
   bentoCard: {
     backgroundColor: Colors.surfaceContainerLowest,
     borderRadius: Radius.xl,
+    borderWidth: 1,
+    borderColor: Colors.outlineVariant,
     padding: Spacing.stackMd,
     alignItems: 'center',
     gap: Spacing.base,
@@ -240,8 +314,11 @@ const styles = StyleSheet.create({
   currentReadCard: {
     backgroundColor: Colors.surfaceContainerLowest,
     borderRadius: Radius.xl,
+    borderWidth: 1,
+    borderColor: Colors.outlineVariant,
     overflow: 'hidden',
     flexDirection: 'row',
+    ...Shadows.card,
   },
   currentReadCover: {
     width: 120,
@@ -304,10 +381,13 @@ const styles = StyleSheet.create({
     color: Colors.onPrimary,
   },
   weeklyCard: {
-    backgroundColor: Colors.surfaceContainerLow,
+    backgroundColor: Colors.surfaceContainerLowest,
     borderRadius: Radius.xl,
+    borderWidth: 1,
+    borderColor: Colors.outlineVariant,
     padding: Spacing.stackMd,
     gap: Spacing.stackMd,
+    ...Shadows.card,
   },
   weeklySubtitle: {
     ...Typography.styles.labelSm,

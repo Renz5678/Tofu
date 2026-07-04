@@ -13,15 +13,47 @@ import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, Radius, Shadows } from '@/theme';
 import { ProgressRing } from '@/components/ProgressRing';
+import { useGoals, GoalType } from '@/hooks/useGoals';
+import { useReadingSessions } from '@/hooks/useReadingSessions';
 
-const MOCK_GOALS = [
-  { id: '1', type: 'pages_per_day', target: 40, current: 28, active: true, label: 'Pages per day' },
-  { id: '2', type: 'minutes_per_day', target: 60, current: 45, active: true, label: 'Minutes per day' },
-];
+const LABELS: Record<GoalType, string> = {
+  pages_per_day: 'Pages per day',
+  minutes_per_day: 'Minutes per day',
+  pages_per_week: 'Pages per week'
+};
 
 export default function GoalsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  
+  const { data: goals = [] } = useGoals();
+  const { data: sessions = [] } = useReadingSessions();
+
+  const todayStr = new Date().toISOString().split('T')[0];
+  const todaySessions = sessions.filter(s => s.start_time.startsWith(todayStr));
+  const todayPages = todaySessions.reduce((acc, s) => acc + s.pages_read, 0);
+  const todayMinutes = Math.round(todaySessions.reduce((acc, s) => acc + s.duration_seconds, 0) / 60);
+
+  const thisWeekSessions = sessions.filter(s => {
+    const d = new Date(s.start_time);
+    const now = new Date();
+    return Math.abs(now.getTime() - d.getTime()) <= 7 * 24 * 60 * 60 * 1000;
+  });
+  const weekPages = thisWeekSessions.reduce((acc, s) => acc + s.pages_read, 0);
+
+  const mergedGoals = goals.map(g => {
+    let current = 0;
+    if (g.goal_type === 'pages_per_day') current = todayPages;
+    if (g.goal_type === 'minutes_per_day') current = todayMinutes;
+    if (g.goal_type === 'pages_per_week') current = weekPages;
+    
+    return {
+      ...g,
+      label: LABELS[g.goal_type] || g.goal_type,
+      current,
+      target: g.target_value
+    };
+  });
 
   return (
     <View style={{ flex: 1, backgroundColor: Colors.background }}>
@@ -41,7 +73,7 @@ export default function GoalsScreen() {
       >
         <Text style={styles.sectionSub}>Track your daily and weekly reading goals</Text>
 
-        {MOCK_GOALS.map((goal) => {
+        {mergedGoals.map((goal) => {
           const progress = Math.min(1, goal.current / goal.target);
           return (
             <View key={goal.id} style={[styles.goalCard, Shadows.card]}>

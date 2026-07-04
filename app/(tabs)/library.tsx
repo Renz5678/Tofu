@@ -15,9 +15,8 @@ import { BookCard } from '@/components/BookCard';
 import { FilterBar, StatusTabs } from '@/components/FilterBar';
 import { EmptyState } from '@/components/EmptyState';
 import { useRouter } from 'expo-router';
-import { MOCK_BOOKS, MOCK_USER } from '@/lib/mockData';
-
-type BookStatus = 'reading' | 'finished' | 'on_hold';
+import { useLibrary, type BookStatus } from '@/hooks/useLibrary';
+import { useProfile } from '@/hooks/useProfile';
 
 const STATUS_TABS = [
   { label: 'Reading', value: 'reading' },
@@ -38,16 +37,18 @@ export default function LibraryScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeStatus, setActiveStatus] = useState<BookStatus>('reading');
 
-  const filtered = MOCK_BOOKS.filter((b) => {
-    if (b.status !== activeStatus) return false;
+  const { data: profile } = useProfile();
+  const { data: libraryBooks = [], isLoading } = useLibrary(activeStatus);
+
+  const filtered = libraryBooks.filter((b) => {
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
-    return b.title.toLowerCase().includes(q) || b.author.toLowerCase().includes(q);
+    return b.title.toLowerCase().includes(q) || (b.author && b.author.toLowerCase().includes(q));
   });
 
   return (
     <View style={{ flex: 1, backgroundColor: Colors.background }}>
-      <TopBar avatarUrl={MOCK_USER.avatar_url} onAvatarPress={() => router.push('/(tabs)/profile')} />
+      <TopBar avatarUrl={profile?.avatar_url ?? undefined} onAvatarPress={() => router.push('/(tabs)/profile')} />
 
       <View style={styles.searchRow}>
         <View style={styles.searchContainer}>
@@ -76,9 +77,10 @@ export default function LibraryScreen() {
         />
       ) : (
         <FlatList
+          key={'3-columns'}
           data={filtered}
           keyExtractor={(item) => item.id}
-          numColumns={2}
+          numColumns={3}
           contentContainerStyle={[
             styles.grid,
             { paddingBottom: insets.bottom + 80 },
@@ -89,10 +91,10 @@ export default function LibraryScreen() {
               <BookCard
                 id={item.id}
                 title={item.title}
-                author={item.author}
-                coverUrl={item.cover_url}
+                author={item.author ?? 'Unknown Author'}
+                coverUrl={item.cover_url ?? undefined}
                 currentPage={item.current_page}
-                totalPages={item.total_pages}
+                totalPages={item.total_pages ?? undefined}
               />
             </View>
           )}

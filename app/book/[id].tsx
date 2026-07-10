@@ -306,9 +306,8 @@ export default function BookDetailScreen() {
           <Text style={styles.placeholder}>No sessions yet — start reading to track your progress.</Text>
         </View>
 
-        {/* Review & Rating (Only if Finished) */}
-        {book.status === 'finished' && (
-          <View style={styles.section}>
+        {/* Review & Rating */}
+        <View style={styles.section}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
               <Text style={styles.sectionTitle}>My Review</Text>
               {!isEditingReview && (
@@ -352,8 +351,7 @@ export default function BookDetailScreen() {
                 )}
               </View>
             )}
-          </View>
-        )}
+        </View>
 
         {/* Notes placeholder */}
         <View style={styles.section}>

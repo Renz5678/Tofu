@@ -30,7 +30,7 @@ import { useProfile } from '@/hooks/useProfile';
 import { useReadingSessions } from '@/hooks/useReadingSessions';
 import { useLibrary } from '@/hooks/useLibrary';
 import { useFavorites } from '@/hooks/useFavorites';
-import { useTierLists } from '@/hooks/useTierLists';
+import { useTierLists, useTierListItems } from '@/hooks/useTierLists';
 import { usePlaylists } from '@/hooks/usePlaylists';
 
 // ─────────────────────────────────────────────
@@ -59,9 +59,10 @@ interface StatsCardProps {
   subtitle: string;
   metrics: { label: string; value: string }[];
   cardRef: React.RefObject<View>;
+  children?: React.ReactNode;
 }
 
-function StatsCard({ backgroundUri, theme, type, title, subtitle, metrics, cardRef }: StatsCardProps) {
+function StatsCard({ backgroundUri, theme, type, title, subtitle, metrics, cardRef, children }: StatsCardProps) {
   const isDark = theme === 'dark';
   const textColor = isDark ? '#ffffff' : Colors.primary;
   const overlayBg = isDark ? 'rgba(0,0,0,0.58)' : 'rgba(255,255,255,0.82)';
@@ -78,6 +79,13 @@ function StatsCard({ backgroundUri, theme, type, title, subtitle, metrics, cardR
         />
       ) : (
         <View style={[StyleSheet.absoluteFillObject, styles.cardPlaceholderBg]} />
+      )}
+
+      {/* Optional custom content overlay (e.g. tier list grid) */}
+      {children && (
+        <View style={styles.cardChildrenWrap}>
+          {children}
+        </View>
       )}
 
       {/* Dark/Light gradient vignette at bottom */}
@@ -159,12 +167,14 @@ export default function SharePreviewScreen() {
   const { data: library = [] } = useLibrary();
   const { data: favorites = [] } = useFavorites();
   const { data: tierLists = [] } = useTierLists();
+  const { data: tierListItems = [] } = useTierListItems(type === 'tier-list' ? id : '');
   const { data: playlists = [] } = usePlaylists();
 
   // Compute metrics based on type
   let title = 'Tofu Recap';
   let subtitle = 'My Reading Journey';
   let metrics: { label: string; value: string }[] = [];
+  let customContent: React.ReactNode = null;
 
   const streak = profile?.streak?.current_streak ?? 0;
 
@@ -194,10 +204,44 @@ export default function SharePreviewScreen() {
     if (list) {
       title = list.title;
       subtitle = 'Tier List';
+      const sTierCount = tierListItems.filter(i => i.tier === 'S').length;
       metrics = [
-        { label: 'Tiers', value: `${list.tiers.length}` },
-        { label: 'Streak', value: `${streak}` }
+        { label: 'Total Books', value: `${tierListItems.length}` },
+        { label: 'S-Tier', value: `${sTierCount}` },
+        { label: 'Tiers', value: `${list.tiers.length}` }
       ];
+
+      const TIER_COLORS: Record<string, string> = {
+        S: '#2d3a47',
+        A: '#404e5d',
+        B: '#576158',
+        C: '#d8e2d7',
+        D: '#e4e2dd',
+      };
+
+      customContent = (
+        <View style={{ paddingHorizontal: 16, gap: 6, paddingTop: 40 }}>
+          {list.tiers.map(tier => {
+            const tierData = tierListItems.filter(i => i.tier === tier).sort((a, b) => a.position - b.position);
+            // Hide empty tiers in the share preview to save space
+            if (tierData.length === 0) return null;
+            return (
+              <View key={tier} style={styles.miniTierRow}>
+                <View style={[styles.miniTierLabel, { backgroundColor: TIER_COLORS[tier] || Colors.surfaceContainer }]}>
+                  <Text style={[styles.miniTierLabelText, { color: ['S', 'A', 'B'].includes(tier) ? '#ffffff' : '#000000' }]}>
+                    {tier.substring(0, 2)}
+                  </Text>
+                </View>
+                <View style={styles.miniTierBooks}>
+                  {tierData.map(item => (
+                    <Image key={item.id} source={{ uri: item.book.cover_url ?? undefined }} style={styles.miniTierBook} contentFit="cover" />
+                  ))}
+                </View>
+              </View>
+            );
+          })}
+        </View>
+      );
     }
   } else if (type === 'playlist') {
     const list = playlists.find(p => p.id === id);
@@ -314,7 +358,9 @@ export default function SharePreviewScreen() {
           subtitle={subtitle}
           metrics={metrics}
           cardRef={cardRef as React.RefObject<View>}
-        />
+        >
+          {customContent}
+        </StatsCard>
 
         {/* Photo picker controls */}
         <View style={styles.pickerRow}>
@@ -405,6 +451,12 @@ const styles = StyleSheet.create({
   },
   cardPlaceholderBg: {
     backgroundColor: Colors.primaryContainer,
+  },
+  cardChildrenWrap: {
+    ...StyleSheet.absoluteFillObject,
+    paddingBottom: 140, // Space for stats panel
+    justifyContent: 'center',
+    zIndex: 1,
   },
   watermark: {
     position: 'absolute',
@@ -520,4 +572,35 @@ const styles = StyleSheet.create({
     ...Shadows.button,
   },
   shareButtonText: { ...Typography.styles.labelLg, color: Colors.onPrimary },
+  miniTierRow: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: Radius.md,
+    overflow: 'hidden',
+    minHeight: 48,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  miniTierLabel: {
+    width: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  miniTierLabelText: {
+    ...Typography.styles.labelLg,
+    fontWeight: '700',
+  },
+  miniTierBooks: {
+    flex: 1,
+    flexDirection: 'row',
+    padding: 6,
+    gap: 6,
+    flexWrap: 'wrap',
+  },
+  miniTierBook: {
+    width: 32,
+    height: 48,
+    borderRadius: Radius.xs,
+    backgroundColor: 'rgba(0,0,0,0.2)',
+  },
 });

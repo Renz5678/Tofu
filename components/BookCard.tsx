@@ -46,7 +46,7 @@ export function BookCard({
           transition={300}
         />
         {/* Progress ring overlay */}
-        {showProgress && totalPages > 0 && (
+        {showProgress && totalPages > 0 && progress < 1 && (
           <View style={styles.progressOverlay}>
             <ProgressRing
               progress={progress}

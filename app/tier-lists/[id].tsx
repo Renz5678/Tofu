@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, Modal, FlatList } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, Radius } from '@/theme';
-import { useTierLists, useTierListItems, useUpdateTierListPositions, TierListItem } from '@/hooks/useTierLists';
+import { useTierLists, useTierListItems, useUpdateTierListPositions, useAddTierListItem, TierListItem } from '@/hooks/useTierLists';
+import { useLibrary } from '@/hooks/useLibrary';
 import DraggableFlatList, { ScaleDecorator, RenderItemParams } from 'react-native-draggable-flatlist';
 
 const TIER_COLORS: Record<string, string> = {
@@ -23,10 +24,13 @@ export default function TierListDetailScreen() {
   
   const { data: tierLists } = useTierLists();
   const { data: items } = useTierListItems(id);
+  const { data: libraryBooks = [] } = useLibrary();
   const { mutate: updatePositions } = useUpdateTierListPositions();
+  const { mutate: addTierItem } = useAddTierListItem();
   const tierList = tierLists?.find(t => t.id === id);
 
   const [localItems, setLocalItems] = useState<TierListItem[]>([]);
+  const [addingToTier, setAddingToTier] = useState<string | null>(null);
 
   useEffect(() => {
     if (items) {
@@ -56,6 +60,12 @@ export default function TierListDetailScreen() {
     }));
     
     updatePositions({ listId: id, items: updates });
+  };
+
+  const handleAddBook = (bookId: string) => {
+    if (!addingToTier) return;
+    addTierItem({ listId: id, bookId, tier: addingToTier });
+    setAddingToTier(null);
   };
 
   const renderItem = ({ item, drag, isActive }: RenderItemParams<TierListItem>) => (
@@ -113,7 +123,7 @@ export default function TierListDetailScreen() {
                 contentContainerStyle={styles.tierBooks}
                 showsHorizontalScrollIndicator={false}
                 ListFooterComponent={
-                  <TouchableOpacity style={styles.tierAddSlot} onPress={() => Alert.alert('Coming Soon', 'Search and add books to this tier in the next update!')}>
+                  <TouchableOpacity style={styles.tierAddSlot} onPress={() => setAddingToTier(tier)}>
                     <MaterialIcons name="add" size={20} color={Colors.primary} style={{ opacity: 0.5 }} />
                   </TouchableOpacity>
                 }
@@ -122,6 +132,38 @@ export default function TierListDetailScreen() {
           );
         })}
       </ScrollView>
+
+      <Modal visible={!!addingToTier} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setAddingToTier(null)}>
+        <View style={{ flex: 1, backgroundColor: Colors.background, paddingTop: insets.top }}>
+          <View style={[styles.header, { paddingBottom: Spacing.base }]}>
+            <TouchableOpacity onPress={() => setAddingToTier(null)} hitSlop={12}>
+              <MaterialIcons name="close" size={24} color={Colors.onSurface} />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Add to Tier {addingToTier}</Text>
+          </View>
+          
+          <FlatList
+            data={libraryBooks.filter(b => !localItems.some(item => item.book_id === b.book_id))}
+            keyExtractor={item => item.id}
+            renderItem={({ item }) => (
+               <TouchableOpacity 
+                 style={styles.modalListItem}
+                 onPress={() => handleAddBook(item.book_id)}
+               >
+                  <Image source={{ uri: item.cover_url ?? undefined }} style={styles.modalListCover} />
+                  <View style={{ flex: 1 }}>
+                     <Text style={styles.modalListTitle} numberOfLines={1}>{item.title}</Text>
+                     <Text style={styles.modalListAuthor} numberOfLines={1}>{item.author}</Text>
+                  </View>
+                  <MaterialIcons name="add-circle-outline" size={24} color={Colors.primary} />
+               </TouchableOpacity>
+            )}
+            ListEmptyComponent={
+              <Text style={styles.modalEmpty}>No new books available to add.</Text>
+            }
+          />
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -189,5 +231,33 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  modalListItem: {
+    flexDirection: 'row',
+    padding: Spacing.containerPadding,
+    alignItems: 'center',
+    gap: Spacing.stackMd,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: Colors.outlineVariant,
+  },
+  modalListCover: {
+    width: 40,
+    height: 60,
+    borderRadius: Radius.sm,
+    backgroundColor: Colors.surfaceContainerHigh,
+  },
+  modalListTitle: {
+    ...Typography.styles.bodyMd,
+    color: Colors.onSurface,
+  },
+  modalListAuthor: {
+    ...Typography.styles.labelSm,
+    color: Colors.onSurfaceVariant,
+  },
+  modalEmpty: {
+    padding: Spacing.containerPadding,
+    textAlign: 'center',
+    ...Typography.styles.bodyMd,
+    color: Colors.onSurfaceVariant,
   },
 });

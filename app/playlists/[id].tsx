@@ -84,7 +84,7 @@ export default function PlaylistDetailScreen() {
             {playlist.description && (
               <Text style={styles.description}>{playlist.description}</Text>
             )}
-            <Text style={styles.meta}>{items.length} books · {playlist.is_public ? 'Public' : 'Private'}</Text>
+            <Text style={styles.meta}>{items?.length ?? 0} books · {playlist.is_public ? 'Public' : 'Private'}</Text>
             <Text style={styles.metaHint}>Long press a book to reorder</Text>
           </View>
         }

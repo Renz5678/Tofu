@@ -12,7 +12,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, Radius } from '@/theme';
 import { TopBar } from '@/components/TopBar';
 import { BookCard } from '@/components/BookCard';
-import { FilterBar, StatusTabs } from '@/components/FilterBar';
+import { StatusTabs } from '@/components/FilterBar';
 import { EmptyState } from '@/components/EmptyState';
 import { useRouter } from 'expo-router';
 import { useLibrary, type BookStatus } from '@/hooks/useLibrary';
@@ -22,13 +22,6 @@ const STATUS_TABS = [
   { label: 'Reading', value: 'reading' },
   { label: 'Finished', value: 'finished' },
   { label: 'On Hold', value: 'on_hold' },
-];
-
-const GENRE_CHIPS = [
-  { label: 'Genre', value: 'genre' },
-  { label: 'Language', value: 'language' },
-  { label: 'Status', value: 'status' },
-  { label: 'Country', value: 'country' },
 ];
 
 export default function LibraryScreen() {
@@ -63,7 +56,15 @@ export default function LibraryScreen() {
         </View>
       </View>
 
-      <FilterBar chips={GENRE_CHIPS} style={{ paddingHorizontal: Spacing.containerPadding }} />
+      <View style={styles.actionRow}>
+        <TouchableOpacity 
+          style={styles.actionButton}
+          onPress={() => router.push('/favorites')}
+        >
+          <MaterialIcons name="favorite" size={20} color={Colors.error} />
+          <Text style={styles.actionButtonText}>Liked Books</Text>
+        </TouchableOpacity>
+      </View>
 
       <StatusTabs tabs={STATUS_TABS} activeValue={activeStatus} onSelect={(v) => setActiveStatus(v as BookStatus)} />
 
@@ -123,6 +124,26 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     ...Typography.styles.bodyMd,
+    color: Colors.onSurface,
+  },
+  actionRow: {
+    paddingHorizontal: Spacing.containerPadding,
+    paddingBottom: Spacing.base,
+    flexDirection: 'row',
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.surfaceContainerLowest,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: Radius.full,
+    borderWidth: 1,
+    borderColor: Colors.outlineVariant,
+    gap: 8,
+  },
+  actionButtonText: {
+    ...Typography.styles.labelLg,
     color: Colors.onSurface,
   },
   grid: {

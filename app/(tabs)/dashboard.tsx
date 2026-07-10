@@ -163,11 +163,13 @@ export default function DashboardScreen() {
                     contentFit="cover"
                     transition={200}
                   />
+                  {bookProgress < 1 && (
                   <View style={styles.readBadge}>
                     <Text style={styles.readBadgeText}>
                       {Math.round(bookProgress * 100)}% READ
                     </Text>
                   </View>
+                )}
                 </View>
 
                 {/* Info */}

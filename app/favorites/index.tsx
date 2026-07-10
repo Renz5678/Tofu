@@ -15,7 +15,7 @@ import { Colors, Typography, Spacing, Radius, Shadows } from '@/theme';
 import { EmptyState } from '@/components/EmptyState';
 import { useFavorites } from '@/hooks/useFavorites';
 
-const SLOTS = [1, 2, 3, 4, 5];
+
 
 export default function FavoritesScreen() {
   const router = useRouter();
@@ -50,45 +50,34 @@ export default function FavoritesScreen() {
           contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 24 }]}
           showsVerticalScrollIndicator={false}
         >
-          <Text style={styles.sectionSub}>Your top 5 all-time favorites</Text>
+          <Text style={styles.sectionSub}>Your all-time favorites</Text>
 
-          {SLOTS.map((rank) => {
-            const favItem = favorites.find(f => f.rank === rank);
-            const fav = favItem?.book;
+          {favorites.map((favItem, index) => {
+            const fav = favItem.book;
+            const rank = index + 1; // Or favItem.rank if we want to display the db rank
+            if (!fav) return null;
             return (
-              <View key={rank} style={[styles.favoriteCard, Shadows.card]}>
+              <View key={favItem.id} style={[styles.favoriteCard, Shadows.card]}>
                 <View style={styles.rankBadge}>
                   <Text style={styles.rankText}>#{rank}</Text>
                 </View>
-                {fav ? (
-                  <>
-                    <View style={styles.favCover}>
-                      <Image source={{ uri: fav.cover_url ?? undefined }} style={StyleSheet.absoluteFillObject} contentFit="cover" />
-                    </View>
-                    <View style={styles.favInfo}>
-                      <Text style={styles.favTitle} numberOfLines={2}>{fav.title}</Text>
-                      <Text style={styles.favAuthor}>{fav.author}</Text>
-                      <View style={styles.favChips}>
-                        {fav.genres?.slice(0, 2).map((g: string) => (
-                          <View key={g} style={styles.chip}>
-                            <Text style={styles.chipText}>{g}</Text>
-                          </View>
-                        ))}
+                <View style={styles.favCover}>
+                  <Image source={{ uri: fav.cover_url ?? undefined }} style={StyleSheet.absoluteFillObject} contentFit="cover" />
+                </View>
+                <View style={styles.favInfo}>
+                  <Text style={styles.favTitle} numberOfLines={2}>{fav.title}</Text>
+                  <Text style={styles.favAuthor}>{fav.author}</Text>
+                  <View style={styles.favChips}>
+                    {fav.genres?.slice(0, 2).map((g: string) => (
+                      <View key={g} style={styles.chip}>
+                        <Text style={styles.chipText}>{g}</Text>
                       </View>
-                    </View>
-                    <TouchableOpacity hitSlop={12} onPress={() => Alert.alert('Coming Soon', 'Drag-and-drop reordering will be available in the next update!')}>
-                      <MaterialIcons name="drag-handle" size={20} color={Colors.onSurfaceVariant} style={{ opacity: 0.4 }} />
-                    </TouchableOpacity>
-                  </>
-                ) : (
-                  <TouchableOpacity
-                    style={styles.emptySlot}
-                    onPress={() => router.push('/(tabs)/library')}
-                  >
-                    <MaterialIcons name="add" size={24} color={Colors.primary} style={{ opacity: 0.5 }} />
-                    <Text style={styles.emptySlotText}>Add a book</Text>
-                  </TouchableOpacity>
-                )}
+                    ))}
+                  </View>
+                </View>
+                <TouchableOpacity hitSlop={12} onPress={() => Alert.alert('Coming Soon', 'Drag-and-drop reordering will be available in the next update!')}>
+                  <MaterialIcons name="drag-handle" size={20} color={Colors.onSurfaceVariant} style={{ opacity: 0.4 }} />
+                </TouchableOpacity>
               </View>
             );
           })}
@@ -180,17 +169,5 @@ const styles = StyleSheet.create({
     color: Colors.onSecondaryContainer,
     fontSize: 10,
   },
-  emptySlot: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: Spacing.stackMd,
-  },
-  emptySlotText: {
-    ...Typography.styles.labelLg,
-    color: Colors.primary,
-    opacity: 0.5,
-  },
+
 });

@@ -77,3 +77,40 @@ export function useRemoveFavorite() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['favorites'] }),
   });
 }
+
+export function useToggleFavorite() {
+  const qc = useQueryClient();
+  const { data: favorites } = useFavorites();
+  
+  return useMutation({
+    mutationFn: async (book_id: string) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const isFav = favorites?.find(f => f.book_id === book_id);
+      
+      if (isFav) {
+        // Remove it
+        const { error } = await supabase.from('favorite_books').delete().eq('id', isFav.id);
+        if (error) throw error;
+      } else {
+        // Find first available rank
+        const usedRanks = new Set(favorites?.map(f => f.rank) || []);
+        let nextRank = 1;
+        while (usedRanks.has(nextRank) && nextRank <= 10) {
+          nextRank++;
+        }
+        if (nextRank > 10) {
+          throw new Error('You can only have up to 10 favorite books.');
+        }
+        const { error } = await supabase.from('favorite_books').insert({
+          user_id: user.id,
+          book_id,
+          rank: nextRank
+        });
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['favorites'] }),
+  });
+}

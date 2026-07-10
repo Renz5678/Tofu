@@ -9,6 +9,7 @@ import {
   Share,
   TextInput,
   Modal,
+  Alert,
 } from 'react-native';
 import * as Sharing from 'expo-sharing';
 import { captureRef } from 'react-native-view-shot';
@@ -19,6 +20,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, Radius, Shadows } from '@/theme';
 import { readingProgress } from '@/lib/metrics';
 import { useLibrary, useUpdateBook, BookStatus } from '@/hooks/useLibrary';
+import { useFavorites, useToggleFavorite } from '@/hooks/useFavorites';
 import { useSessionStore } from '@/store/sessionStore';
 import { ProgressBar } from '@/components/ProgressRing';
 
@@ -29,7 +31,9 @@ export default function BookDetailScreen() {
   const { width } = useWindowDimensions();
 
   const { data: libraryBooks = [] } = useLibrary();
+  const { data: favorites = [] } = useFavorites();
   const { mutateAsync: updateBook } = useUpdateBook();
+  const { mutate: toggleFavorite } = useToggleFavorite();
   const book = libraryBooks.find((b) => b.id === id);
   const startSession = useSessionStore((s) => s.startSession);
   const activeSession = useSessionStore((s) => s.activeSession);
@@ -40,6 +44,8 @@ export default function BookDetailScreen() {
   
   const [isShareModalVisible, setIsShareModalVisible] = React.useState(false);
   const shareViewRef = React.useRef<View>(null);
+
+  const isFavorite = favorites.some(f => f.book_id === book?.book_id);
 
   React.useEffect(() => {
     if (book) {
@@ -110,6 +116,15 @@ export default function BookDetailScreen() {
     }
   };
 
+  const handleToggleFavorite = () => {
+    if (!book?.book_id) return;
+    toggleFavorite(book.book_id, {
+      onError: (err: any) => {
+        Alert.alert('Error', err.message || 'Failed to update favorites.');
+      }
+    });
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: Colors.background }}>
       {/* Hero cover */}
@@ -128,6 +143,14 @@ export default function BookDetailScreen() {
           onPress={() => router.back()}
         >
           <MaterialIcons name="arrow-back" size={22} color={Colors.onPrimary} />
+        </TouchableOpacity>
+
+        {/* Favorite button */}
+        <TouchableOpacity
+          style={[styles.backButton, { top: insets.top + 8, left: undefined, right: Spacing.containerPadding }]}
+          onPress={handleToggleFavorite}
+        >
+          <MaterialIcons name={isFavorite ? "favorite" : "favorite-border"} size={22} color={isFavorite ? Colors.error : Colors.onPrimary} />
         </TouchableOpacity>
 
         {/* Cover image centered */}

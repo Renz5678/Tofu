@@ -6,12 +6,13 @@ import {
   TouchableOpacity,
   StyleSheet,
   useWindowDimensions,
+  Pressable,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated, { FadeInDown, useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { Colors, Typography, Spacing, Radius, Shadows } from '@/theme';
 import { TopBar } from '@/components/TopBar';
 import { ProgressRing, ProgressBar } from '@/components/ProgressRing';
@@ -152,63 +153,62 @@ export default function DashboardScreen() {
           </View>
 
           {currentBook ? (
-            <View style={[styles.currentReadCard, Shadows.card]}>
-              {/* Cover */}
-              <View style={styles.currentReadCover}>
-                <Image
-                  source={{ uri: currentBook.cover_url ?? undefined }}
-                  style={StyleSheet.absoluteFillObject}
-                  contentFit="cover"
-                  transition={200}
-                />
-                <View style={styles.readBadge}>
-                  <Text style={styles.readBadgeText}>
-                    {Math.round(bookProgress * 100)}% READ
-                  </Text>
-                </View>
-              </View>
-
-              {/* Info */}
-              <View style={styles.currentReadInfo}>
-                <View>
-                  <Text style={styles.currentReadTitle}>{currentBook.title}</Text>
-                  <Text style={styles.currentReadAuthor}>
-                    {currentBook.author ?? 'Unknown'} {currentBook.genres?.[0] ? `· ${currentBook.genres[0]}` : ''}
-                  </Text>
-                </View>
-                <View style={styles.progressSection}>
-                  <View style={styles.progressRow}>
-                    <Text style={styles.progressLabel}>
-                      Page {currentBook.current_page} of {currentBook.total_pages ?? '?'}
+            <AnimatedPressable onPress={handleContinueReading}>
+              <View style={[styles.currentReadCard, Shadows.card]}>
+                {/* Cover */}
+                <View style={styles.currentReadCover}>
+                  <Image
+                    source={{ uri: currentBook.cover_url ?? undefined }}
+                    style={StyleSheet.absoluteFillObject}
+                    contentFit="cover"
+                    transition={200}
+                  />
+                  <View style={styles.readBadge}>
+                    <Text style={styles.readBadgeText}>
+                      {Math.round(bookProgress * 100)}% READ
                     </Text>
                   </View>
-                  <ProgressBar progress={bookProgress} height={4} />
                 </View>
 
-                <TouchableOpacity
-                  style={styles.continueButton}
-                  onPress={handleContinueReading}
-                  activeOpacity={0.85}
-                >
-                  <MaterialIcons name="play-circle" size={20} color={Colors.onPrimary} />
-                  <Text style={styles.continueButtonText}>Continue Reading</Text>
-                </TouchableOpacity>
+                {/* Info */}
+                <View style={styles.currentReadInfo}>
+                  <View>
+                    <Text style={styles.currentReadTitle} numberOfLines={2}>{currentBook.title}</Text>
+                    <Text style={styles.currentReadAuthor} numberOfLines={1}>
+                      {currentBook.author ?? 'Unknown'} {currentBook.genres?.[0] ? `· ${currentBook.genres[0]}` : ''}
+                    </Text>
+                  </View>
+                  <View style={styles.progressSection}>
+                    <View style={styles.progressRow}>
+                      <Text style={styles.progressLabel}>
+                        Page {currentBook.current_page} of {currentBook.total_pages ?? '?'}
+                      </Text>
+                    </View>
+                    <ProgressBar progress={bookProgress} height={4} />
+                  </View>
+
+                  <View style={styles.continueButton}>
+                    <MaterialIcons name="play-circle" size={20} color={Colors.onPrimary} />
+                    <Text style={styles.continueButtonText}>Continue Reading</Text>
+                  </View>
+                </View>
               </View>
-            </View>
+            </AnimatedPressable>
           ) : (
-            <View style={[styles.currentReadCard, Shadows.card, { padding: Spacing.stackMd, alignItems: 'center', flexDirection: 'column' }]}>
-              <MaterialIcons name="auto-stories" size={48} color={Colors.primary} style={{ opacity: 0.3 }} />
-              <Text style={{ ...Typography.styles.titleSm, color: Colors.onSurface, marginTop: 8 }}>No Active Books</Text>
-              <Text style={{ ...Typography.styles.bodyMd, color: Colors.onSurfaceVariant, textAlign: 'center', opacity: 0.7, marginTop: 4 }}>
-                Search for a book to start tracking your reading habit.
+            <View style={[styles.currentReadCard, Shadows.card, { padding: Spacing.stackLg, alignItems: 'center', flexDirection: 'column' }]}>
+              <View style={styles.emptyStateIllustration}>
+                <MaterialIcons name="auto-stories" size={48} color={Colors.primary} style={{ opacity: 0.8 }} />
+              </View>
+              <Text style={{ ...Typography.styles.titleSm, color: Colors.onSurface, marginTop: 12 }}>No Active Books</Text>
+              <Text style={{ ...Typography.styles.bodyMd, color: Colors.onSurfaceVariant, textAlign: 'center', opacity: 0.7, marginTop: 4, paddingHorizontal: 16 }}>
+                Search for a book to start tracking your reading habit and build your streaks.
               </Text>
-              <TouchableOpacity
-                style={[styles.continueButton, { marginTop: 16, width: '100%' }]}
-                onPress={() => router.push('/(tabs)/search')}
-              >
-                <MaterialIcons name="search" size={20} color={Colors.onPrimary} />
-                <Text style={styles.continueButtonText}>Find a Book</Text>
-              </TouchableOpacity>
+              <AnimatedPressable onPress={() => router.push('/(tabs)/search')} style={{ width: '100%' }}>
+                <View style={[styles.continueButton, { marginTop: 24, width: '100%' }]}>
+                  <MaterialIcons name="search" size={20} color={Colors.onPrimary} />
+                  <Text style={styles.continueButtonText}>Find a Book</Text>
+                </View>
+              </AnimatedPressable>
             </View>
           )}
         </Animated.View>
@@ -225,7 +225,8 @@ export default function DashboardScreen() {
               const isToday = i === 6;
               return (
                 <View key={i} style={styles.barColumn}>
-                  <View
+                  <Animated.View
+                    entering={FadeInDown.delay(400 + i * 50).springify()}
                     style={[
                       styles.bar,
                       {
@@ -242,6 +243,23 @@ export default function DashboardScreen() {
         </Animated.View>
       </ScrollView>
     </View>
+  );
+}
+
+function AnimatedPressable({ onPress, children, style }: any) {
+  const scale = useSharedValue(1);
+  const animatedStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  return (
+    <Pressable
+      onPressIn={() => scale.value = withTiming(0.97, { duration: 100 })}
+      onPressOut={() => scale.value = withTiming(1, { duration: 150 })}
+      onPress={onPress}
+      style={style}
+    >
+      <Animated.View style={animatedStyle}>
+        {children}
+      </Animated.View>
+    </Pressable>
   );
 }
 
@@ -367,6 +385,14 @@ const styles = StyleSheet.create({
   progressLabel: {
     ...Typography.styles.labelSm,
     color: Colors.onSurfaceVariant,
+  },
+  emptyStateIllustration: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: `${Colors.primary}15`,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   continueButton: {
     flexDirection: 'row',

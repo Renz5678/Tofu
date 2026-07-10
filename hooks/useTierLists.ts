@@ -101,3 +101,22 @@ export function useUpdateTierListItem() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['tierListItems'] }),
   });
 }
+
+export function useUpdateTierListPositions() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ listId, items }: { listId: string; items: { id: string; tier: string; position: number; book_id: string }[] }) => {
+      const { error } = await supabase.from('tier_list_items').upsert(
+        items.map(item => ({
+          id: item.id,
+          tier_list_id: listId,
+          book_id: item.book_id,
+          tier: item.tier,
+          position: item.position
+        }))
+      );
+      if (error) throw error;
+    },
+    onSuccess: (_, { listId }) => qc.invalidateQueries({ queryKey: ['tierListItems', listId] }),
+  });
+}

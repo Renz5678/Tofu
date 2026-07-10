@@ -1,18 +1,12 @@
-import React from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-} from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-import { Colors, Typography, Spacing, Radius, Shadows } from '@/theme';
-import { useTierLists, useTierListItems } from '@/hooks/useTierLists';
+import { Colors, Typography, Spacing, Radius } from '@/theme';
+import { useTierLists, useTierListItems, useUpdateTierListPositions, TierListItem } from '@/hooks/useTierLists';
+import DraggableFlatList, { ScaleDecorator, RenderItemParams } from 'react-native-draggable-flatlist';
 
 const TIER_COLORS: Record<string, string> = {
   S: '#2d3a47',
@@ -26,13 +20,59 @@ export default function TierListDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { data: tierLists = [] } = useTierLists();
-  const { data: items = [] } = useTierListItems(id);
-  const tierList = tierLists.find(t => t.id === id);
+  
+  const { data: tierLists } = useTierLists();
+  const { data: items } = useTierListItems(id);
+  const { mutate: updatePositions } = useUpdateTierListPositions();
+  const tierList = tierLists?.find(t => t.id === id);
+
+  const [localItems, setLocalItems] = useState<TierListItem[]>([]);
+
+  useEffect(() => {
+    if (items) {
+      setLocalItems(items);
+    }
+  }, [items]);
 
   if (!tierList) return null;
 
   const tiers = tierList.tiers || [];
+
+  const handleDragEnd = (tier: string, newTierItems: TierListItem[]) => {
+    const otherItems = localItems.filter(i => i.tier !== tier);
+    const updatedTierItems = newTierItems.map((item, index) => ({
+      ...item,
+      position: index,
+    }));
+    
+    const nextLocalItems = [...otherItems, ...updatedTierItems];
+    setLocalItems(nextLocalItems);
+    
+    const updates = updatedTierItems.map(item => ({
+      id: item.id,
+      tier: item.tier,
+      book_id: item.book_id,
+      position: item.position,
+    }));
+    
+    updatePositions({ listId: id, items: updates });
+  };
+
+  const renderItem = ({ item, drag, isActive }: RenderItemParams<TierListItem>) => (
+    <ScaleDecorator>
+      <TouchableOpacity
+        onLongPress={drag}
+        disabled={isActive}
+        style={[styles.tierBook, isActive && { opacity: 0.8, transform: [{ scale: 1.05 }] }]}
+      >
+        <Image
+          source={{ uri: item.book.cover_url ?? undefined }}
+          style={StyleSheet.absoluteFillObject}
+          contentFit="cover"
+        />
+      </TouchableOpacity>
+    </ScaleDecorator>
+  );
 
   return (
     <View style={{ flex: 1, backgroundColor: Colors.background }}>
@@ -51,32 +91,36 @@ export default function TierListDetailScreen() {
         showsVerticalScrollIndicator={false}
       >
         <Text style={styles.noteText}>
-          Drag-and-drop tier placement will be enabled in a follow-up build.
+          Long press a book to reorder within its tier. Cross-tier dropping coming soon.
         </Text>
 
-        {tiers.map((tier) => (
+        {tiers.map((tier) => {
+          const tierData = localItems.filter(i => i.tier === tier).sort((a, b) => a.position - b.position);
+          return (
             <View key={tier} style={styles.tierRow}>
               <View style={[styles.tierLabel, { backgroundColor: TIER_COLORS[tier] ?? Colors.surfaceContainer }]}>
                 <Text style={[styles.tierLabelText, { color: ['S', 'A', 'B'].includes(tier) ? Colors.onPrimary : Colors.onSurface }]}>
                   {tier.substring(0, 2)}
                 </Text>
               </View>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tierBooks}>
-                {items.filter(i => i.tier === tier).map((item) => (
-                  <View key={item.id} style={styles.tierBook}>
-                    <Image
-                      source={{ uri: item.book.cover_url }}
-                      style={StyleSheet.absoluteFillObject}
-                      contentFit="cover"
-                    />
-                  </View>
-                ))}
-                <TouchableOpacity style={styles.tierAddSlot} onPress={() => Alert.alert('Coming Soon', 'Drag-and-drop book reordering will be available in the next update!')}>
-                  <MaterialIcons name="add" size={20} color={Colors.primary} style={{ opacity: 0.5 }} />
-                </TouchableOpacity>
-              </ScrollView>
+              <DraggableFlatList
+                horizontal
+                style={{ flex: 1 }}
+                data={tierData}
+                onDragEnd={({ data }) => handleDragEnd(tier, data)}
+                keyExtractor={(item) => item.id}
+                renderItem={renderItem}
+                contentContainerStyle={styles.tierBooks}
+                showsHorizontalScrollIndicator={false}
+                ListFooterComponent={
+                  <TouchableOpacity style={styles.tierAddSlot} onPress={() => Alert.alert('Coming Soon', 'Search and add books to this tier in the next update!')}>
+                    <MaterialIcons name="add" size={20} color={Colors.primary} style={{ opacity: 0.5 }} />
+                  </TouchableOpacity>
+                }
+              />
             </View>
-          ))}
+          );
+        })}
       </ScrollView>
     </View>
   );
@@ -124,10 +168,8 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   tierBooks: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.base,
-    gap: Spacing.base,
     minWidth: '100%',
   },
   tierBook: {
@@ -136,6 +178,7 @@ const styles = StyleSheet.create({
     borderRadius: Radius.sm,
     overflow: 'hidden',
     backgroundColor: Colors.surfaceContainerHigh,
+    marginRight: Spacing.base,
   },
   tierAddSlot: {
     width: 52,

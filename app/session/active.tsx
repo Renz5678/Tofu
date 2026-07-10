@@ -13,6 +13,8 @@ import { Colors, Typography, Spacing, Radius, Shadows } from '@/theme';
 import { useEffect, useState } from 'react';
 import { useSessionStore } from '@/store/sessionStore';
 import { useLibrary } from '@/hooks/useLibrary';
+import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, withSequence } from 'react-native-reanimated';
+import { calculateElapsedSeconds, formatSessionTime } from '@/lib/timer';
 
 export default function ActiveSessionScreen() {
   const router = useRouter();
@@ -27,28 +29,35 @@ export default function ActiveSessionScreen() {
   useEffect(() => {
     if (!activeSession) return;
     
-    const calculateElapsed = () => {
-      const end = activeSession.pausedAt ? new Date(activeSession.pausedAt).getTime() : Date.now();
-      return Math.floor((end - new Date(activeSession.startTime).getTime()) / 1000) - (activeSession.totalPausedSeconds || 0);
-    };
-
-    setElapsed(Math.max(0, calculateElapsed()));
+    setElapsed(calculateElapsedSeconds(activeSession));
     
     if (activeSession.pausedAt) return; // Don't run interval if paused
 
     const interval = setInterval(() => {
-      setElapsed(Math.max(0, calculateElapsed()));
+      setElapsed(calculateElapsedSeconds(activeSession));
     }, 1000);
     
     return () => clearInterval(interval);
   }, [activeSession]);
 
-  const formatTime = (seconds: number) => {
-    const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
-    const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
-    const s = (seconds % 60).toString().padStart(2, '0');
-    return `${h === '00' ? '' : h + ':'}${m}:${s}`;
-  };
+  const isPaused = !!activeSession?.pausedAt;
+
+  const pulseOpacity = useSharedValue(1);
+  useEffect(() => {
+    if (activeSession && !isPaused) {
+      pulseOpacity.value = withRepeat(
+        withSequence(withTiming(0.7, { duration: 1000 }), withTiming(1, { duration: 1000 })),
+        -1,
+        true
+      );
+    } else {
+      pulseOpacity.value = withTiming(1);
+    }
+  }, [isPaused, activeSession]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: pulseOpacity.value,
+  }));
 
   if (isLoading) {
     return <View style={{ flex: 1, backgroundColor: Colors.primary }} />;
@@ -64,8 +73,6 @@ export default function ActiveSessionScreen() {
       </View>
     );
   }
-
-  const isPaused = !!activeSession.pausedAt;
 
   return (
     <View style={{ flex: 1, backgroundColor: Colors.primary }}>
@@ -95,10 +102,10 @@ export default function ActiveSessionScreen() {
       </View>
 
       {/* Timer display */}
-      <View style={styles.timerContainer}>
-        <Text style={[styles.timerValue, isPaused && { opacity: 0.7 }]}>{formatTime(elapsed)}</Text>
-        <Text style={styles.timerLabel}>{isPaused ? 'Session Paused' : 'Session Time'}</Text>
-      </View>
+      <Animated.View style={[styles.timerContainer, animatedStyle]}>
+        <Text style={[styles.timerValue, isPaused && { opacity: 0.7 }]}>{formatSessionTime(elapsed)}</Text>
+        <Text style={styles.timerLabel}>{isPaused ? 'Session Paused' : 'Session Active'}</Text>
+      </Animated.View>
 
       {/* Controls */}
       <View style={styles.controls}>
@@ -179,6 +186,7 @@ const styles = StyleSheet.create({
     letterSpacing: -2,
     color: Colors.onPrimary,
     fontWeight: '700',
+    fontVariant: ['tabular-nums'],
   },
   timerLabel: {
     ...Typography.styles.labelLg,

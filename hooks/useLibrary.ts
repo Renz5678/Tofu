@@ -29,6 +29,8 @@ export interface LibraryBook {
   language: string | null;
 }
 
+export type DatabaseBookRow = Omit<LibraryBook, 'id' | 'book_id' | 'status' | 'current_page' | 'started_at' | 'finished_at' | 'added_at' | 'rating' | 'review'>;
+
 async function fetchLibrary(status?: BookStatus): Promise<LibraryBook[]> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return [];
@@ -64,7 +66,6 @@ async function fetchLibrary(status?: BookStatus): Promise<LibraryBook[]> {
   const { data, error } = await query;
   if (error) throw error;
 
-  type DatabaseBookRow = Omit<LibraryBook, 'id' | 'book_id' | 'status' | 'current_page' | 'started_at' | 'finished_at' | 'added_at'>;
   type JoinedRow = {
     id: string;
     book_id: string;

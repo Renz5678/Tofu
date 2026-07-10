@@ -24,7 +24,7 @@ reading."
 - **Charts:** `victory-native` or `react-native-gifted-charts`
 - **Images:** `expo-image`
 - **Share card export:** `react-native-view-shot` + `expo-sharing`
-- **External data:** Google Books API (`https://www.googleapis.com/books/v1/volumes`)
+- **External data:** Open Library API (`https://openlibrary.org/search.json`)
 
 Build target: iOS + Android from one codebase. No custom backend server —
 client talks to Supabase directly, secured with Row Level Security (RLS).
@@ -58,7 +58,7 @@ create policy "profiles_insert_own" on profiles for insert with check (auth.uid(
 -- ─────────────────────────────────────────────
 create table books (
   id uuid primary key default gen_random_uuid(),
-  google_books_id text unique not null,
+  open_library_id text unique not null,
   title text not null,
   author text,
   cover_url text,
@@ -241,7 +241,7 @@ create policy "reading_list_items_owner_all" on reading_list_items for all
 - `pages_read` is a Postgres generated column — don't write to it, just insert `start_page`/`end_page`.
 - `pages_per_hour` / `minutes_per_page` are computed client-side at session-finish time and written directly (kept redundant on the row for fast dashboard reads — don't recompute via a view unless a bug is found).
 - `favorite_books` uses two unique constraints so the UI never has to dedupe slots or books — trust the DB to reject invalid states.
-- `country` on `books` is nullable and best-effort (Google Books has no reliable country field) — don't build filtering logic that assumes it's always populated.
+- `country` on `books` is nullable and best-effort (Open Library has no reliable country field) — don't build filtering logic that assumes it's always populated.
 
 ## 4. Suggested Project Structure (Expo Router)
 
@@ -268,7 +268,7 @@ app/
   goals/index.tsx
 lib/
   supabase.ts                  # Supabase client init
-  googleBooks.ts                # search, genre/language query builders
+  openLibrary.ts                # search, genre/language query builders
   timer.ts                      # session timer logic, AsyncStorage persistence
   metrics.ts                    # pages/hr, min/page, streak calc
   shareCard.ts                  # view-shot capture + expo-sharing helpers
@@ -297,7 +297,7 @@ hooks/
 ## 5. Feature Build Order (matches PDR roadmap)
 
 1. **Auth + schema** — Supabase project, run migrations above, wire `supabase-js`, sign up/login screens, `profiles` row auto-created on signup (trigger or client-side upsert).
-2. **Library core** — Google Books search, add-to-library flow (upsert into `books`, insert `user_books`), library screen grouped by status, genre/language/country filter bar.
+2. **Library core** — Open Library search, add-to-library flow (upsert into `books`, insert `user_books`), library screen grouped by status, genre/language/country filter bar.
 3. **Session timer** — start/pause/finish flow, local persistence of in-progress session, write to `reading_sessions` on finish, update `user_books.current_page`.
 4. **Dashboard + stats** — today's stats, streak display, weekly chart, aggregate stats screen with daily/weekly/monthly toggle.
 5. **Goals + streaks** — goal CRUD, progress rings, streak increment logic (once per calendar day with ≥1 session).
@@ -307,27 +307,27 @@ hooks/
 
 Build and verify each phase before moving to the next — don't jump ahead to curation features before the session timer is solid, since favorites/tier lists/playlists all assume a populated `books`/`user_books` table to pull from.
 
-## 6. Google Books API Integration
+## 6. Open Library API Integration
 
-- Search: `GET https://www.googleapis.com/books/v1/volumes?q={query}`
-- Genre filter: prefix query with `subject:{genre}`
-- Language filter: append `&langRestrict={code}` (e.g. `en`, `fil`)
+- Search: `GET https://openlibrary.org/search.json?q={query}`
+- Genre filter: append `&subject={genre}`
+- Language filter: append `&language={code}`
 - Debounce search input ~400ms client-side.
 - Map response → local shape:
   ```ts
   {
-    google_books_id: item.id,
-    title: item.volumeInfo.title,
-    author: item.volumeInfo.authors?.join(", "),
-    cover_url: item.volumeInfo.imageLinks?.thumbnail,
-    total_pages: item.volumeInfo.pageCount,
-    isbn: item.volumeInfo.industryIdentifiers?.[0]?.identifier,
-    genres: item.volumeInfo.categories ?? [],
-    language: item.volumeInfo.language,
+    open_library_id: item.key,
+    title: item.title,
+    author: item.author_name?.join(", "),
+    cover_url: item.cover_i ? `https://covers.openlibrary.org/b/id/${item.cover_i}-M.jpg` : undefined,
+    total_pages: item.number_of_pages_median,
+    isbn: item.isbn?.[0],
+    genres: item.subject?.slice(0, 3) ?? [],
+    language: item.language?.[0],
     country: null, // not reliably available — leave null, user-editable later
   }
   ```
-- On "Add to Library": upsert on `google_books_id` conflict, then insert `user_books` row.
+- On "Add to Library": upsert on `open_library_id` conflict, then insert `user_books` row.
 
 ## 7. Key Implementation Details
 

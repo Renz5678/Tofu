@@ -85,7 +85,7 @@ function StatsCard({ backgroundUri, theme, type, title, subtitle, metrics, cardR
         style={[
           StyleSheet.absoluteFillObject,
           {
-            background: isDark
+            backgroundColor: isDark
               ? 'linear-gradient(transparent 30%, rgba(0,0,0,0.7) 100%)'
               : undefined,
           },

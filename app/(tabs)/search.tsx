@@ -19,6 +19,8 @@ import { Colors, Typography, Spacing, Radius, Shadows } from '@/theme';
 import { FilterBar } from '@/components/FilterBar';
 import { searchBooks, type BookItem } from '@/lib/openLibrary';
 import { useLibrary, useAddBook } from '@/hooks/useLibrary';
+import { useDebounce } from '@/hooks/useDebounce';
+import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, withSequence } from 'react-native-reanimated';
 
 const GENRE_CHIPS = [
   { label: 'Fiction', value: 'fiction' },
@@ -34,10 +36,10 @@ export default function SearchScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [query, setQuery] = useState('');
+  const debouncedQuery = useDebounce(query, 400);
   const [results, setResults] = useState<BookItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [activeGenre, setActiveGenre] = useState<string | null>(null);
-  const [searchTimer, setSearchTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
   const [selectedBook, setSelectedBook] = useState<BookItem | null>(null);
   const [synopsis, setSynopsis] = useState<string | null>(null);
   const [loadingSynopsis, setLoadingSynopsis] = useState(false);
@@ -55,34 +57,32 @@ export default function SearchScreen() {
     })
   ).current;
 
-  const runSearch = (q: string, genre?: string | null) => {
-    if (!q.trim() && !genre) {
+  React.useEffect(() => {
+    if (!debouncedQuery.trim() && !activeGenre) {
       setResults([]);
+      setLoading(false);
       return;
     }
-    if (searchTimer) clearTimeout(searchTimer);
-    const t = setTimeout(async () => {
+    const runSearch = async () => {
       setLoading(true);
       try {
-        const res = await searchBooks(q, genre ?? undefined);
+        const res = await searchBooks(debouncedQuery, activeGenre ?? undefined);
         setResults(res);
       } catch {
         setResults([]);
       } finally {
         setLoading(false);
       }
-    }, 400);
-    setSearchTimer(t);
-  };
+    };
+    runSearch();
+  }, [debouncedQuery, activeGenre]);
 
   const handleQueryChange = (text: string) => {
     setQuery(text);
-    runSearch(text, activeGenre);
   };
 
   const handleGenreSelect = (genre: string | null) => {
     setActiveGenre(genre);
-    runSearch(query, genre);
   };
 
   React.useEffect(() => {
@@ -143,7 +143,11 @@ export default function SearchScreen() {
       />
 
       {/* Results */}
-      {results.length === 0 && !loading ? (
+      {loading ? (
+        <View style={[styles.list, { paddingBottom: insets.bottom + 80 }]}>
+          {Array.from({ length: 5 }).map((_, i) => <SearchSkeleton key={i} />)}
+        </View>
+      ) : results.length === 0 ? (
         <View style={styles.emptyState}>
           <MaterialIcons name="auto-stories" size={56} color={Colors.primary} style={{ opacity: 0.3 }} />
           <Text style={styles.emptyTitle}>Find your next read</Text>
@@ -361,6 +365,36 @@ function SearchResultCard({ book, isAdded, onPress }: { book: BookItem; isAdded:
   );
 }
 
+function SearchSkeleton() {
+  const pulseOpacity = useSharedValue(0.3);
+  React.useEffect(() => {
+    pulseOpacity.value = withRepeat(
+      withSequence(withTiming(0.7, { duration: 800 }), withTiming(0.3, { duration: 800 })),
+      -1,
+      true
+    );
+  }, []);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: pulseOpacity.value,
+  }));
+
+  return (
+    <Animated.View style={[styles.resultCard, Shadows.card, animatedStyle]}>
+      <View style={[styles.resultCover, { backgroundColor: Colors.surfaceContainerHigh }]} />
+      <View style={styles.resultInfo}>
+        <View style={{ height: 16, width: '80%', backgroundColor: Colors.surfaceContainerHigh, borderRadius: 4, marginBottom: 4 }} />
+        <View style={{ height: 12, width: '50%', backgroundColor: Colors.surfaceContainerHigh, borderRadius: 4, marginBottom: 8 }} />
+        <View style={{ flexDirection: 'row', gap: 6 }}>
+          <View style={{ height: 16, width: 60, backgroundColor: Colors.surfaceContainerHigh, borderRadius: 8 }} />
+          <View style={{ height: 16, width: 40, backgroundColor: Colors.surfaceContainerHigh, borderRadius: 8 }} />
+        </View>
+      </View>
+      <View style={[styles.addButton, { backgroundColor: Colors.surfaceContainerHigh }]} />
+    </Animated.View>
+  );
+}
+
 const styles = StyleSheet.create({
   header: {
     paddingHorizontal: Spacing.containerPadding,
@@ -523,7 +557,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   modalAuthor: {
-    ...Typography.styles.bodyLg,
+    ...Typography.styles.bodyMd,
     color: Colors.onSurfaceVariant,
     textAlign: 'center',
     opacity: 0.8,

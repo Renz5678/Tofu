@@ -115,7 +115,7 @@ export default function BookDetailScreen() {
       {/* Hero cover */}
       <View style={[styles.heroContainer, { height: width * 0.65 }]}>
         <Image
-          source={{ uri: book.cover_url }}
+          source={{ uri: book.cover_url ?? undefined }}
           style={StyleSheet.absoluteFillObject}
           contentFit="cover"
           blurRadius={20}
@@ -133,7 +133,7 @@ export default function BookDetailScreen() {
         {/* Cover image centered */}
         <View style={styles.coverWrapper}>
           <Image
-            source={{ uri: book.cover_url }}
+            source={{ uri: book.cover_url ?? undefined }}
             style={styles.cover}
             contentFit="cover"
           />
@@ -349,11 +349,11 @@ export default function BookDetailScreen() {
               collapsable={false}
               style={styles.shareCard}
             >
-              <Image source={{ uri: book.cover_url }} style={styles.shareCardBackground} contentFit="cover" blurRadius={40} />
+              <Image source={{ uri: book.cover_url ?? undefined }} style={styles.shareCardBackground} contentFit="cover" blurRadius={40} />
               <View style={styles.shareCardOverlay} />
               
               <View style={styles.shareCardContent}>
-                <Image source={{ uri: book.cover_url }} style={styles.shareCardCoverLarge} contentFit="cover" />
+                <Image source={{ uri: book.cover_url ?? undefined }} style={styles.shareCardCoverLarge} contentFit="cover" />
                 
                 <Text style={styles.shareCardBookTitle} numberOfLines={2}>{book.title}</Text>
                 <Text style={styles.shareCardBookAuthor} numberOfLines={1}>{book.author?.toUpperCase()}</Text>
@@ -585,7 +585,7 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   shareModalTitle: {
-    ...Typography.styles.titleLg,
+    ...Typography.styles.titleSm,
     color: Colors.onSurface,
     marginBottom: Spacing.base,
   },

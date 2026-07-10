@@ -63,7 +63,7 @@ export default function FavoritesScreen() {
                 {fav ? (
                   <>
                     <View style={styles.favCover}>
-                      <Image source={{ uri: fav.cover_url }} style={StyleSheet.absoluteFillObject} contentFit="cover" />
+                      <Image source={{ uri: fav.cover_url ?? undefined }} style={StyleSheet.absoluteFillObject} contentFit="cover" />
                     </View>
                     <View style={styles.favInfo}>
                       <Text style={styles.favTitle} numberOfLines={2}>{fav.title}</Text>

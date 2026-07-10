@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
     padding: Spacing.containerPadding,
     gap: Spacing.stackMd,
   },
-  modalTitle: { ...Typography.styles.headlineSm, color: Colors.onSurface, marginBottom: Spacing.stackSm },
+  modalTitle: { ...Typography.styles.headlineMd, color: Colors.onSurface, marginBottom: Spacing.stackSm },
   modalTypeRow: { gap: Spacing.stackSm },
   modalTypePill: {
     paddingVertical: 12, paddingHorizontal: 16,
@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
   modalTypeText: { ...Typography.styles.labelLg, color: Colors.onSurfaceVariant },
   modalTypeTextActive: { color: Colors.onPrimary, fontWeight: 'bold' },
   modalInput: {
-    ...Typography.styles.bodyLg,
+    ...Typography.styles.bodyMd,
     borderWidth: 1, borderColor: Colors.outlineVariant,
     borderRadius: Radius.md,
     padding: 16, marginTop: Spacing.stackSm,

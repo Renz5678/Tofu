@@ -88,3 +88,21 @@ export function useAddPlaylistItem() {
     onSuccess: (_, { listId }) => qc.invalidateQueries({ queryKey: ['playlistItems', listId] }),
   });
 }
+
+export function useUpdatePlaylistPositions() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ listId, items }: { listId: string; items: { id: string; book_id: string; position: number }[] }) => {
+      const { error } = await supabase.from('reading_list_items').upsert(
+        items.map(item => ({
+          id: item.id,
+          reading_list_id: listId,
+          book_id: item.book_id,
+          position: item.position
+        }))
+      );
+      if (error) throw error;
+    },
+    onSuccess: (_, { listId }) => qc.invalidateQueries({ queryKey: ['playlistItems', listId] }),
+  });
+}

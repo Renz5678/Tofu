@@ -20,6 +20,8 @@ import { FilterBar } from '@/components/FilterBar';
 import { searchBooks, type BookItem } from '@/lib/openLibrary';
 import { useLibrary, useAddBook } from '@/hooks/useLibrary';
 import { useDebounce } from '@/hooks/useDebounce';
+import { supabase } from '@/lib/supabase';
+import { Profile } from '@/hooks/useSocial';
 import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, withSequence } from 'react-native-reanimated';
 
 const GENRE_CHIPS = [
@@ -41,8 +43,10 @@ export default function SearchScreen() {
   const [query, setQuery] = useState('');
   const debouncedQuery = useDebounce(query, 400);
   const [results, setResults] = useState<BookItem[]>([]);
+  const [userResults, setUserResults] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(false);
   const [activeGenre, setActiveGenre] = useState<string | null>(null);
+  const [searchMode, setSearchMode] = useState<'books' | 'users'>('books');
   const [selectedBook, setSelectedBook] = useState<BookItem | null>(null);
   const [synopsis, setSynopsis] = useState<string | null>(null);
   const [loadingSynopsis, setLoadingSynopsis] = useState(false);
@@ -63,22 +67,39 @@ export default function SearchScreen() {
   React.useEffect(() => {
     if (!debouncedQuery.trim() && !activeGenre) {
       setResults([]);
+      setUserResults([]);
       setLoading(false);
       return;
     }
     const runSearch = async () => {
       setLoading(true);
       try {
-        const res = await searchBooks(debouncedQuery, activeGenre ?? undefined);
-        setResults(res);
+        if (searchMode === 'books') {
+          const res = await searchBooks(debouncedQuery, activeGenre ?? undefined);
+          setResults(res);
+        } else {
+          // Search users in Supabase
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .or(`username.ilike.%${debouncedQuery}%,display_name.ilike.%${debouncedQuery}%`)
+            .limit(20);
+          
+          if (!error && data) {
+            setUserResults(data as Profile[]);
+          } else {
+            setUserResults([]);
+          }
+        }
       } catch {
         setResults([]);
+        setUserResults([]);
       } finally {
         setLoading(false);
       }
     };
     runSearch();
-  }, [debouncedQuery, activeGenre]);
+  }, [debouncedQuery, activeGenre, searchMode]);
 
   const handleQueryChange = (text: string) => {
     setQuery(text);
@@ -137,20 +158,38 @@ export default function SearchScreen() {
         </View>
       </View>
 
-      {/* Genre filter */}
-      <FilterBar
-        chips={GENRE_CHIPS}
-        activeValue={activeGenre ?? undefined}
-        onSelect={handleGenreSelect}
-        style={{ paddingHorizontal: Spacing.containerPadding }}
-      />
+      {/* Search Type Toggle */}
+      <View style={styles.toggleRow}>
+        <TouchableOpacity 
+          style={[styles.toggleBtn, searchMode === 'books' && styles.toggleBtnActive]} 
+          onPress={() => setSearchMode('books')}
+        >
+          <Text style={[styles.toggleBtnText, searchMode === 'books' && styles.toggleBtnTextActive]}>Books</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={[styles.toggleBtn, searchMode === 'users' && styles.toggleBtnActive]} 
+          onPress={() => setSearchMode('users')}
+        >
+          <Text style={[styles.toggleBtnText, searchMode === 'users' && styles.toggleBtnTextActive]}>Readers</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Genre filter (only for books) */}
+      {searchMode === 'books' && (
+        <FilterBar
+          chips={GENRE_CHIPS}
+          activeValue={activeGenre ?? undefined}
+          onSelect={handleGenreSelect}
+          style={{ paddingHorizontal: Spacing.containerPadding }}
+        />
+      )}
 
       {/* Results */}
       {loading ? (
         <View style={[styles.list, { paddingBottom: insets.bottom + 80 }]}>
           {Array.from({ length: 5 }).map((_, i) => <SearchSkeleton key={i} />)}
         </View>
-      ) : results.length === 0 ? (
+      ) : searchMode === 'books' && results.length === 0 ? (
         <View style={styles.emptyState}>
           <MaterialIcons name="auto-stories" size={56} color={colors.primary} style={{ opacity: 0.3 }} />
           <Text style={styles.emptyTitle}>Find your next read</Text>
@@ -158,7 +197,15 @@ export default function SearchScreen() {
             Search any title, author, or pick a genre above
           </Text>
         </View>
-      ) : (
+      ) : searchMode === 'users' && userResults.length === 0 ? (
+        <View style={styles.emptyState}>
+          <MaterialIcons name="people" size={56} color={colors.primary} style={{ opacity: 0.3 }} />
+          <Text style={styles.emptyTitle}>Find friends</Text>
+          <Text style={styles.emptyDescription}>
+            Search for other readers by their username or display name
+          </Text>
+        </View>
+      ) : searchMode === 'books' ? (
         <FlatList
           data={results}
           keyExtractor={(item) => item.open_library_id}
@@ -169,6 +216,33 @@ export default function SearchScreen() {
               isAdded={libraryBooks.some(b => b.open_library_id === item.open_library_id)}
               onPress={() => setSelectedBook(item)}
             />
+          )}
+        />
+      ) : (
+        <FlatList
+          data={userResults}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 80 }]}
+          renderItem={({ item }) => (
+            <TouchableOpacity 
+              style={[styles.resultCard, Shadows.card]} 
+              activeOpacity={0.85} 
+              onPress={() => router.push(`/profile/${item.id}` as any)}
+            >
+              <View style={[styles.resultCover, { width: 48, height: 48, borderRadius: 24 }]}>
+                {item.avatar_url ? (
+                  <Image source={{ uri: item.avatar_url }} style={StyleSheet.absoluteFillObject} contentFit="cover" />
+                ) : (
+                  <View style={[StyleSheet.absoluteFillObject, styles.noCover, { backgroundColor: colors.primaryContainer }]}>
+                    <Text style={{ color: colors.onPrimaryContainer, fontWeight: 'bold' }}>{item.username.charAt(0).toUpperCase()}</Text>
+                  </View>
+                )}
+              </View>
+              <View style={styles.resultInfo}>
+                <Text style={styles.resultTitle}>{item.display_name || item.username}</Text>
+                <Text style={styles.resultAuthor}>@{item.username}</Text>
+              </View>
+            </TouchableOpacity>
           )}
         />
       )}
@@ -429,6 +503,31 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     flex: 1,
     ...Typography.styles.bodyMd,
     color: colors.onSurface,
+  },
+  toggleRow: {
+    flexDirection: 'row',
+    paddingHorizontal: Spacing.containerPadding,
+    marginBottom: Spacing.stackSm,
+    gap: Spacing.stackSm,
+  },
+  toggleBtn: {
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    borderRadius: Radius.full,
+    borderWidth: 1,
+    borderColor: colors.outlineVariant,
+  },
+  toggleBtnActive: {
+    backgroundColor: colors.primaryContainer,
+    borderColor: colors.primaryContainer,
+  },
+  toggleBtnText: {
+    ...Typography.styles.labelSm,
+    color: colors.onSurfaceVariant,
+  },
+  toggleBtnTextActive: {
+    color: colors.onPrimaryContainer,
+    fontWeight: 'bold',
   },
   emptyState: {
     flex: 1,

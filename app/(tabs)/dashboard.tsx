@@ -20,9 +20,8 @@ import { ProgressRing, ProgressBar } from '@/components/ProgressRing';
 import { useLibrary } from '@/hooks/useLibrary';
 import { useSessionStore } from '@/store/sessionStore';
 import { useProfile } from '@/hooks/useProfile';
-import { useReadingSessions } from '@/hooks/useReadingSessions';
-import { useGoals } from '@/hooks/useGoals';
-const WEEK_DAYS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+import { useTimeline, TimelineItem } from '@/hooks/useSocial';
+import { formatDistanceToNow } from 'date-fns';
 
 export default function DashboardScreen() {
   const router = useRouter();
@@ -32,52 +31,13 @@ export default function DashboardScreen() {
   const styles = createStyles(colors, isDark);
 
   const { data: profile } = useProfile();
-  const { data: sessions = [] } = useReadingSessions();
-  const { data: goals = [] } = useGoals();
   const { data: readingBooks = [] } = useLibrary('reading');
+  const { data: timeline = [], isLoading: isTimelineLoading } = useTimeline();
 
   const currentBook = readingBooks[0];
   const bookProgress = currentBook ? (currentBook.current_page / (currentBook.total_pages || 1)) : 0;
   const startSession = useSessionStore((s) => s.startSession);
   const activeSession = useSessionStore((s) => s.activeSession);
-
-  const dailyMinuteGoal = goals.find(g => g.goal_type === 'minutes_per_day')?.target_value || 30;
-  const dailyPageGoal = goals.find(g => g.goal_type === 'pages_per_day')?.target_value || 20;
-
-  const todayStr = new Date().toISOString().split('T')[0];
-  const todaySessions = sessions.filter(s => s.start_time.startsWith(todayStr));
-  
-  const todayMinutes = Math.round(todaySessions.reduce((acc, s) => acc + s.duration_seconds, 0) / 60);
-  const todayPages = todaySessions.reduce((acc, s) => acc + s.pages_read, 0);
-
-  const minuteProgress = Math.min(1, todayMinutes / dailyMinuteGoal);
-  const pageProgress = Math.min(1, todayPages / dailyPageGoal);
-
-  // Weekly data (last 7 days ending today)
-  const weeklyData = [0, 0, 0, 0, 0, 0, 0];
-  const weekDays = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-  const today = new Date();
-  
-  const last7Dates = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(today);
-    d.setDate(today.getDate() - (6 - i));
-    return d.toISOString().split('T')[0];
-  });
-
-  const last7Labels = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(today);
-    d.setDate(today.getDate() - (6 - i));
-    return weekDays[d.getDay() === 0 ? 6 : d.getDay() - 1]; 
-  });
-
-  sessions.forEach(s => {
-    const dateStr = s.start_time.split('T')[0];
-    const idx = last7Dates.indexOf(dateStr);
-    if (idx !== -1) {
-      weeklyData[idx] += Math.round(s.duration_seconds / 60);
-    }
-  });
-
 
   const handleContinueReading = async () => {
     if (!currentBook) return;
@@ -140,42 +100,10 @@ export default function DashboardScreen() {
         {/* Welcome */}
         <Animated.View entering={FadeInDown.duration(400).delay(100)} style={styles.section}>
           <Text style={styles.welcomeHeading}>
-            Good {getGreeting()}, {profile?.display_name || profile?.username || 'Reader'}
+            {getGreeting()}, {profile?.display_name || profile?.username || 'Reader'}
           </Text>
-          <Text style={styles.welcomeSub}>Your reading sanctuary is ready.</Text>
         </Animated.View>
 
-        {/* Stats Bento Grid */}
-        <Animated.View entering={FadeInDown.duration(400).delay(200)} style={styles.bentoGrid}>
-          {/* Reading Time Ring */}
-          <View style={[styles.bentoCard, styles.bentoCardHalf]}>
-            <ProgressRing
-              progress={minuteProgress}
-              size={96}
-              strokeWidth={8}
-              showLabel
-              labelText={`${todayMinutes}`}
-            />
-            <Text style={styles.bentoLabel}>Daily Goal</Text>
-            <Text style={[styles.bentoSublabel, { opacity: 0.5 }]}>
-              {todayMinutes}/{dailyMinuteGoal} min
-            </Text>
-          </View>
-
-          {/* Pages Today */}
-          <View style={[styles.bentoCard, styles.bentoCardHalf]}>
-            <Text style={styles.bentoStat}>{todayPages}</Text>
-            <Text style={styles.bentoSublabel}>Pages today</Text>
-            <ProgressBar
-              progress={pageProgress}
-              height={6}
-              style={{ marginTop: Spacing.stackSm }}
-            />
-            <Text style={[styles.bentoSublabel, { marginTop: 6, opacity: 0.6 }]}>
-              Goal: {dailyPageGoal}
-            </Text>
-          </View>
-        </Animated.View>
 
         {/* Current Read */}
         <Animated.View entering={FadeInDown.duration(400).delay(300)} style={styles.section}>
@@ -249,33 +177,38 @@ export default function DashboardScreen() {
           )}
         </Animated.View>
 
-        {/* Weekly Progress */}
-        <Animated.View entering={FadeInDown.duration(400).delay(400)} style={[styles.weeklyCard, Shadows.card]}>
+        {/* Social Feed */}
+        <Animated.View entering={FadeInDown.duration(400).delay(400)} style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, Typography.styles.labelLg]}>Weekly Progress</Text>
-            <Text style={styles.weeklySubtitle}>Last 7 Days</Text>
+            <Text style={styles.sectionTitle}>Activity Feed</Text>
+            <TouchableOpacity onPress={() => router.push('/(tabs)/search')}>
+              <Text style={styles.sectionLink}>Find Friends</Text>
+            </TouchableOpacity>
           </View>
-          <View style={styles.barChart}>
-            {weeklyData.map((val, i) => {
-              const barH = (val / maxWeekly) * 80;
-              const isToday = i === 6;
-              return (
-                <View key={i} style={styles.barColumn}>
-                  <Animated.View
-                    entering={FadeInDown.delay(400 + i * 50).springify()}
-                    style={[
-                      styles.bar,
-                      {
-                        height: Math.max(4, barH),
-                        backgroundColor: isToday ? colors.primary : `${colors.primary}33`,
-                      },
-                    ]}
-                  />
-                  <Text style={styles.barLabel}>{last7Labels[i]}</Text>
+
+          {isTimelineLoading ? (
+            <Text style={styles.placeholder}>Loading feed...</Text>
+          ) : timeline.length > 0 ? (
+            timeline.map((item, index) => (
+              <TimelineCard key={item.id} item={item} />
+            ))
+          ) : (
+            <View style={[styles.currentReadCard, { padding: Spacing.stackLg, alignItems: 'center', flexDirection: 'column' }]}>
+              <View style={styles.emptyStateIllustration}>
+                <MaterialIcons name="people" size={48} color={colors.primary} style={{ opacity: 0.8 }} />
+              </View>
+              <Text style={{ ...Typography.styles.titleSm, color: colors.onSurface, marginTop: 12 }}>It's quiet here...</Text>
+              <Text style={{ ...Typography.styles.bodyMd, color: colors.onSurfaceVariant, textAlign: 'center', opacity: 0.7, marginTop: 4, paddingHorizontal: 16 }}>
+                Follow your friends to see their reviews, ratings, and reading progress.
+              </Text>
+              <AnimatedPressable onPress={() => router.push('/(tabs)/search')} style={{ width: '100%' }}>
+                <View style={[styles.continueButton, { marginTop: 24, width: '100%', backgroundColor: colors.secondaryContainer }]}>
+                  <MaterialIcons name="search" size={20} color={colors.onSecondaryContainer} />
+                  <Text style={[styles.continueButtonText, { color: colors.onSecondaryContainer }]}>Find Readers</Text>
                 </View>
-              );
-            })}
-          </View>
+              </AnimatedPressable>
+            </View>
+          )}
         </Animated.View>
       </ScrollView>
     </View>
@@ -296,6 +229,74 @@ function AnimatedPressable({ onPress, children, style }: any) {
         {children}
       </Animated.View>
     </Pressable>
+  );
+}
+
+function TimelineCard({ item }: { item: TimelineItem }) {
+  const { colors, isDark } = useTheme();
+  const styles = createStyles(colors, isDark);
+  const router = useRouter();
+
+  const timeAgo = formatDistanceToNow(new Date(item.added_at), { addSuffix: true });
+  
+  let actionText = 'started reading';
+  if (item.status === 'finished') actionText = 'finished reading';
+  if (item.review || item.rating) actionText = 'reviewed';
+
+  return (
+    <View style={[styles.timelineCard, Shadows.card]}>
+      <View style={styles.timelineHeader}>
+        <TouchableOpacity 
+          style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}
+          onPress={() => router.push(`/profile/${item.profiles.id}` as any)}
+        >
+          {item.profiles.avatar_url ? (
+            <Image source={{ uri: item.profiles.avatar_url }} style={styles.timelineAvatar} />
+          ) : (
+            <View style={[styles.timelineAvatar, { backgroundColor: colors.primaryContainer, alignItems: 'center', justifyContent: 'center' }]}>
+              <Text style={{ color: colors.onPrimaryContainer, fontWeight: 'bold' }}>
+                {item.profiles.username.charAt(0).toUpperCase()}
+              </Text>
+            </View>
+          )}
+          <View style={{ flex: 1 }}>
+            <Text style={styles.timelineUserText} numberOfLines={1}>
+              <Text style={{ fontWeight: '600', color: colors.onSurface }}>{item.profiles.display_name || item.profiles.username}</Text>
+              <Text style={{ color: colors.onSurfaceVariant }}> {actionText}</Text>
+            </Text>
+            <Text style={styles.timelineTime}>{timeAgo}</Text>
+          </View>
+        </TouchableOpacity>
+      </View>
+
+      <TouchableOpacity 
+        style={styles.timelineBookRow}
+        onPress={() => router.push(`/book/${item.book_id}` as any)}
+      >
+        <Image source={{ uri: item.books.cover_url ?? undefined }} style={styles.timelineCover} contentFit="cover" />
+        <View style={styles.timelineBookInfo}>
+          <Text style={styles.timelineBookTitle} numberOfLines={2}>{item.books.title}</Text>
+          <Text style={styles.timelineBookAuthor} numberOfLines={1}>{item.books.author}</Text>
+          
+          {item.rating ? (
+            <View style={styles.timelineRatingRow}>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <MaterialIcons 
+                  key={star} 
+                  name={item.rating! >= star ? 'star' : item.rating! >= star - 0.5 ? 'star-half' : 'star-outline'} 
+                  size={14} 
+                  color="#FFC107" 
+                />
+              ))}
+            </View>
+          ) : null}
+
+          {item.review ? (
+            <Text style={styles.timelineReview} numberOfLines={4}>"{item.review}"</Text>
+          ) : null}
+        </View>
+      </TouchableOpacity>
+    </View>
   );
 }
 
@@ -447,41 +448,74 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     ...Typography.styles.labelLg,
     color: colors.onPrimary,
   },
-  weeklyCard: {
+  timelineCard: {
     backgroundColor: colors.surfaceContainerLowest,
     borderRadius: Radius.xl,
     padding: Spacing.stackMd,
-    gap: Spacing.stackMd,
+    gap: Spacing.stackSm,
     shadowColor: isDark ? '#000' : '#2d3a47',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: isDark ? 0.3 : 0.05,
     shadowRadius: 24,
     elevation: 4,
   },
-  weeklySubtitle: {
-    ...Typography.styles.labelSm,
-    color: colors.onSurfaceVariant,
-  },
-  barChart: {
+  timelineHeader: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    height: 100,
-    paddingHorizontal: 4,
-  },
-  barColumn: {
-    flex: 1,
     alignItems: 'center',
-    gap: 6,
-    justifyContent: 'flex-end',
+    justifyContent: 'space-between',
+    marginBottom: 4,
   },
-  bar: {
-    width: 8,
-    borderRadius: 4,
+  timelineAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.surfaceVariant,
   },
-  barLabel: {
+  timelineUserText: {
+    ...Typography.styles.bodyMd,
+    fontSize: 14,
+  },
+  timelineTime: {
     ...Typography.styles.labelSm,
     fontSize: 10,
     color: colors.onSurfaceVariant,
+    opacity: 0.7,
+  },
+  timelineBookRow: {
+    flexDirection: 'row',
+    gap: Spacing.stackSm,
+    backgroundColor: colors.surfaceContainer,
+    borderRadius: Radius.lg,
+    padding: Spacing.stackSm,
+  },
+  timelineCover: {
+    width: 60,
+    height: 90,
+    borderRadius: Radius.sm,
+    backgroundColor: colors.surfaceVariant,
+  },
+  timelineBookInfo: {
+    flex: 1,
+    gap: 4,
+  },
+  timelineBookTitle: {
+    ...Typography.styles.titleSm,
+    color: colors.onSurface,
+  },
+  timelineBookAuthor: {
+    ...Typography.styles.bodyMd,
+    fontSize: 12,
+    color: colors.onSurfaceVariant,
+  },
+  timelineRatingRow: {
+    flexDirection: 'row',
+    marginTop: 2,
+  },
+  timelineReview: {
+    ...Typography.styles.bodyMd,
+    fontSize: 13,
+    color: colors.onSurface,
+    marginTop: 4,
+    fontStyle: 'italic',
   },
 });

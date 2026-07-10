@@ -22,6 +22,7 @@ import { readingProgress } from '@/lib/metrics';
 import { useLibrary, useUpdateBook, BookStatus } from '@/hooks/useLibrary';
 import { useFavorites, useToggleFavorite } from '@/hooks/useFavorites';
 import { useSessionStore } from '@/store/sessionStore';
+import { useBookStats, useBookReviews, CommunityReview } from '@/hooks/useSocial';
 import { ProgressBar } from '@/components/ProgressRing';
 
 export default function BookDetailScreen() {
@@ -40,6 +41,9 @@ export default function BookDetailScreen() {
   const book = libraryBooks.find((b) => b.id === id);
   const startSession = useSessionStore((s) => s.startSession);
   const activeSession = useSessionStore((s) => s.activeSession);
+
+  const { data: stats } = useBookStats(id);
+  const { data: communityReviews = [] } = useBookReviews(id);
 
   const [isEditingReview, setIsEditingReview] = React.useState(false);
   const [draftRating, setDraftRating] = React.useState(0);
@@ -219,6 +223,23 @@ export default function BookDetailScreen() {
               </View>
             )}
           </View>
+
+          {stats && (stats.ratings_count > 0 || stats.reviews_count > 0) && (
+            <View style={styles.statsRow}>
+              {stats.average_rating && (
+                <View style={styles.statPill}>
+                  <MaterialIcons name="star" size={16} color="#FFC107" />
+                  <Text style={styles.statPillText}>{stats.average_rating}</Text>
+                </View>
+              )}
+              {stats.ratings_count > 0 && (
+                <Text style={styles.statLightText}>{stats.ratings_count} ratings</Text>
+              )}
+              {stats.reviews_count > 0 && (
+                <Text style={styles.statLightText}>· {stats.reviews_count} reviews</Text>
+              )}
+            </View>
+          )}
         </View>
 
         {/* Progress card */}
@@ -338,6 +359,20 @@ export default function BookDetailScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Notes</Text>
           <Text style={styles.placeholder}>Tap to add a note about this book.</Text>
+        </View>
+
+        {/* Community Reviews */}
+        <View style={[styles.section, { marginTop: Spacing.stackLg }]}>
+          <Text style={styles.sectionTitle}>Community Reviews</Text>
+          {communityReviews.length > 0 ? (
+            <View style={{ gap: Spacing.stackSm }}>
+              {communityReviews.map((review) => (
+                <CommunityReviewCard key={review.id} review={review} />
+              ))}
+            </View>
+          ) : (
+            <Text style={styles.placeholder}>No community reviews yet.</Text>
+          )}
         </View>
       </ScrollView>
 
@@ -460,6 +495,55 @@ export default function BookDetailScreen() {
   );
 }
 
+function CommunityReviewCard({ review }: { review: CommunityReview }) {
+  const { colors, isDark } = useTheme();
+  const styles = createStyles(colors, isDark);
+  const router = useRouter();
+
+  return (
+    <View style={[styles.progressCard, Shadows.card]}>
+      <TouchableOpacity 
+        style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}
+        onPress={() => router.push(`/profile/${review.profiles.id}` as any)}
+      >
+        {review.profiles.avatar_url ? (
+          <Image source={{ uri: review.profiles.avatar_url }} style={{ width: 24, height: 24, borderRadius: 12 }} />
+        ) : (
+          <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: colors.primaryContainer, alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ color: colors.onPrimaryContainer, fontSize: 10, fontWeight: 'bold' }}>
+              {review.profiles.username.charAt(0).toUpperCase()}
+            </Text>
+          </View>
+        )}
+        <Text style={{ ...Typography.styles.labelSm, color: colors.onSurface }}>{review.profiles.display_name || review.profiles.username}</Text>
+        
+        {review.rating && (
+          <View style={{ flexDirection: 'row', marginLeft: 'auto' }}>
+            {[1, 2, 3, 4, 5].map((star) => (
+              <MaterialIcons 
+                key={star} 
+                name={review.rating! >= star ? 'star' : review.rating! >= star - 0.5 ? 'star-half' : 'star-outline'} 
+                size={12} 
+                color="#FFC107" 
+              />
+            ))}
+          </View>
+        )}
+      </TouchableOpacity>
+
+      <Text style={{ ...Typography.styles.bodyMd, color: colors.onSurface, fontStyle: 'italic' }}>"{review.review}"</Text>
+
+      <TouchableOpacity 
+        style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 12 }}
+        onPress={() => router.push(`/review/${review.id}` as any)}
+      >
+        <MaterialIcons name="chat-bubble-outline" size={16} color={colors.primary} />
+        <Text style={{ ...Typography.styles.labelSm, color: colors.primary }}>View Comments</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
 const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   heroContainer: {
     position: 'relative',
@@ -525,6 +609,32 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   genreChipText: {
     ...Typography.styles.labelSm,
     color: colors.onSecondaryContainer,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 4,
+  },
+  statPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: `${colors.primary}22`,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: Radius.full,
+    gap: 4,
+  },
+  statPillText: {
+    ...Typography.styles.labelSm,
+    color: colors.primary,
+    fontWeight: 'bold',
+  },
+  statLightText: {
+    ...Typography.styles.labelSm,
+    color: colors.onSurfaceVariant,
+    opacity: 0.8,
   },
   progressCard: {
     backgroundColor: colors.surfaceContainerLowest,

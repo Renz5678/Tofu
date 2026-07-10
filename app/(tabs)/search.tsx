@@ -183,7 +183,7 @@ export default function SearchScreen() {
               book={item} 
               isAdded={libraryBooks.some(b => b.open_library_id === item.open_library_id)}
               stats={bulkStats?.[item.open_library_id]}
-              onPress={() => router.push({ pathname: `/discover/${item.open_library_id}` as any, params: { bookData: JSON.stringify(item) } })}
+              onPress={() => router.push({ pathname: `/discover/${encodeURIComponent(item.open_library_id)}` as any, params: { bookData: JSON.stringify(item) } })}
             />
           )}
         />

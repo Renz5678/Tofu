@@ -16,17 +16,18 @@ export default function DiscoverBookScreen() {
   const { colors, isDark } = useTheme();
   const styles = createStyles(colors, isDark);
 
+  const decodedId = decodeURIComponent(id || '');
   const book: BookItem | null = bookData ? JSON.parse(bookData) : null;
 
-  const { data: stats } = useBookStats(id);
-  const { data: communityReviews = [] } = useBookReviews(id);
+  const { data: stats } = useBookStats(decodedId);
+  const { data: communityReviews = [] } = useBookReviews(decodedId);
   const { data: libraryBooks = [] } = useLibrary();
   const { mutateAsync: addBook, isPending: isAdding } = useAddBook();
 
   const [synopsis, setSynopsis] = useState<string | null>(null);
   const [loadingSynopsis, setLoadingSynopsis] = useState(false);
 
-  const libraryBook = libraryBooks.find(b => b.open_library_id === id);
+  const libraryBook = libraryBooks.find(b => b.open_library_id === decodedId);
   const isAdded = !!libraryBook;
 
   useEffect(() => {

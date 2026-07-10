@@ -106,16 +106,18 @@ export default function BookDetailScreen() {
   const handleUpdateStatus = async (newStatus: BookStatus) => {
     try {
       await updateBook({ userBookId: book.id, status: newStatus });
-    } catch (e) {
+    } catch (e: any) {
       console.warn('Failed to update status', e);
+      Alert.alert('Error', e.message || 'Failed to update status.');
     }
   };
 
   const handleReRead = async () => {
     try {
       await updateBook({ userBookId: book.id, status: 'reading', currentPage: 0 });
-    } catch (e) {
+    } catch (e: any) {
       console.warn('Failed to re-read', e);
+      Alert.alert('Error', e.message || 'Failed to restart reading.');
     }
   };
 
@@ -123,8 +125,9 @@ export default function BookDetailScreen() {
     try {
       await updateBook({ userBookId: book.id, rating: draftRating, review: draftReview });
       setIsEditingReview(false);
-    } catch (e) {
+    } catch (e: any) {
       console.warn('Failed to save review', e);
+      Alert.alert('Error', e.message || 'Failed to save review.');
     }
   };
 

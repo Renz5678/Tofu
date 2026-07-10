@@ -113,7 +113,7 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     backgroundColor: colors.onSurfaceVariant,
   },
   title: {
-    ...Typography.styles.labelMd,
+    ...Typography.styles.labelLg,
     color: colors.onPrimaryContainer,
   },
   subtitle: {
@@ -127,7 +127,8 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     gap: Spacing.stackSm,
   },
   timer: {
-    ...Typography.styles.numericLg,
+    ...Typography.styles.numericXl,
+    fontSize: 20,
     color: colors.onPrimaryContainer,
     fontVariant: ['tabular-nums'],
   },

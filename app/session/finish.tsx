@@ -107,8 +107,9 @@ export default function SessionFinishScreen() {
       } else {
         router.replace('/(tabs)/dashboard');
       }
-    } catch (e) {
+    } catch (e: any) {
       console.warn('Failed to save session', e);
+      Alert.alert('Error', e.message || 'Failed to save session. Please try again.');
     }
   };
 

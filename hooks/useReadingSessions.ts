@@ -73,7 +73,7 @@ export function useLogSession() {
       );
 
       // 1. Insert reading session
-      const { error: sessionError } = await supabase.from('reading_sessions').insert({
+      const { data: sessionData, error: sessionError } = await supabase.from('reading_sessions').insert({
         user_id: user.id,
         user_book_id: input.userBookId,
         start_time: input.startTime.toISOString(),
@@ -84,29 +84,40 @@ export function useLogSession() {
         pages_per_hour: metrics.pages_per_hour,
         minutes_per_page: metrics.minutes_per_page,
         notes: input.notes ?? null,
-      });
+      }).select('id').single();
       if (sessionError) throw sessionError;
 
       // 2. Update current_page on user_books
-      await supabase
+      const { error: bookError } = await supabase
         .from('user_books')
         .update({ current_page: input.endPage })
         .eq('id', input.userBookId);
 
+      if (bookError) {
+        // Rollback reading session
+        await supabase.from('reading_sessions').delete().eq('id', sessionData.id);
+        throw bookError;
+      }
+
       // 3. Update streak
-      const { data: streakRow } = await supabase
+      const { data: streakRow, error: streakFetchError } = await supabase
         .from('streaks')
         .select('current_streak, longest_streak, last_read_date')
         .eq('user_id', user.id)
         .single();
 
-      if (streakRow) {
+      if (streakFetchError && streakFetchError.code !== 'PGRST116') {
+        console.warn('Failed to fetch streak', streakFetchError);
+      } else if (streakRow) {
         const updated = calculateStreakUpdate(
           streakRow.current_streak,
           streakRow.longest_streak,
           streakRow.last_read_date
         );
-        await supabase.from('streaks').update(updated).eq('user_id', user.id);
+        const { error: streakUpdateError } = await supabase.from('streaks').update(updated).eq('user_id', user.id);
+        if (streakUpdateError) {
+          console.warn('Failed to update streak', streakUpdateError);
+        }
       }
     },
     onSuccess: (_, variables) => {

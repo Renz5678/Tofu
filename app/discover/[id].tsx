@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -183,6 +183,39 @@ export default function DiscoverBookScreen() {
           </View>
         )}
 
+        {/* Rate this book CTA */}
+        <View style={styles.rateSection}>
+          <Text style={styles.sectionTitle}>Rate this book</Text>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            {[1, 2, 3, 4, 5].map(star => (
+              <TouchableOpacity 
+                key={star} 
+                onPress={() => {
+                  if (!isAdded) {
+                    Alert.alert(
+                      'Add to Library',
+                      'Would you like to add this book to your library to rate it?',
+                      [
+                        { text: 'Cancel', style: 'cancel' },
+                        { text: 'Add', onPress: () => handleAdd() }
+                      ]
+                    );
+                  } else {
+                    router.push(`/book/${libraryBook.id}` as any);
+                  }
+                }}
+              >
+                <MaterialIcons 
+                  name={isAdded && libraryBook?.rating && libraryBook.rating >= star ? 'star' : 'star-outline'} 
+                  size={36} 
+                  color={colors.primary} 
+                  style={{ opacity: 0.8 }}
+                />
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
         {/* Synopsis */}
         {loadingSynopsis ? (
           <ActivityIndicator size="small" color={colors.primary} style={{ marginVertical: Spacing.stackLg }} />
@@ -201,7 +234,14 @@ export default function DiscoverBookScreen() {
                 .trim()}
             </Text>
           </View>
-        ) : null}
+        ) : (
+          <View style={styles.synopsisContainer}>
+            <Text style={styles.sectionTitle}>Synopsis</Text>
+            <Text style={[styles.synopsisText, { fontStyle: 'italic', opacity: 0.6 }]}>
+              No synopsis available.
+            </Text>
+          </View>
+        )}
 
         {/* Community Reviews */}
         <View style={styles.reviewsContainer}>
@@ -428,5 +468,12 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     borderRadius: Radius.lg,
     padding: Spacing.stackSm,
     ...Shadows.card,
+  },
+  rateSection: {
+    marginBottom: Spacing.stackLg,
+    alignItems: 'center',
+    backgroundColor: colors.surfaceContainerLow,
+    padding: Spacing.stackLg,
+    borderRadius: Radius.xl,
   },
 });

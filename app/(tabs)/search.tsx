@@ -188,6 +188,32 @@ export default function SearchScreen() {
           )}
         />
       ) : (
+        <FlatList
+          data={userResults}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 80 }]}
+          renderItem={({ item }) => (
+            <TouchableOpacity 
+              style={[styles.resultCard, Shadows.card]} 
+              activeOpacity={0.85} 
+              onPress={() => router.push(`/profile/${item.id}` as any)}
+            >
+              <View style={[styles.resultCover, { width: 48, height: 48, borderRadius: 24 }]}>
+                {item.avatar_url ? (
+                  <Image source={{ uri: item.avatar_url }} style={StyleSheet.absoluteFillObject} contentFit="cover" />
+                ) : (
+                  <View style={[StyleSheet.absoluteFillObject, styles.noCover, { backgroundColor: colors.primaryContainer }]}>
+                    <Text style={{ color: colors.onPrimaryContainer, fontWeight: 'bold' }}>{item.username.charAt(0).toUpperCase()}</Text>
+                  </View>
+                )}
+              </View>
+              <View style={styles.resultInfo}>
+                <Text style={styles.resultTitle}>{item.display_name || item.username}</Text>
+                <Text style={styles.resultAuthor}>@{item.username}</Text>
+              </View>
+            </TouchableOpacity>
+          )}
+        />
       )}
     </View>
   );

@@ -237,6 +237,29 @@ export function useBookStats(bookId: string) {
   });
 }
 
+export function useBulkBookStats(bookIds: string[]) {
+  return useQuery({
+    queryKey: ['bulkBookStats', bookIds],
+    queryFn: async (): Promise<Record<string, BookStats>> => {
+      const { data, error } = await supabase
+        .from('book_stats')
+        .select('*')
+        .in('book_id', bookIds);
+
+      if (error) throw error;
+      
+      const statsMap: Record<string, BookStats> = {};
+      if (data) {
+        data.forEach(stat => {
+          statsMap[stat.book_id] = stat as BookStats;
+        });
+      }
+      return statsMap;
+    },
+    enabled: bookIds.length > 0,
+  });
+}
+
 export function useBookReviews(bookId: string) {
   return useQuery({
     queryKey: ['bookReviews', bookId],

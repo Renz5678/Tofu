@@ -21,7 +21,7 @@ import { searchBooks, type BookItem } from '@/lib/openLibrary';
 import { useLibrary, useAddBook } from '@/hooks/useLibrary';
 import { useDebounce } from '@/hooks/useDebounce';
 import { supabase } from '@/lib/supabase';
-import { Profile } from '@/hooks/useSocial';
+import { Profile, useBulkBookStats, BookStats } from '@/hooks/useSocial';
 import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, withSequence } from 'react-native-reanimated';
 
 const GENRE_CHIPS = [
@@ -52,6 +52,9 @@ export default function SearchScreen() {
   const [loadingSynopsis, setLoadingSynopsis] = useState(false);
 
   const { data: libraryBooks = [] } = useLibrary();
+
+  const bookIds = React.useMemo(() => results.map(b => b.open_library_id), [results]);
+  const { data: bulkStats } = useBulkBookStats(bookIds);
 
   const panResponder = React.useRef(
     PanResponder.create({
@@ -214,6 +217,7 @@ export default function SearchScreen() {
             <SearchResultCard 
               book={item} 
               isAdded={libraryBooks.some(b => b.open_library_id === item.open_library_id)}
+              stats={bulkStats?.[item.open_library_id]}
               onPress={() => setSelectedBook(item)}
             />
           )}
@@ -372,7 +376,7 @@ export default function SearchScreen() {
   );
 }
 
-function SearchResultCard({ book, isAdded, onPress }: { book: BookItem; isAdded: boolean; onPress: () => void }) {
+function SearchResultCard({ book, isAdded, stats, onPress }: { book: BookItem; isAdded: boolean; stats?: BookStats; onPress: () => void }) {
   const { colors, isDark } = useTheme();
   const styles = createStyles(colors, isDark);
   const { mutateAsync: addBook, isPending } = useAddBook();
@@ -419,6 +423,35 @@ function SearchResultCard({ book, isAdded, onPress }: { book: BookItem; isAdded:
         )}
         {book.total_pages && (
           <Text style={styles.pageCount}>{book.total_pages} pages</Text>
+        )}
+        
+        {/* Ratings & Reviews inline */}
+        {stats && (stats.ratings_count > 0 || stats.reviews_count > 0) ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 }}>
+            {stats.average_rating && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+                <MaterialIcons name="star" size={14} color="#FFC107" />
+                <Text style={{ ...Typography.styles.labelSm, color: colors.onSurface, fontWeight: 'bold' }}>{stats.average_rating}</Text>
+              </View>
+            )}
+            {stats.ratings_count > 0 && (
+              <Text style={{ ...Typography.styles.labelSm, color: colors.onSurfaceVariant, fontSize: 11 }}>
+                ({stats.ratings_count})
+              </Text>
+            )}
+            {stats.reviews_count > 0 && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2, marginLeft: 4 }}>
+                <MaterialIcons name="chat-bubble" size={12} color={colors.onSurfaceVariant} />
+                <Text style={{ ...Typography.styles.labelSm, color: colors.onSurfaceVariant, fontSize: 11 }}>
+                  {stats.reviews_count}
+                </Text>
+              </View>
+            )}
+          </View>
+        ) : (
+          <Text style={{ ...Typography.styles.labelSm, color: colors.onSurfaceVariant, fontSize: 11, marginTop: 4, fontStyle: 'italic' }}>
+            No ratings yet
+          </Text>
         )}
       </View>
 

@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
-import { Colors } from '@/theme';
+import { ThemeProvider } from '@/theme';
 import { useSessionStore } from '@/store/sessionStore';
 
 SplashScreen.preventAutoHideAsync();
@@ -55,34 +55,36 @@ export default function RootLayout() {
   if (!fontsLoaded && !fontError) return null;
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <QueryClientProvider client={queryClient}>
-        <StatusBar style="dark" backgroundColor={Colors.background} />
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="index" />
-          <Stack.Screen name="(auth)" />
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen
-            name="book/[id]"
-            options={{ presentation: 'card', animation: 'slide_from_right' }}
-          />
-          <Stack.Screen
-            name="session/active"
-            options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom', gestureEnabled: false }}
-          />
-          <Stack.Screen
-            name="session/finish"
-            options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom', gestureEnabled: false }}
-          />
-          <Stack.Screen name="favorites/index" />
-          <Stack.Screen name="tier-lists/index" />
-          <Stack.Screen name="tier-lists/[id]" />
-          <Stack.Screen name="playlists/index" />
-          <Stack.Screen name="playlists/[id]" />
-          <Stack.Screen name="goals/index" />
-          <Stack.Screen name="share/[type]/[id]" />
-        </Stack>
-      </QueryClientProvider>
-    </GestureHandlerRootView>
+    <ThemeProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <QueryClientProvider client={queryClient}>
+          <StatusBar style="auto" />
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="index" />
+            <Stack.Screen name="(auth)" />
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen
+              name="book/[id]"
+              options={{ presentation: 'card', animation: 'slide_from_right' }}
+            />
+            <Stack.Screen
+              name="session/active"
+              options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom', gestureEnabled: false }}
+            />
+            <Stack.Screen
+              name="session/finish"
+              options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom', gestureEnabled: false }}
+            />
+            <Stack.Screen name="favorites/index" />
+            <Stack.Screen name="tier-lists/index" />
+            <Stack.Screen name="tier-lists/[id]" />
+            <Stack.Screen name="playlists/index" />
+            <Stack.Screen name="playlists/[id]" />
+            <Stack.Screen name="goals/index" />
+            <Stack.Screen name="share/[type]/[id]" />
+          </Stack>
+        </QueryClientProvider>
+      </GestureHandlerRootView>
+    </ThemeProvider>
   );
 }

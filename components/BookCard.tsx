@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import { Colors, Typography, Spacing, Radius, Shadows } from '@/theme';
+import { useTheme, Typography, Spacing, Radius, Shadows } from '@/theme';
 import { ProgressRing } from './ProgressRing';
 import { readingProgress } from '@/lib/metrics';
 
@@ -28,6 +28,9 @@ export function BookCard({
   style,
 }: BookCardProps) {
   const router = useRouter();
+  const { colors, isDark } = useTheme();
+  const styles = createStyles(colors, isDark);
+
   const progress = readingProgress(currentPage, totalPages);
   const progressPercent = Math.round(progress * 100);
 
@@ -66,7 +69,7 @@ export function BookCard({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   container: {
     flex: 1,
   },
@@ -74,11 +77,15 @@ const styles = StyleSheet.create({
     aspectRatio: 2 / 3,
     borderRadius: Radius.xl,
     borderWidth: 1,
-    borderColor: Colors.outlineVariant,
+    borderColor: colors.outlineVariant,
     overflow: 'hidden',
-    backgroundColor: Colors.surfaceContainerHigh,
+    backgroundColor: colors.surfaceContainerHigh,
     marginBottom: Spacing.stackSm,
-    ...Shadows.card,
+    shadowColor: isDark ? '#000' : '#2d3a47',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: isDark ? 0.3 : 0.08,
+    shadowRadius: 12,
+    elevation: 4,
   },
   cover: {
     width: '100%',
@@ -88,18 +95,18 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 8,
     right: 8,
-    backgroundColor: 'rgba(255,255,255,0.92)',
+    backgroundColor: isDark ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.92)',
     borderRadius: Radius.full,
     padding: 2,
   },
   title: {
     ...Typography.styles.titleSm,
-    color: Colors.onSurface,
+    color: colors.onSurface,
     marginBottom: 2,
   },
   author: {
     ...Typography.styles.labelSm,
-    color: Colors.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
     opacity: 0.6,
   },
 });

@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import { Colors, Typography, Spacing, Radius } from '@/theme';
+import { useTheme, Typography, Spacing, Radius } from '@/theme';
 
 interface TopBarProps {
   title?: string;
@@ -26,6 +26,9 @@ export function TopBar({
   onMenuPress,
   rightContent,
 }: TopBarProps) {
+  const { colors, isDark } = useTheme();
+  const styles = createStyles(colors, isDark);
+
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [menuVisible, setMenuVisible] = useState(false);
@@ -43,7 +46,7 @@ export function TopBar({
       {/* Left: menu + title */}
       <View style={styles.left}>
         <TouchableOpacity onPress={handleMenuPress} hitSlop={12}>
-          <MaterialIcons name="menu" size={24} color={Colors.primary} />
+          <MaterialIcons name="menu" size={24} color={colors.primary} />
         </TouchableOpacity>
         <Text style={styles.title}>{title}</Text>
       </View>
@@ -53,7 +56,7 @@ export function TopBar({
         {rightContent}
         {streak !== undefined && (
           <View style={styles.streakBadge}>
-            <MaterialIcons name="local-fire-department" size={16} color={Colors.tertiaryContainer} />
+            <MaterialIcons name="local-fire-department" size={16} color={colors.errorContainer} />
             <Text style={styles.streakText}>{streak}</Text>
           </View>
         )}
@@ -62,7 +65,7 @@ export function TopBar({
             {avatarUrl ? (
               <Image source={{ uri: avatarUrl }} style={styles.avatarImage} contentFit="cover" />
             ) : (
-              <MaterialIcons name="person" size={20} color={Colors.onSurfaceVariant} />
+              <MaterialIcons name="person" size={20} color={colors.onSurfaceVariant} />
             )}
           </View>
         </TouchableOpacity>
@@ -79,7 +82,7 @@ export function TopBar({
                 router.push('/goals');
               }}
             >
-              <MaterialIcons name="track-changes" size={20} color={Colors.primary} />
+              <MaterialIcons name="track-changes" size={20} color={colors.primary} />
               <Text style={styles.menuItemText}>Reading Goals</Text>
             </TouchableOpacity>
 
@@ -92,7 +95,7 @@ export function TopBar({
                 router.push('/(tabs)/profile');
               }}
             >
-              <MaterialIcons name="person-outline" size={20} color={Colors.primary} />
+              <MaterialIcons name="person-outline" size={20} color={colors.primary} />
               <Text style={styles.menuItemText}>Profile</Text>
             </TouchableOpacity>
 
@@ -105,8 +108,8 @@ export function TopBar({
                 Alert.alert('Coming Soon', 'Settings and preferences will be available soon!');
               }}
             >
-              <MaterialIcons name="settings" size={20} color={Colors.onSurfaceVariant} />
-              <Text style={[styles.menuItemText, { color: Colors.onSurfaceVariant }]}>Settings</Text>
+              <MaterialIcons name="settings" size={20} color={colors.onSurfaceVariant} />
+              <Text style={[styles.menuItemText, { color: colors.onSurfaceVariant }]}>Settings</Text>
             </TouchableOpacity>
           </View>
         </Pressable>
@@ -115,9 +118,9 @@ export function TopBar({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   container: {
-    backgroundColor: Colors.background,
+    backgroundColor: colors.background,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -131,7 +134,7 @@ const styles = StyleSheet.create({
   },
   title: {
     ...Typography.styles.headlineMd,
-    color: Colors.primary,
+    color: colors.primary,
   },
   right: {
     flexDirection: 'row',
@@ -142,22 +145,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: Colors.secondaryContainer,
+    backgroundColor: colors.secondaryContainer,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 9999,
   },
   streakText: {
     ...Typography.styles.labelLg,
-    color: Colors.onSecondaryContainer,
+    color: colors.onSecondaryContainer,
   },
   avatar: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: Colors.surfaceContainerHigh,
+    backgroundColor: colors.surfaceContainerHigh,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.outlineVariant,
+    borderColor: colors.outlineVariant,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
@@ -172,7 +175,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.containerPadding,
   },
   menuContent: {
-    backgroundColor: Colors.surfaceContainerLowest,
+    backgroundColor: colors.surfaceContainerLowest,
     borderRadius: Radius.lg,
     width: 220,
     alignSelf: 'flex-start',
@@ -182,7 +185,7 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 8,
     borderWidth: 1,
-    borderColor: Colors.outlineVariant,
+    borderColor: colors.outlineVariant,
   },
   menuItem: {
     flexDirection: 'row',
@@ -193,11 +196,11 @@ const styles = StyleSheet.create({
   },
   menuItemText: {
     ...Typography.styles.labelLg,
-    color: Colors.onSurface,
+    color: colors.onSurface,
   },
   menuDivider: {
     height: 1,
-    backgroundColor: Colors.outlineVariant,
+    backgroundColor: colors.outlineVariant,
     opacity: 0.5,
   },
 });

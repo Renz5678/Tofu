@@ -11,7 +11,7 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import Animated, { FadeInDown, useSharedValue, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated';
-import { Colors, Typography, Spacing, Radius, Shadows } from '@/theme';
+import { useTheme, Typography, Spacing, Radius, Shadows } from '@/theme';
 import { useProfile } from '@/hooks/useProfile';
 import { useReadingSessions } from '@/hooks/useReadingSessions';
 import { useGoals } from '@/hooks/useGoals';
@@ -30,6 +30,9 @@ const PERIOD_TABS: { label: string; value: Period }[] = [
 const WEEK_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 export default function StatsScreen() {
+  const { colors, isDark } = useTheme();
+  const styles = createStyles(colors, isDark);
+
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
@@ -108,7 +111,7 @@ export default function StatsScreen() {
   });
 
   return (
-    <View style={{ flex: 1, backgroundColor: Colors.background }}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <Text style={styles.headerTitle}>Statistics</Text>
@@ -140,13 +143,13 @@ export default function StatsScreen() {
         <Animated.View entering={FadeInDown.duration(400).delay(200)} style={[styles.ringCard, Shadows.card]}>
           <View style={styles.chartHeader}>
             <Text style={styles.cardTitle}>Today's Goals</Text>
-            <View style={[styles.streakBadge, !isStreakActive && { backgroundColor: Colors.surfaceContainerHigh }]}>
+            <View style={[styles.streakBadge, !isStreakActive && { backgroundColor: colors.surfaceContainerHigh }]}>
               <MaterialIcons 
                 name="local-fire-department" 
                 size={16} 
-                color={isStreakActive ? Colors.onTertiaryContainer : Colors.onSurfaceVariant} 
+                color={isStreakActive ? colors.onPrimaryContainer : colors.onSurfaceVariant} 
               />
-              <Text style={[styles.streakText, !isStreakActive && { color: Colors.onSurfaceVariant }]}>
+              <Text style={[styles.streakText, !isStreakActive && { color: colors.onSurfaceVariant }]}>
                 {isStreakActive ? `${currentStreak} Day Streak` : `${currentStreak}/3 to Streak`}
               </Text>
             </View>
@@ -214,7 +217,7 @@ export default function StatsScreen() {
         <Animated.View entering={FadeInDown.duration(400).delay(400)} style={[styles.sessionsCard, Shadows.card]}>
           <Text style={styles.cardTitle}>Recent Sessions</Text>
           {recentSessions.length === 0 ? (
-            <Text style={{ ...Typography.styles.bodyMd, color: Colors.onSurfaceVariant, paddingVertical: Spacing.stackSm }}>
+            <Text style={{ ...Typography.styles.bodyMd, color: colors.onSurfaceVariant, paddingVertical: Spacing.stackSm }}>
               No reading sessions yet.
             </Text>
           ) : (
@@ -226,7 +229,7 @@ export default function StatsScreen() {
                 </View>
                 <View style={styles.sessionStats}>
                   <Text style={styles.sessionStat}>{s.minutes}m</Text>
-                  <Text style={[styles.sessionStat, { color: Colors.onSurfaceVariant, opacity: 0.5 }]}>
+                  <Text style={[styles.sessionStat, { color: colors.onSurfaceVariant, opacity: 0.5 }]}>
                     · {s.pages}p
                   </Text>
                 </View>
@@ -242,6 +245,8 @@ export default function StatsScreen() {
 
 
 function AnimatedBar({ targetHeight, isToday }: { targetHeight: number; isToday: boolean }) {
+  const { colors, isDark } = useTheme();
+  const styles = createStyles(colors, isDark);
   const height = useSharedValue(0);
 
   React.useEffect(() => {
@@ -261,21 +266,21 @@ function AnimatedBar({ targetHeight, isToday }: { targetHeight: number; isToday:
     <Animated.View
       style={[
         styles.bar,
-        { backgroundColor: isToday ? Colors.primary : `${Colors.primary}33` },
+        { backgroundColor: isToday ? colors.primary : `${colors.primary}33` },
         animStyle,
       ]}
     />
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   header: {
     paddingHorizontal: Spacing.containerPadding,
     paddingBottom: Spacing.base,
   },
   headerTitle: {
     ...Typography.styles.headlineMd,
-    color: Colors.onSurface,
+    color: colors.onSurface,
   },
   periodRow: {
     paddingHorizontal: Spacing.containerPadding,
@@ -283,10 +288,10 @@ const styles = StyleSheet.create({
   },
   periodPills: {
     flexDirection: 'row',
-    backgroundColor: Colors.surfaceContainer,
+    backgroundColor: colors.surfaceContainer,
     borderRadius: Radius.full,
     borderWidth: 1,
-    borderColor: Colors.outlineVariant,
+    borderColor: colors.outlineVariant,
     padding: 4,
     width: '100%',
     marginBottom: Spacing.stackSm,
@@ -298,14 +303,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   periodPillActive: {
-    backgroundColor: Colors.surfaceContainerLowest,
+    backgroundColor: colors.surfaceContainerLowest,
   },
   periodPillText: {
     ...Typography.styles.labelSm,
-    color: Colors.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
   },
   periodPillTextActive: {
-    color: Colors.primary,
+    color: colors.primary,
   },
   scroll: {
     paddingHorizontal: Spacing.containerPadding,
@@ -315,10 +320,10 @@ const styles = StyleSheet.create({
   summaryContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.surfaceContainerLowest,
+    backgroundColor: colors.surfaceContainerLowest,
     borderRadius: Radius.xl,
     borderWidth: 1,
-    borderColor: Colors.outlineVariant,
+    borderColor: colors.outlineVariant,
     paddingVertical: Spacing.stackMd,
     paddingHorizontal: Spacing.gutter,
   },
@@ -330,28 +335,28 @@ const styles = StyleSheet.create({
   summaryVal: {
     ...Typography.styles.numericXl,
     fontSize: 24,
-    color: Colors.primary,
+    color: colors.primary,
   },
   summaryLabel: {
     ...Typography.styles.labelSm,
-    color: Colors.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
   },
   summaryDivider: {
     width: 1,
     height: '60%',
-    backgroundColor: Colors.outlineVariant,
+    backgroundColor: colors.outlineVariant,
   },
   ringCard: {
-    backgroundColor: Colors.surfaceContainerLowest,
+    backgroundColor: colors.surfaceContainerLowest,
     borderRadius: Radius.xl,
     borderWidth: 1,
-    borderColor: Colors.outlineVariant,
+    borderColor: colors.outlineVariant,
     padding: Spacing.stackMd,
     gap: Spacing.stackMd,
   },
   cardTitle: {
     ...Typography.styles.titleSm,
-    color: Colors.onSurface,
+    color: colors.onSurface,
   },
   ringRow: {
     flexDirection: 'row',
@@ -363,13 +368,13 @@ const styles = StyleSheet.create({
   },
   ringLabel: {
     ...Typography.styles.labelSm,
-    color: Colors.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
   },
   chartCard: {
-    backgroundColor: Colors.surfaceContainerLowest,
+    backgroundColor: colors.surfaceContainerLowest,
     borderRadius: Radius.xl,
     borderWidth: 1,
-    borderColor: Colors.outlineVariant,
+    borderColor: colors.outlineVariant,
     padding: Spacing.stackMd,
     gap: Spacing.stackSm,
   },
@@ -381,7 +386,7 @@ const styles = StyleSheet.create({
   streakBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.tertiaryContainer,
+    backgroundColor: colors.tertiaryContainer,
     paddingVertical: 4,
     paddingHorizontal: 8,
     borderRadius: Radius.full,
@@ -389,12 +394,12 @@ const styles = StyleSheet.create({
   },
   streakText: {
     ...Typography.styles.labelSm,
-    color: Colors.onTertiaryContainer,
+    color: colors.onPrimaryContainer,
     fontWeight: 'bold',
   },
   chartSubtitle: {
     ...Typography.styles.labelSm,
-    color: Colors.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
   },
   barChart: {
     flexDirection: 'row',
@@ -413,7 +418,7 @@ const styles = StyleSheet.create({
   barValue: {
     ...Typography.styles.labelSm,
     fontSize: 9,
-    color: Colors.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
   },
   bar: {
     width: 10,
@@ -422,13 +427,13 @@ const styles = StyleSheet.create({
   barLabel: {
     ...Typography.styles.labelSm,
     fontSize: 9,
-    color: Colors.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
   },
   sessionsCard: {
-    backgroundColor: Colors.surfaceContainerLowest,
+    backgroundColor: colors.surfaceContainerLowest,
     borderRadius: Radius.xl,
     borderWidth: 1,
-    borderColor: Colors.outlineVariant,
+    borderColor: colors.outlineVariant,
     padding: Spacing.stackMd,
     gap: Spacing.stackSm,
   },
@@ -440,7 +445,7 @@ const styles = StyleSheet.create({
   },
   sessionRowBorder: {
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Colors.outlineVariant,
+    borderTopColor: colors.outlineVariant,
   },
   sessionInfo: {
     flex: 1,
@@ -448,11 +453,11 @@ const styles = StyleSheet.create({
   },
   sessionBook: {
     ...Typography.styles.labelLg,
-    color: Colors.onSurface,
+    color: colors.onSurface,
   },
   sessionDate: {
     ...Typography.styles.labelSm,
-    color: Colors.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
     opacity: 0.6,
   },
   sessionStats: {
@@ -462,6 +467,6 @@ const styles = StyleSheet.create({
   },
   sessionStat: {
     ...Typography.styles.labelLg,
-    color: Colors.primary,
+    color: colors.primary,
   },
 });

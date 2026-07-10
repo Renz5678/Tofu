@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
-import { Colors, Typography, Spacing, Radius } from '@/theme';
+import { useTheme, Typography, Spacing, Radius } from '@/theme';
 import { TopBar } from '@/components/TopBar';
 import { BookCard } from '@/components/BookCard';
 import { StatusTabs } from '@/components/FilterBar';
@@ -29,6 +29,8 @@ export default function LibraryScreen() {
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeStatus, setActiveStatus] = useState<BookStatus>('reading');
+  const { colors, isDark } = useTheme();
+  const styles = createStyles(colors, isDark);
 
   const { data: profile } = useProfile();
   const { data: libraryBooks = [], isLoading } = useLibrary(activeStatus);
@@ -40,16 +42,16 @@ export default function LibraryScreen() {
   });
 
   return (
-    <View style={{ flex: 1, backgroundColor: Colors.background }}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
       <TopBar avatarUrl={profile?.avatar_url ?? undefined} onAvatarPress={() => router.push('/(tabs)/profile')} />
 
       <View style={styles.searchRow}>
         <View style={styles.searchContainer}>
-          <MaterialIcons name="search" size={20} color={Colors.outline} style={styles.searchIcon} />
+          <MaterialIcons name="search" size={20} color={colors.outline} style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
             placeholder="Search your library..."
-            placeholderTextColor={`${Colors.onSurfaceVariant}66`}
+            placeholderTextColor={`${colors.onSurfaceVariant}66`}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
@@ -61,7 +63,7 @@ export default function LibraryScreen() {
           style={styles.actionButton}
           onPress={() => router.push('/favorites')}
         >
-          <MaterialIcons name="favorite" size={20} color={Colors.error} />
+          <MaterialIcons name="favorite" size={20} color={colors.error} />
           <Text style={styles.actionButtonText}>Liked Books</Text>
         </TouchableOpacity>
       </View>
@@ -105,7 +107,7 @@ export default function LibraryScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   searchRow: {
     paddingHorizontal: Spacing.containerPadding,
     paddingVertical: Spacing.base,
@@ -113,7 +115,7 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.surfaceContainerLow,
+    backgroundColor: colors.surfaceContainerLow,
     borderRadius: Radius.xl,
     height: 48,
     paddingHorizontal: Spacing.gutter,
@@ -124,7 +126,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     ...Typography.styles.bodyMd,
-    color: Colors.onSurface,
+    color: colors.onSurface,
   },
   actionRow: {
     paddingHorizontal: Spacing.containerPadding,
@@ -134,17 +136,22 @@ const styles = StyleSheet.create({
   actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.surfaceContainerLowest,
+    backgroundColor: colors.surfaceContainerLowest,
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: Radius.full,
     borderWidth: 1,
-    borderColor: Colors.outlineVariant,
+    borderColor: colors.outlineVariant,
     gap: 8,
+    shadowColor: isDark ? '#000' : '#2d3a47',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: isDark ? 0.3 : 0.05,
+    shadowRadius: 12,
+    elevation: 2,
   },
   actionButtonText: {
     ...Typography.styles.labelLg,
-    color: Colors.onSurface,
+    color: colors.onSurface,
   },
   grid: {
     padding: Spacing.containerPadding,

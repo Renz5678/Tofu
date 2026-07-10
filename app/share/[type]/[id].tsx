@@ -24,7 +24,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { captureRef } from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
-import { Colors, Typography, Spacing, Radius, Shadows } from '@/theme';
+import { BlurView } from 'expo-blur';
+import { useTheme, Typography, Spacing, Radius, Shadows, DarkColors, LightColors } from '@/theme';
 import { formatDuration } from '@/lib/metrics';
 import { useProfile } from '@/hooks/useProfile';
 import { useReadingSessions } from '@/hooks/useReadingSessions';
@@ -64,9 +65,10 @@ interface StatsCardProps {
 
 function StatsCard({ backgroundUri, theme, type, title, subtitle, metrics, cardRef, children }: StatsCardProps) {
   const isDark = theme === 'dark';
-  const textColor = isDark ? '#ffffff' : Colors.primary;
-  const overlayBg = isDark ? 'rgba(0,0,0,0.58)' : 'rgba(255,255,255,0.82)';
-  const dividerColor = isDark ? 'rgba(255,255,255,0.25)' : `${Colors.outlineVariant}88`;
+  const colors = isDark ? DarkColors : LightColors;
+  const styles = createStyles(colors, isDark);
+  const textColor = isDark ? '#ffffff' : '#000000';
+  const dividerColor = isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)';
 
   return (
     <View ref={cardRef} style={styles.card} collapsable={false}>
@@ -107,42 +109,44 @@ function StatsCard({ backgroundUri, theme, type, title, subtitle, metrics, cardR
         <Text style={[styles.watermarkText, { color: textColor }]}>Tofu</Text>
       </View>
 
-      {/* Stats overlay panel — bottom */}
-      <View style={[styles.statsPanel, { backgroundColor: overlayBg }]}>
-        {/* Book info */}
-        <View style={styles.bookRow}>
-          <View style={{ flex: 1 }}>
-            <Text style={[styles.statBookTitle, { color: textColor }]} numberOfLines={2}>
-              {title}
-            </Text>
-            <Text style={[styles.statAuthor, { color: textColor, opacity: 0.7 }]} numberOfLines={1}>
-              {subtitle}
-            </Text>
+      {/* Stats overlay panel — floating glassmorphic card */}
+      <View style={styles.statsPanelWrapper}>
+        <BlurView intensity={isDark ? 60 : 80} tint={isDark ? 'dark' : 'light'} style={[styles.statsPanel, isDark ? styles.statsPanelDark : styles.statsPanelLight]}>
+          {/* Book info */}
+          <View style={styles.bookRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.statBookTitle, { color: textColor }]} numberOfLines={2}>
+                {title}
+              </Text>
+              <Text style={[styles.statAuthor, { color: textColor }]} numberOfLines={1}>
+                {subtitle}
+              </Text>
+            </View>
+            <View style={[styles.typeBadge, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }]}>
+              <Text style={[styles.typeBadgeText, { color: textColor }]}>
+                {getTypeLabel(type)}
+              </Text>
+            </View>
           </View>
-          <View style={[styles.typeBadge, { borderColor: dividerColor }]}>
-            <Text style={[styles.typeBadgeText, { color: textColor }]}>
-              {getTypeLabel(type)}
-            </Text>
+
+          {/* Divider */}
+          <View style={[styles.divider, { backgroundColor: dividerColor }]} />
+
+          {/* Numbers row */}
+          <View style={styles.numbersRow}>
+            {metrics.map((m, i) => (
+              <React.Fragment key={i}>
+                <View style={styles.statItem}>
+                  <Text style={[styles.statValue, { color: textColor }]}>{m.value}</Text>
+                  <Text style={[styles.statLabel, { color: textColor, opacity: 0.6 }]}>{m.label}</Text>
+                </View>
+                {i < metrics.length - 1 && (
+                  <View style={[styles.statDivider, { backgroundColor: dividerColor }]} />
+                )}
+              </React.Fragment>
+            ))}
           </View>
-        </View>
-
-        {/* Divider */}
-        <View style={[styles.divider, { backgroundColor: dividerColor }]} />
-
-        {/* Numbers row */}
-        <View style={styles.numbersRow}>
-          {metrics.map((m, i) => (
-            <React.Fragment key={i}>
-              <View style={styles.statItem}>
-                <Text style={[styles.statValue, { color: textColor }]}>{m.value}</Text>
-                <Text style={[styles.statLabel, { color: textColor, opacity: 0.6 }]}>{m.label}</Text>
-              </View>
-              {i < metrics.length - 1 && (
-                <View style={[styles.statDivider, { backgroundColor: dividerColor }]} />
-              )}
-            </React.Fragment>
-          ))}
-        </View>
+        </BlurView>
       </View>
     </View>
   );
@@ -155,6 +159,8 @@ export default function SharePreviewScreen() {
   const { type, id } = useLocalSearchParams<{ type: string; id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { colors, isDark } = useTheme();
+  const styles = createStyles(colors, isDark);
 
   const cardRef = useRef<View>(null);
   const [backgroundUri, setBackgroundUri] = useState<string | null>(null);
@@ -227,7 +233,7 @@ export default function SharePreviewScreen() {
             if (tierData.length === 0) return null;
             return (
               <View key={tier} style={styles.miniTierRow}>
-                <View style={[styles.miniTierLabel, { backgroundColor: TIER_COLORS[tier] || Colors.surfaceContainer }]}>
+                <View style={[styles.miniTierLabel, { backgroundColor: TIER_COLORS[tier] || colors.surfaceContainer }]}>
                   <Text style={[styles.miniTierLabelText, { color: ['S', 'A', 'B'].includes(tier) ? '#ffffff' : '#000000' }]}>
                     {tier.substring(0, 2)}
                   </Text>
@@ -324,11 +330,11 @@ export default function SharePreviewScreen() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: Colors.background }}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <TouchableOpacity onPress={() => router.back()} hitSlop={12}>
-          <MaterialIcons name="close" size={24} color={Colors.onSurface} />
+          <MaterialIcons name="close" size={24} color={colors.onSurface} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Share Recap</Text>
         {/* Theme toggle */}
@@ -340,7 +346,7 @@ export default function SharePreviewScreen() {
           <MaterialIcons
             name={theme === 'dark' ? 'light-mode' : 'dark-mode'}
             size={20}
-            color={Colors.primary}
+            color={colors.primary}
           />
         </TouchableOpacity>
       </View>
@@ -365,11 +371,11 @@ export default function SharePreviewScreen() {
         {/* Photo picker controls */}
         <View style={styles.pickerRow}>
           <TouchableOpacity style={styles.pickerButton} onPress={takePhoto} activeOpacity={0.85}>
-            <MaterialIcons name="photo-camera" size={20} color={Colors.primary} />
+            <MaterialIcons name="photo-camera" size={20} color={colors.primary} />
             <Text style={styles.pickerButtonText}>Take Photo</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.pickerButton} onPress={pickFromGallery} activeOpacity={0.85}>
-            <MaterialIcons name="photo-library" size={20} color={Colors.primary} />
+            <MaterialIcons name="photo-library" size={20} color={colors.primary} />
             <Text style={styles.pickerButtonText}>From Gallery</Text>
           </TouchableOpacity>
           {backgroundUri && (
@@ -378,8 +384,8 @@ export default function SharePreviewScreen() {
               onPress={() => setBackgroundUri(null)}
               activeOpacity={0.85}
             >
-              <MaterialIcons name="close" size={20} color={Colors.error} />
-              <Text style={[styles.pickerButtonText, { color: Colors.error }]}>Remove</Text>
+              <MaterialIcons name="close" size={20} color={colors.error} />
+              <Text style={[styles.pickerButtonText, { color: colors.error }]}>Remove</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -399,10 +405,10 @@ export default function SharePreviewScreen() {
           disabled={sharing}
         >
           {sharing ? (
-            <ActivityIndicator color={Colors.onPrimary} />
+            <ActivityIndicator color={colors.onPrimary} />
           ) : (
             <>
-              <MaterialIcons name="share" size={20} color={Colors.onPrimary} />
+              <MaterialIcons name="share" size={20} color={colors.onPrimary} />
               <Text style={styles.shareButtonText}>Share Image</Text>
             </>
           )}
@@ -415,7 +421,7 @@ export default function SharePreviewScreen() {
 // ─────────────────────────────────────────────
 // Styles
 // ─────────────────────────────────────────────
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -423,14 +429,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.containerPadding,
     paddingBottom: Spacing.stackSm,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.outlineVariant,
+    borderBottomColor: colors.outlineVariant,
   },
-  headerTitle: { ...Typography.styles.titleSm, color: Colors.onSurface },
+  headerTitle: { ...Typography.styles.titleSm, color: colors.onSurface },
   themeToggle: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: Colors.surfaceContainerLow,
+    backgroundColor: colors.surfaceContainerLow,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -440,43 +446,60 @@ const styles = StyleSheet.create({
     gap: Spacing.stackMd,
     alignItems: 'center',
   },
-
-  // ── Card ──
   card: {
     width: '100%',
     aspectRatio: 9 / 16,
-    borderRadius: Radius.xl,
+    borderRadius: Radius.xxl,
     overflow: 'hidden',
-    ...Shadows.overlay,
+    shadowColor: isDark ? '#000' : '#2d3a47',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: isDark ? 0.4 : 0.1,
+    shadowRadius: 36,
+    elevation: 8,
   },
   cardPlaceholderBg: {
-    backgroundColor: Colors.primaryContainer,
+    backgroundColor: colors.surfaceContainer,
   },
   cardChildrenWrap: {
     ...StyleSheet.absoluteFillObject,
-    paddingBottom: 140, // Space for stats panel
+    paddingBottom: 160, // Space for floating stats panel
     justifyContent: 'center',
     zIndex: 1,
   },
   watermark: {
     position: 'absolute',
-    top: Spacing.stackMd,
-    left: Spacing.stackMd,
+    top: Spacing.stackLg,
+    left: Spacing.stackLg,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 6,
   },
   watermarkText: {
     ...Typography.styles.labelLg,
-    letterSpacing: 1,
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+  },
+  statsPanelWrapper: {
+    position: 'absolute',
+    bottom: Spacing.stackMd,
+    left: Spacing.stackMd,
+    right: Spacing.stackMd,
+    borderRadius: Radius.xl,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
   },
   statsPanel: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
     padding: Spacing.stackMd,
     gap: Spacing.stackSm,
+  },
+  statsPanelLight: {
+    backgroundColor: 'rgba(255,255,255,0.6)',
+  },
+  statsPanelDark: {
+    backgroundColor: 'rgba(0,0,0,0.5)',
   },
   bookRow: {
     flexDirection: 'row',
@@ -484,28 +507,34 @@ const styles = StyleSheet.create({
     gap: Spacing.base,
   },
   statBookTitle: {
-    ...Typography.styles.titleSm,
-    fontSize: 17,
+    fontFamily: Typography.fonts.serifSemiBold,
+    fontSize: 22,
+    lineHeight: 28,
   },
   statAuthor: {
-    ...Typography.styles.bodyMd,
-    fontSize: 13,
-    marginTop: 2,
+    ...Typography.styles.labelSm,
+    fontSize: 12,
+    marginTop: 4,
+    opacity: 0.6,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
   typeBadge: {
-    borderWidth: 1,
     borderRadius: Radius.full,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     flexShrink: 0,
     marginTop: 2,
   },
   typeBadgeText: {
     ...Typography.styles.labelSm,
-    fontSize: 10,
+    fontSize: 9,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
   },
   divider: {
     height: StyleSheet.hairlineWidth,
+    marginVertical: 4,
   },
   numbersRow: {
     flexDirection: 'row',
@@ -515,22 +544,23 @@ const styles = StyleSheet.create({
   statItem: {
     flex: 1,
     alignItems: 'center',
-    gap: 2,
+    gap: 4,
   },
   statValue: {
-    ...Typography.styles.labelLg,
-    fontSize: 16,
+    ...Typography.styles.numericXl,
+    fontSize: 24,
+    lineHeight: 24,
   },
   statLabel: {
     ...Typography.styles.labelSm,
     fontSize: 10,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
   statDivider: {
     width: StyleSheet.hairlineWidth,
     height: 32,
   },
-
-  // ── Controls ──
   pickerRow: {
     flexDirection: 'row',
     gap: Spacing.base,
@@ -541,20 +571,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: Colors.surfaceContainerLow,
+    backgroundColor: colors.surfaceContainerLow,
     borderRadius: Radius.xl,
     paddingHorizontal: Spacing.stackSm,
     paddingVertical: Spacing.base,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.outlineVariant,
+    borderColor: colors.outlineVariant,
   },
   pickerButtonText: {
     ...Typography.styles.labelLg,
-    color: Colors.primary,
+    color: colors.primary,
   },
   hint: {
     ...Typography.styles.bodyMd,
-    color: Colors.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
     textAlign: 'center',
     opacity: 0.7,
     fontSize: 13,
@@ -566,12 +596,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: Colors.primary,
+    backgroundColor: colors.primary,
     borderRadius: Radius.xl,
     paddingVertical: 16,
-    ...Shadows.button,
+    shadowColor: isDark ? '#000' : colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: isDark ? 0.3 : 0.1,
+    shadowRadius: 12,
   },
-  shareButtonText: { ...Typography.styles.labelLg, color: Colors.onPrimary },
+  shareButtonText: { ...Typography.styles.labelLg, color: colors.onPrimary },
   miniTierRow: {
     flexDirection: 'row',
     backgroundColor: 'rgba(255,255,255,0.15)',

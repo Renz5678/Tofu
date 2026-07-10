@@ -11,13 +11,16 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-import { Colors, Typography, Spacing, Radius, Shadows } from '@/theme';
+import { useTheme, Typography, Spacing, Radius, Shadows } from '@/theme';
 import { EmptyState } from '@/components/EmptyState';
 import { useFavorites } from '@/hooks/useFavorites';
 
 
 
 export default function FavoritesScreen() {
+  const { colors, isDark } = useTheme();
+  const styles = createStyles(colors, isDark);
+
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
@@ -25,15 +28,15 @@ export default function FavoritesScreen() {
   const hasFavorites = favorites.length > 0;
 
   return (
-    <View style={{ flex: 1, backgroundColor: Colors.background }}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <TouchableOpacity onPress={() => router.back()} hitSlop={12}>
-          <MaterialIcons name="arrow-back" size={24} color={Colors.onSurface} />
+          <MaterialIcons name="arrow-back" size={24} color={colors.onSurface} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>My Favorites</Text>
         <TouchableOpacity onPress={() => router.push('/share/favorites/me' as any)} hitSlop={12}>
-          <MaterialIcons name="share" size={22} color={Colors.primary} />
+          <MaterialIcons name="share" size={22} color={colors.primary} />
         </TouchableOpacity>
       </View>
 
@@ -76,7 +79,7 @@ export default function FavoritesScreen() {
                   </View>
                 </View>
                 <TouchableOpacity hitSlop={12} onPress={() => Alert.alert('Coming Soon', 'Drag-and-drop reordering will be available in the next update!')}>
-                  <MaterialIcons name="drag-handle" size={20} color={Colors.onSurfaceVariant} style={{ opacity: 0.4 }} />
+                  <MaterialIcons name="drag-handle" size={20} color={colors.onSurfaceVariant} style={{ opacity: 0.4 }} />
                 </TouchableOpacity>
               </View>
             );
@@ -87,7 +90,7 @@ export default function FavoritesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -95,11 +98,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.containerPadding,
     paddingBottom: Spacing.stackSm,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.outlineVariant,
+    borderBottomColor: colors.outlineVariant,
   },
   headerTitle: {
     ...Typography.styles.titleSm,
-    color: Colors.onSurface,
+    color: colors.onSurface,
   },
   scroll: {
     paddingHorizontal: Spacing.containerPadding,
@@ -108,12 +111,12 @@ const styles = StyleSheet.create({
   },
   sectionSub: {
     ...Typography.styles.bodyMd,
-    color: Colors.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
     opacity: 0.7,
     marginBottom: Spacing.base,
   },
   favoriteCard: {
-    backgroundColor: Colors.surfaceContainerLowest,
+    backgroundColor: colors.surfaceContainerLowest,
     borderRadius: Radius.xl,
     flexDirection: 'row',
     alignItems: 'center',
@@ -124,13 +127,13 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: Colors.primaryContainer,
+    backgroundColor: colors.primaryContainer,
     alignItems: 'center',
     justifyContent: 'center',
   },
   rankText: {
     ...Typography.styles.labelLg,
-    color: Colors.onPrimaryContainer,
+    color: colors.onPrimaryContainer,
     fontSize: 12,
   },
   favCover: {
@@ -146,12 +149,12 @@ const styles = StyleSheet.create({
   favTitle: {
     ...Typography.styles.titleSm,
     fontSize: 15,
-    color: Colors.onSurface,
+    color: colors.onSurface,
   },
   favAuthor: {
     ...Typography.styles.bodyMd,
     fontSize: 13,
-    color: Colors.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
   },
   favChips: {
     flexDirection: 'row',
@@ -159,14 +162,14 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   chip: {
-    backgroundColor: Colors.secondaryContainer,
+    backgroundColor: colors.secondaryContainer,
     borderRadius: Radius.full,
     paddingHorizontal: 8,
     paddingVertical: 2,
   },
   chipText: {
     ...Typography.styles.labelSm,
-    color: Colors.onSecondaryContainer,
+    color: colors.onSecondaryContainer,
     fontSize: 10,
   },
 

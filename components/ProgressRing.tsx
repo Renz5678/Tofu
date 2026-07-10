@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import Animated, { useSharedValue, useAnimatedProps, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated';
-import { Colors, Typography } from '@/theme';
+import { useTheme, Typography } from '@/theme';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -23,16 +23,22 @@ export function ProgressRing({
   progress,
   size = 96,
   strokeWidth = 8,
-  color = Colors.primary,
+  
+  color,
   trackColor,
   showLabel = false,
   labelText,
 }: ProgressRingProps) {
+  const { colors, isDark } = useTheme();
+  const styles = createStyles(colors, isDark);
+
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const cx = size / 2;
   const cy = size / 2;
-  const defaultTrack = trackColor ?? `${color}1A`; // 10% opacity
+  const actualColor = color ?? colors.primary;
+  const actualTrackColor = trackColor ?? `${actualColor}1A`; // 10% opacity
+  const defaultTrack = actualTrackColor;
 
   const displayLabel = labelText ?? `${Math.round(progress * 100)}%`;
 
@@ -68,7 +74,7 @@ export function ProgressRing({
           cy={cy}
           r={radius}
           fill="transparent"
-          stroke={color}
+          stroke={actualColor}
           strokeWidth={strokeWidth}
           strokeDasharray={`${circumference} ${circumference}`}
           animatedProps={animatedProps}
@@ -77,7 +83,7 @@ export function ProgressRing({
       </Svg>
       {showLabel && (
         <View style={[StyleSheet.absoluteFillObject, styles.labelContainer]}>
-          <Text style={[styles.label, { color }]}>{displayLabel}</Text>
+          <Text style={[styles.label, { color: actualColor }]}>{displayLabel}</Text>
         </View>
       )}
     </View>
@@ -98,10 +104,14 @@ interface ProgressBarProps {
 export function ProgressBar({
   progress,
   height = 4,
-  color = Colors.primary,
-  trackColor = Colors.secondaryContainer,
+  color,
+  trackColor,
   style,
 }: ProgressBarProps) {
+  const { colors, isDark } = useTheme();
+  const styles = createStyles(colors, isDark);
+  const actualColor = color ?? colors.primary;
+  const actualTrackColor = trackColor ?? colors.secondaryContainer;
   const animatedProgress = useSharedValue(0);
 
   React.useEffect(() => {
@@ -121,7 +131,7 @@ export function ProgressBar({
     <View
       style={[
         styles.trackBar,
-        { height, backgroundColor: trackColor, borderRadius: height / 2 },
+        { height, backgroundColor: actualTrackColor, borderRadius: height / 2 },
         style,
       ]}
     >
@@ -129,7 +139,7 @@ export function ProgressBar({
         style={[
           {
             height,
-            backgroundColor: color,
+            backgroundColor: actualColor,
             borderRadius: height / 2,
           },
           animatedStyle
@@ -139,7 +149,7 @@ export function ProgressBar({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   labelContainer: {
     justifyContent: 'center',
     alignItems: 'center',

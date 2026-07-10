@@ -9,7 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-import { Colors, Typography, Spacing, Radius, Shadows } from '@/theme';
+import { useTheme, Typography, Spacing, Radius, Shadows } from '@/theme';
 import { useEffect, useState } from 'react';
 import { useSessionStore } from '@/store/sessionStore';
 import { useLibrary } from '@/hooks/useLibrary';
@@ -17,6 +17,9 @@ import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, wit
 import { calculateElapsedSeconds, formatSessionTime } from '@/lib/timer';
 
 export default function ActiveSessionScreen() {
+  const { colors, isDark } = useTheme();
+  const styles = createStyles(colors, isDark);
+
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
@@ -60,26 +63,26 @@ export default function ActiveSessionScreen() {
   }));
 
   if (isLoading) {
-    return <View style={{ flex: 1, backgroundColor: Colors.primary }} />;
+    return <View style={{ flex: 1, backgroundColor: colors.primary }} />;
   }
 
   if (!activeSession || !book) {
     return (
-      <View style={{ flex: 1, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={{ color: Colors.onPrimary, opacity: 0.8, marginBottom: 20 }}>No active session found.</Text>
+      <View style={{ flex: 1, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }}>
+        <Text style={{ color: colors.onPrimary, opacity: 0.8, marginBottom: 20 }}>No active session found.</Text>
         <TouchableOpacity onPress={() => router.back()}>
-          <Text style={{ color: Colors.onPrimary, fontWeight: '600' }}>Go Back</Text>
+          <Text style={{ color: colors.onPrimary, fontWeight: '600' }}>Go Back</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: Colors.primary }}>
+    <View style={{ flex: 1, backgroundColor: colors.primary }}>
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <TouchableOpacity onPress={() => router.back()} hitSlop={12}>
-          <MaterialIcons name="close" size={24} color={Colors.onPrimary} />
+          <MaterialIcons name="close" size={24} color={colors.onPrimary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Reading Session</Text>
         <View style={{ width: 24 }} />
@@ -113,7 +116,7 @@ export default function ActiveSessionScreen() {
           style={styles.controlPrimary}
           onPress={() => isPaused ? resumeSession() : pauseSession()}
         >
-          <MaterialIcons name={isPaused ? "play-arrow" : "pause"} size={36} color={Colors.primary} />
+          <MaterialIcons name={isPaused ? "play-arrow" : "pause"} size={36} color={colors.primary} />
         </TouchableOpacity>
       </View>
 
@@ -131,7 +134,7 @@ export default function ActiveSessionScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -141,7 +144,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     ...Typography.styles.labelLg,
-    color: Colors.onPrimary,
+    color: colors.onPrimary,
     opacity: 0.8,
   },
   bookRow: {
@@ -164,16 +167,16 @@ const styles = StyleSheet.create({
   },
   bookTitle: {
     ...Typography.styles.titleSm,
-    color: Colors.onPrimary,
+    color: colors.onPrimary,
   },
   bookAuthor: {
     ...Typography.styles.bodyMd,
-    color: `${Colors.onPrimary}BB`,
+    color: `${colors.onPrimary}BB`,
     fontSize: 14,
   },
   bookPage: {
     ...Typography.styles.labelSm,
-    color: `${Colors.onPrimary}88`,
+    color: `${colors.onPrimary}88`,
   },
   timerContainer: {
     alignItems: 'center',
@@ -184,13 +187,13 @@ const styles = StyleSheet.create({
     fontSize: 64,
     lineHeight: 72,
     letterSpacing: -2,
-    color: Colors.onPrimary,
+    color: colors.onPrimary,
     fontWeight: '700',
     fontVariant: ['tabular-nums'],
   },
   timerLabel: {
     ...Typography.styles.labelLg,
-    color: `${Colors.onPrimary}88`,
+    color: `${colors.onPrimary}88`,
     marginTop: Spacing.base,
   },
   controls: {
@@ -204,7 +207,7 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: Colors.onPrimary,
+    backgroundColor: colors.onPrimary,
     alignItems: 'center',
     justifyContent: 'center',
     ...Shadows.overlay,
@@ -214,7 +217,7 @@ const styles = StyleSheet.create({
     height: 52,
     borderRadius: 26,
     borderWidth: 1.5,
-    borderColor: `${Colors.onPrimary}44`,
+    borderColor: `${colors.onPrimary}44`,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -226,20 +229,20 @@ const styles = StyleSheet.create({
   },
   finishButton: {
     width: '100%',
-    backgroundColor: `${Colors.onPrimary}22`,
+    backgroundColor: `${colors.onPrimary}22`,
     borderWidth: 1.5,
-    borderColor: `${Colors.onPrimary}44`,
+    borderColor: `${colors.onPrimary}44`,
     borderRadius: Radius.xl,
     paddingVertical: 16,
     alignItems: 'center',
   },
   finishButtonText: {
     ...Typography.styles.labelLg,
-    color: Colors.onPrimary,
+    color: colors.onPrimary,
   },
   finishNote: {
     ...Typography.styles.labelSm,
-    color: `${Colors.onPrimary}55`,
+    color: `${colors.onPrimary}55`,
     textAlign: 'center',
     fontSize: 11,
   },

@@ -3,7 +3,7 @@ import { Tabs, useRouter } from 'expo-router';
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
-import { Colors, Typography, Spacing } from '@/theme';
+import { useTheme, Typography, Spacing } from '@/theme';
 import { supabase } from '@/lib/supabase';
 
 type TabIconProps = {
@@ -13,18 +13,20 @@ type TabIconProps = {
 };
 
 function TabIcon({ name, label, focused }: TabIconProps) {
+  const { colors, isDark } = useTheme();
+  const styles = createStyles(colors, isDark);
   return (
     <View style={[styles.tabItem, focused && styles.tabItemActive]}>
       <MaterialIcons
         name={name}
         size={24}
-        color={focused ? Colors.activeTab : Colors.inactiveTab}
+        color={focused ? colors.activeTab : colors.inactiveTab}
         style={{ opacity: focused ? 1 : 0.6 }}
       />
       <Text
         style={[
           styles.tabLabel,
-          { color: focused ? Colors.activeTab : Colors.inactiveTab, opacity: focused ? 1 : 0.6 },
+          { color: focused ? colors.activeTab : colors.inactiveTab, opacity: focused ? 1 : 0.6 },
           focused && { fontWeight: '600' }
         ]}
         numberOfLines={1}
@@ -37,6 +39,9 @@ function TabIcon({ name, label, focused }: TabIconProps) {
 }
 
 export default function TabsLayout() {
+  const { colors, isDark } = useTheme();
+  const styles = createStyles(colors, isDark);
+
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
@@ -59,9 +64,9 @@ export default function TabsLayout() {
         headerShown: false,
         animation: 'shift',
         tabBarStyle: {
-          backgroundColor: Colors.tabBarBackground,
+          backgroundColor: colors.tabBarBackground,
           borderTopWidth: StyleSheet.hairlineWidth,
-          borderTopColor: Colors.tabBarBorder,
+          borderTopColor: colors.tabBarBorder,
           height: 60 + insets.bottom,
           paddingBottom: insets.bottom,
           paddingTop: 8,
@@ -115,7 +120,7 @@ export default function TabsLayout() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   tabItem: {
     width: 72,
     height: 52,
@@ -125,7 +130,7 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   tabItemActive: {
-    backgroundColor: Colors.secondaryContainer,
+    backgroundColor: colors.secondaryContainer,
   },
   tabLabel: {
     ...Typography.styles.labelSm,

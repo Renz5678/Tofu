@@ -12,7 +12,7 @@ import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
-import { Colors, Typography, Spacing, Radius, Shadows } from '@/theme';
+import { useTheme, Typography, Spacing, Radius, Shadows } from '@/theme';
 import { useProfile } from '@/hooks/useProfile';
 import { useReadingSessions } from '@/hooks/useReadingSessions';
 import { useLibrary } from '@/hooks/useLibrary';
@@ -32,6 +32,9 @@ export default function ProfileScreen() {
   const { data: profile } = useProfile();
   const { data: sessions = [] } = useReadingSessions();
   const { data: library = [] } = useLibrary();
+
+  const { colors, isDark, mode, setMode } = useTheme();
+  const styles = createStyles(colors, isDark);
 
   const totalBooksRead = library.filter(b => b.status === 'finished').length;
   const currentStreak = profile?.streak?.current_streak ?? 0;
@@ -55,8 +58,16 @@ export default function ProfileScreen() {
     ]);
   }
 
+  function handleThemeChange() {
+    Alert.alert('Appearance', 'Select your preferred theme', [
+      { text: 'Light', onPress: () => setMode('light') },
+      { text: 'Dark', onPress: () => setMode('dark') },
+      { text: 'System', onPress: () => setMode('system') },
+    ], { cancelable: true });
+  }
+
   return (
-    <View style={{ flex: 1, backgroundColor: Colors.background }}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
       <ScrollView
         contentContainerStyle={[
           styles.scroll,
@@ -67,7 +78,7 @@ export default function ProfileScreen() {
         {/* Profile Header */}
         <View style={styles.profileHeader}>
           <View style={styles.avatarLarge}>
-            <MaterialIcons name="person" size={48} color={Colors.onSurfaceVariant} style={{ opacity: 0.5 }} />
+            <MaterialIcons name="person" size={48} color={colors.onSurfaceVariant} style={{ opacity: 0.5 }} />
           </View>
           <Text style={styles.displayName}>{displayName}</Text>
           <Text style={styles.username}>@{username}</Text>
@@ -80,7 +91,7 @@ export default function ProfileScreen() {
             </View>
             <View style={styles.quickStatDivider} />
             <View style={styles.quickStatItem}>
-              <Text style={[styles.quickStatValue, !isStreakActive && { color: Colors.onSurfaceVariant, opacity: 0.6 }]}>
+              <Text style={[styles.quickStatValue, !isStreakActive && { color: colors.onSurfaceVariant, opacity: 0.6 }]}>
                 {isStreakActive ? currentStreak : `${currentStreak}/3`}
               </Text>
               <Text style={styles.quickStatLabel}>
@@ -96,7 +107,8 @@ export default function ProfileScreen() {
         </View>
 
         {/* Menu items */}
-        <View style={[styles.menuCard, Shadows.card]}>
+        <Text style={styles.sectionTitle}>Library & Stats</Text>
+        <View style={styles.menuCard}>
           {MENU_ITEMS.map((item, i) => (
             <TouchableOpacity
               key={item.route}
@@ -105,12 +117,24 @@ export default function ProfileScreen() {
               activeOpacity={0.7}
             >
               <View style={styles.menuIconWrap}>
-                <MaterialIcons name={item.icon} size={20} color={Colors.primary} />
+                <MaterialIcons name={item.icon} size={20} color={colors.primary} />
               </View>
               <Text style={styles.menuLabel}>{item.label}</Text>
-              <MaterialIcons name="chevron-right" size={20} color={Colors.onSurfaceVariant} style={{ opacity: 0.4 }} />
+              <MaterialIcons name="chevron-right" size={20} color={colors.onSurfaceVariant} style={{ opacity: 0.4 }} />
             </TouchableOpacity>
           ))}
+        </View>
+
+        <Text style={styles.sectionTitle}>Settings</Text>
+        <View style={styles.menuCard}>
+          <TouchableOpacity style={styles.menuRow} onPress={handleThemeChange}>
+            <View style={styles.menuIconWrap}>
+              <MaterialIcons name="palette" size={20} color={colors.primary} />
+            </View>
+            <Text style={styles.menuLabel}>Appearance</Text>
+            <Text style={{ ...Typography.styles.bodyMd, color: colors.onSurfaceVariant, textTransform: 'capitalize', marginRight: 8 }}>{mode}</Text>
+            <MaterialIcons name="chevron-right" size={20} color={colors.onSurfaceVariant} style={{ opacity: 0.4 }} />
+          </TouchableOpacity>
         </View>
 
         {/* Sign Out */}
@@ -119,7 +143,7 @@ export default function ProfileScreen() {
           onPress={handleSignOut}
           activeOpacity={0.8}
         >
-          <MaterialIcons name="logout" size={18} color={Colors.error} />
+          <MaterialIcons name="logout" size={18} color={colors.error} />
           <Text style={styles.signOutText}>Sign Out</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -127,7 +151,7 @@ export default function ProfileScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   scroll: {
     paddingHorizontal: Spacing.containerPadding,
     gap: Spacing.stackMd,
@@ -141,31 +165,33 @@ const styles = StyleSheet.create({
     width: 88,
     height: 88,
     borderRadius: 44,
-    backgroundColor: Colors.surfaceContainerHigh,
+    backgroundColor: colors.surfaceContainerHigh,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 3,
-    borderColor: Colors.secondaryContainer,
+    borderColor: colors.secondaryContainer,
   },
   displayName: {
     ...Typography.styles.headlineMd,
-    color: Colors.onSurface,
+    color: colors.onSurface,
   },
   username: {
     ...Typography.styles.bodyMd,
-    color: Colors.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
     opacity: 0.7,
   },
   quickStats: {
     flexDirection: 'row',
-    backgroundColor: Colors.surfaceContainerLowest,
+    backgroundColor: colors.surfaceContainerLowest,
     borderRadius: Radius.xl,
-    borderWidth: 1,
-    borderColor: Colors.outlineVariant,
     padding: Spacing.stackMd,
     gap: Spacing.stackMd,
     marginTop: Spacing.base,
-    ...Shadows.card,
+    shadowColor: isDark ? '#000' : '#2d3a47',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: isDark ? 0.3 : 0.05,
+    shadowRadius: 24,
+    elevation: 4,
   },
   quickStatItem: {
     flex: 1,
@@ -175,23 +201,33 @@ const styles = StyleSheet.create({
   quickStatValue: {
     ...Typography.styles.numericXl,
     fontSize: 28,
-    color: Colors.primary,
+    color: colors.primary,
   },
   quickStatLabel: {
     ...Typography.styles.labelSm,
-    color: Colors.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
   },
   quickStatDivider: {
     width: StyleSheet.hairlineWidth,
-    backgroundColor: Colors.outlineVariant,
+    backgroundColor: colors.outlineVariant,
     alignSelf: 'stretch',
   },
+  sectionTitle: {
+    ...Typography.styles.labelLg,
+    color: colors.onSurfaceVariant,
+    paddingLeft: 4,
+    marginBottom: -8,
+    marginTop: Spacing.stackSm,
+  },
   menuCard: {
-    backgroundColor: Colors.surfaceContainerLowest,
+    backgroundColor: colors.surfaceContainerLowest,
     borderRadius: Radius.xl,
-    borderWidth: 1,
-    borderColor: Colors.outlineVariant,
     overflow: 'hidden',
+    shadowColor: isDark ? '#000' : '#2d3a47',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: isDark ? 0.3 : 0.05,
+    shadowRadius: 24,
+    elevation: 4,
   },
   menuRow: {
     flexDirection: 'row',
@@ -202,19 +238,19 @@ const styles = StyleSheet.create({
   },
   menuRowBorder: {
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Colors.outlineVariant,
+    borderTopColor: colors.outlineVariant,
   },
   menuIconWrap: {
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: Colors.surfaceContainerLow,
+    backgroundColor: colors.surfaceContainerLow,
     alignItems: 'center',
     justifyContent: 'center',
   },
   menuLabel: {
     ...Typography.styles.bodyMd,
-    color: Colors.onSurface,
+    color: colors.onSurface,
     flex: 1,
   },
   signOutButton: {
@@ -222,13 +258,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: Spacing.base,
-    backgroundColor: Colors.errorContainer,
+    backgroundColor: colors.errorContainer,
     borderRadius: Radius.xl,
     paddingVertical: 14,
-    marginTop: Spacing.base,
+    marginTop: Spacing.stackMd,
   },
   signOutText: {
     ...Typography.styles.labelLg,
-    color: Colors.error,
+    color: colors.error,
   },
 });

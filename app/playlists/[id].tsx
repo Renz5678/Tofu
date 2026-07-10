@@ -3,12 +3,15 @@ import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-import { Colors, Typography, Spacing, Radius } from '@/theme';
+import { useTheme, Typography, Spacing, Radius } from '@/theme';
 import { BookCard } from '@/components/BookCard';
 import { usePlaylists, usePlaylistItems, useUpdatePlaylistPositions, PlaylistItem } from '@/hooks/usePlaylists';
 import DraggableFlatList, { ScaleDecorator, RenderItemParams } from 'react-native-draggable-flatlist';
 
 export default function PlaylistDetailScreen() {
+  const { colors, isDark } = useTheme();
+  const styles = createStyles(colors, isDark);
+
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -45,10 +48,10 @@ export default function PlaylistDetailScreen() {
         disabled={isActive}
         style={[
           styles.dragItem,
-          isActive && { backgroundColor: Colors.surfaceContainerHighest, transform: [{ scale: 1.02 }] },
+          isActive && { backgroundColor: colors.surfaceContainerHighest, transform: [{ scale: 1.02 }] },
         ]}
       >
-        <MaterialIcons name="drag-handle" size={24} color={Colors.onSurfaceVariant} style={styles.dragHandle} />
+        <MaterialIcons name="drag-handle" size={24} color={colors.onSurfaceVariant} style={styles.dragHandle} />
         <View style={{ flex: 1 }}>
           <BookCard
             id={item.book.open_library_id}
@@ -62,14 +65,14 @@ export default function PlaylistDetailScreen() {
   );
 
   return (
-    <View style={{ flex: 1, backgroundColor: Colors.background }}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <TouchableOpacity onPress={() => router.back()} hitSlop={12}>
-          <MaterialIcons name="arrow-back" size={24} color={Colors.onSurface} />
+          <MaterialIcons name="arrow-back" size={24} color={colors.onSurface} />
         </TouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={1}>{playlist.title}</Text>
         <TouchableOpacity hitSlop={12} onPress={() => Alert.alert('Coming Soon', 'Playlist settings will be available in the next update!')}>
-          <MaterialIcons name="more-vert" size={22} color={Colors.onSurface} />
+          <MaterialIcons name="more-vert" size={22} color={colors.onSurface} />
         </TouchableOpacity>
       </View>
 
@@ -93,7 +96,7 @@ export default function PlaylistDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -101,9 +104,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.containerPadding,
     paddingBottom: Spacing.stackSm,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.outlineVariant,
+    borderBottomColor: colors.outlineVariant,
   },
-  headerTitle: { ...Typography.styles.titleSm, color: Colors.onSurface, flex: 1, marginHorizontal: Spacing.stackSm },
+  headerTitle: { ...Typography.styles.titleSm, color: colors.onSurface, flex: 1, marginHorizontal: Spacing.stackSm },
   listHeader: {
     marginBottom: Spacing.stackMd,
     gap: Spacing.stackSm,
@@ -112,15 +115,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.containerPadding,
     paddingTop: Spacing.stackMd,
   },
-  description: { ...Typography.styles.bodyMd, color: Colors.onSurfaceVariant, opacity: 0.7 },
-  meta: { ...Typography.styles.labelSm, color: Colors.onSurfaceVariant, opacity: 0.5 },
-  metaHint: { ...Typography.styles.labelSm, color: Colors.primary, opacity: 0.8, marginTop: 4 },
+  description: { ...Typography.styles.bodyMd, color: colors.onSurfaceVariant, opacity: 0.7 },
+  meta: { ...Typography.styles.labelSm, color: colors.onSurfaceVariant, opacity: 0.5 },
+  metaHint: { ...Typography.styles.labelSm, color: colors.primary, opacity: 0.8, marginTop: 4 },
   dragItem: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: Spacing.base,
     borderRadius: Radius.md,
-    backgroundColor: Colors.background,
+    backgroundColor: colors.background,
   },
   dragHandle: {
     marginRight: Spacing.stackSm,

@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
-import { Colors, Typography, Spacing, Radius } from '@/theme';
+import { useTheme, Typography, Spacing, Radius } from '@/theme';
 
 export type FilterChip = {
   label: string;
@@ -21,6 +21,9 @@ interface FilterBarProps {
 }
 
 export function FilterBar({ chips, activeValue, onSelect, style }: FilterBarProps) {
+  const { colors, isDark } = useTheme();
+  const styles = createStyles(colors, isDark);
+
   const [selected, setSelected] = useState<string | null>(activeValue ?? null);
 
   const handlePress = (value: string) => {
@@ -67,6 +70,8 @@ interface StatusTabsProps {
 }
 
 export function StatusTabs({ tabs, activeValue, onSelect }: StatusTabsProps) {
+  const { colors, isDark } = useTheme();
+  const styles = createStyles(colors, isDark);
   return (
     <View style={styles.tabRow}>
       {tabs.map((tab) => {
@@ -87,7 +92,7 @@ export function StatusTabs({ tabs, activeValue, onSelect }: StatusTabsProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -103,26 +108,26 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   chipActive: {
-    backgroundColor: Colors.chipActive,
-    borderColor: Colors.chipActive,
+    backgroundColor: colors.chipActive,
+    borderColor: colors.chipActive,
   },
   chipInactive: {
-    backgroundColor: Colors.chipInactive,
-    borderColor: Colors.outlineVariant,
+    backgroundColor: colors.chipInactive,
+    borderColor: colors.outlineVariant,
   },
   chipText: {
     ...Typography.styles.labelLg,
   },
   chipTextActive: {
-    color: Colors.chipActiveText,
+    color: colors.chipActiveText,
   },
   chipTextInactive: {
-    color: Colors.chipInactiveText,
+    color: colors.chipInactiveText,
   },
   tabRow: {
     flexDirection: 'row',
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.outlineVariant,
+    borderBottomColor: colors.outlineVariant,
   },
   tab: {
     flex: 1,
@@ -132,17 +137,17 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
   },
   tabActive: {
-    borderBottomColor: Colors.primary,
+    borderBottomColor: colors.primary,
   },
   tabText: {
     ...Typography.styles.labelLg,
   },
   tabTextActive: {
-    color: Colors.primary,
+    color: colors.primary,
     fontWeight: '700',
   },
   tabTextInactive: {
-    color: Colors.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
     opacity: 0.6,
   },
 });

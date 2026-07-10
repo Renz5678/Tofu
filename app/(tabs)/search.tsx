@@ -15,7 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { Colors, Typography, Spacing, Radius, Shadows } from '@/theme';
+import { useTheme, Typography, Spacing, Radius, Shadows } from '@/theme';
 import { FilterBar } from '@/components/FilterBar';
 import { searchBooks, type BookItem } from '@/lib/openLibrary';
 import { useLibrary, useAddBook } from '@/hooks/useLibrary';
@@ -33,6 +33,9 @@ const GENRE_CHIPS = [
 ];
 
 export default function SearchScreen() {
+  const { colors, isDark } = useTheme();
+  const styles = createStyles(colors, isDark);
+
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [query, setQuery] = useState('');
@@ -112,7 +115,7 @@ export default function SearchScreen() {
   }, [selectedBook]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: Colors.background }}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <Text style={styles.headerTitle}>Discover</Text>
@@ -121,16 +124,16 @@ export default function SearchScreen() {
       {/* Search bar */}
       <View style={styles.searchRow}>
         <View style={styles.searchContainer}>
-          <MaterialIcons name="search" size={20} color={Colors.outline} style={styles.searchIcon} />
+          <MaterialIcons name="search" size={20} color={colors.outline} style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
             placeholder="Search books, authors..."
-            placeholderTextColor={`${Colors.onSurfaceVariant}66`}
+            placeholderTextColor={`${colors.onSurfaceVariant}66`}
             value={query}
             onChangeText={handleQueryChange}
             autoCorrect={false}
           />
-          {loading && <ActivityIndicator size="small" color={Colors.primary} />}
+          {loading && <ActivityIndicator size="small" color={colors.primary} />}
         </View>
       </View>
 
@@ -149,7 +152,7 @@ export default function SearchScreen() {
         </View>
       ) : results.length === 0 ? (
         <View style={styles.emptyState}>
-          <MaterialIcons name="auto-stories" size={56} color={Colors.primary} style={{ opacity: 0.3 }} />
+          <MaterialIcons name="auto-stories" size={56} color={colors.primary} style={{ opacity: 0.3 }} />
           <Text style={styles.emptyTitle}>Find your next read</Text>
           <Text style={styles.emptyDescription}>
             Search any title, author, or pick a genre above
@@ -193,7 +196,7 @@ export default function SearchScreen() {
               onPress={() => setSelectedBook(null)}
               hitSlop={12}
             >
-              <MaterialIcons name="close" size={24} color={Colors.onSurface} />
+              <MaterialIcons name="close" size={24} color={colors.onSurface} />
             </TouchableOpacity>
 
             {selectedBook && (
@@ -207,7 +210,7 @@ export default function SearchScreen() {
                     <Image source={{ uri: selectedBook.cover_url }} style={StyleSheet.absoluteFillObject} contentFit="cover" />
                   ) : (
                     <View style={[StyleSheet.absoluteFillObject, styles.noCover]}>
-                      <MaterialIcons name="menu-book" size={48} color={Colors.onSurfaceVariant} style={{ opacity: 0.3 }} />
+                      <MaterialIcons name="menu-book" size={48} color={colors.onSurfaceVariant} style={{ opacity: 0.3 }} />
                     </View>
                   )}
                 </View>
@@ -219,7 +222,7 @@ export default function SearchScreen() {
                   {selectedBook.total_pages && (
                     <View style={styles.modalStatRow}>
                       <View style={styles.modalStatIcon}>
-                        <MaterialIcons name="menu-book" size={20} color={Colors.primary} />
+                        <MaterialIcons name="menu-book" size={20} color={colors.primary} />
                       </View>
                       <View style={styles.modalStatTextContainer}>
                         <Text style={styles.modalStatLabel}>Length</Text>
@@ -230,7 +233,7 @@ export default function SearchScreen() {
                   {selectedBook.genres && selectedBook.genres.length > 0 && (
                     <View style={styles.modalStatRow}>
                       <View style={styles.modalStatIcon}>
-                        <MaterialIcons name="category" size={20} color={Colors.primary} />
+                        <MaterialIcons name="category" size={20} color={colors.primary} />
                       </View>
                       <View style={styles.modalStatTextContainer}>
                         <Text style={styles.modalStatLabel}>Genres</Text>
@@ -250,7 +253,7 @@ export default function SearchScreen() {
                   {selectedBook.language && (
                     <View style={styles.modalStatRow}>
                       <View style={styles.modalStatIcon}>
-                        <MaterialIcons name="language" size={20} color={Colors.primary} />
+                        <MaterialIcons name="language" size={20} color={colors.primary} />
                       </View>
                       <View style={styles.modalStatTextContainer}>
                         <Text style={styles.modalStatLabel}>Language</Text>
@@ -261,7 +264,7 @@ export default function SearchScreen() {
                 </View>
 
                 {loadingSynopsis ? (
-                  <ActivityIndicator size="small" color={Colors.primary} style={{ marginVertical: Spacing.base }} />
+                  <ActivityIndicator size="small" color={colors.primary} style={{ marginVertical: Spacing.base }} />
                 ) : synopsis ? (
                   <View style={styles.synopsisContainer}>
                     <Text style={styles.synopsisTitle}>Synopsis</Text>
@@ -296,6 +299,8 @@ export default function SearchScreen() {
 }
 
 function SearchResultCard({ book, isAdded, onPress }: { book: BookItem; isAdded: boolean; onPress: () => void }) {
+  const { colors, isDark } = useTheme();
+  const styles = createStyles(colors, isDark);
   const { mutateAsync: addBook, isPending } = useAddBook();
 
   const handleAdd = async () => {
@@ -315,7 +320,7 @@ function SearchResultCard({ book, isAdded, onPress }: { book: BookItem; isAdded:
           <Image source={{ uri: book.cover_url }} style={StyleSheet.absoluteFillObject} contentFit="cover" />
         ) : (
           <View style={[StyleSheet.absoluteFillObject, styles.noCover]}>
-            <MaterialIcons name="menu-book" size={32} color={Colors.onSurfaceVariant} style={{ opacity: 0.3 }} />
+            <MaterialIcons name="menu-book" size={32} color={colors.onSurfaceVariant} style={{ opacity: 0.3 }} />
           </View>
         )}
       </View>
@@ -348,17 +353,17 @@ function SearchResultCard({ book, isAdded, onPress }: { book: BookItem; isAdded:
         style={[
           styles.addButton, 
           (isPending || isAdded) && { opacity: 0.5 },
-          isAdded && { backgroundColor: Colors.primaryContainer }
+          isAdded && { backgroundColor: colors.primaryContainer }
         ]} 
         onPress={handleAdd}
         disabled={isPending || isAdded}
       >
         {isPending ? (
-          <ActivityIndicator size="small" color={Colors.onPrimary} />
+          <ActivityIndicator size="small" color={colors.onPrimary} />
         ) : isAdded ? (
-          <MaterialIcons name="check" size={20} color={Colors.primary} />
+          <MaterialIcons name="check" size={20} color={colors.primary} />
         ) : (
-          <MaterialIcons name="add" size={20} color={Colors.onPrimary} />
+          <MaterialIcons name="add" size={20} color={colors.onPrimary} />
         )}
       </TouchableOpacity>
     </TouchableOpacity>
@@ -366,6 +371,8 @@ function SearchResultCard({ book, isAdded, onPress }: { book: BookItem; isAdded:
 }
 
 function SearchSkeleton() {
+  const { colors, isDark } = useTheme();
+  const styles = createStyles(colors, isDark);
   const pulseOpacity = useSharedValue(0.3);
   React.useEffect(() => {
     pulseOpacity.value = withRepeat(
@@ -381,28 +388,28 @@ function SearchSkeleton() {
 
   return (
     <Animated.View style={[styles.resultCard, Shadows.card, animatedStyle]}>
-      <View style={[styles.resultCover, { backgroundColor: Colors.surfaceContainerHigh }]} />
+      <View style={[styles.resultCover, { backgroundColor: colors.surfaceContainerHigh }]} />
       <View style={styles.resultInfo}>
-        <View style={{ height: 16, width: '80%', backgroundColor: Colors.surfaceContainerHigh, borderRadius: 4, marginBottom: 4 }} />
-        <View style={{ height: 12, width: '50%', backgroundColor: Colors.surfaceContainerHigh, borderRadius: 4, marginBottom: 8 }} />
+        <View style={{ height: 16, width: '80%', backgroundColor: colors.surfaceContainerHigh, borderRadius: 4, marginBottom: 4 }} />
+        <View style={{ height: 12, width: '50%', backgroundColor: colors.surfaceContainerHigh, borderRadius: 4, marginBottom: 8 }} />
         <View style={{ flexDirection: 'row', gap: 6 }}>
-          <View style={{ height: 16, width: 60, backgroundColor: Colors.surfaceContainerHigh, borderRadius: 8 }} />
-          <View style={{ height: 16, width: 40, backgroundColor: Colors.surfaceContainerHigh, borderRadius: 8 }} />
+          <View style={{ height: 16, width: 60, backgroundColor: colors.surfaceContainerHigh, borderRadius: 8 }} />
+          <View style={{ height: 16, width: 40, backgroundColor: colors.surfaceContainerHigh, borderRadius: 8 }} />
         </View>
       </View>
-      <View style={[styles.addButton, { backgroundColor: Colors.surfaceContainerHigh }]} />
+      <View style={[styles.addButton, { backgroundColor: colors.surfaceContainerHigh }]} />
     </Animated.View>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   header: {
     paddingHorizontal: Spacing.containerPadding,
     paddingBottom: Spacing.stackSm,
   },
   headerTitle: {
     ...Typography.styles.headlineMd,
-    color: Colors.onSurface,
+    color: colors.onSurface,
   },
   searchRow: {
     paddingHorizontal: Spacing.containerPadding,
@@ -411,7 +418,7 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.surfaceContainerLow,
+    backgroundColor: colors.surfaceContainerLow,
     borderRadius: Radius.xl,
     height: 48,
     paddingHorizontal: Spacing.gutter,
@@ -421,7 +428,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     ...Typography.styles.bodyMd,
-    color: Colors.onSurface,
+    color: colors.onSurface,
   },
   emptyState: {
     flex: 1,
@@ -432,11 +439,11 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     ...Typography.styles.titleSm,
-    color: Colors.onSurface,
+    color: colors.onSurface,
   },
   emptyDescription: {
     ...Typography.styles.bodyMd,
-    color: Colors.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
     textAlign: 'center',
     opacity: 0.7,
   },
@@ -446,7 +453,7 @@ const styles = StyleSheet.create({
     gap: Spacing.stackSm,
   },
   resultCard: {
-    backgroundColor: Colors.surfaceContainerLowest,
+    backgroundColor: colors.surfaceContainerLowest,
     borderRadius: Radius.xl,
     flexDirection: 'row',
     padding: Spacing.stackSm,
@@ -457,7 +464,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 96,
     borderRadius: Radius.md,
-    backgroundColor: Colors.surfaceContainerHigh,
+    backgroundColor: colors.surfaceContainerHigh,
     overflow: 'hidden',
   },
   noCover: {
@@ -471,15 +478,15 @@ const styles = StyleSheet.create({
   resultTitle: {
     ...Typography.styles.titleSm,
     fontSize: 15,
-    color: Colors.onSurface,
+    color: colors.onSurface,
   },
   resultAuthor: {
     ...Typography.styles.bodyMd,
     fontSize: 13,
-    color: Colors.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
   },
   genreChip: {
-    backgroundColor: Colors.secondaryContainer,
+    backgroundColor: colors.secondaryContainer,
     borderRadius: Radius.full,
     paddingHorizontal: 8,
     paddingVertical: 2,
@@ -488,19 +495,19 @@ const styles = StyleSheet.create({
   },
   genreChipText: {
     ...Typography.styles.labelSm,
-    color: Colors.onSecondaryContainer,
+    color: colors.onSecondaryContainer,
     fontSize: 10,
   },
   pageCount: {
     ...Typography.styles.labelSm,
-    color: Colors.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
     opacity: 0.6,
   },
   addButton: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: Colors.primary,
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -510,7 +517,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: Colors.background,
+    backgroundColor: colors.background,
     borderTopLeftRadius: Radius.xl,
     borderTopRightRadius: Radius.xl,
     padding: Spacing.containerPadding,
@@ -521,7 +528,7 @@ const styles = StyleSheet.create({
     top: Spacing.containerPadding,
     right: Spacing.containerPadding,
     zIndex: 10,
-    backgroundColor: Colors.surfaceContainerHighest,
+    backgroundColor: colors.surfaceContainerHighest,
     borderRadius: Radius.full,
     padding: 6,
   },
@@ -535,7 +542,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 4,
     borderRadius: 2,
-    backgroundColor: Colors.outlineVariant,
+    backgroundColor: colors.outlineVariant,
   },
   modalBody: {
     alignItems: 'center',
@@ -546,19 +553,19 @@ const styles = StyleSheet.create({
     width: 140,
     height: 210,
     borderRadius: Radius.lg,
-    backgroundColor: Colors.surfaceContainerHigh,
+    backgroundColor: colors.surfaceContainerHigh,
     overflow: 'hidden',
     ...Shadows.card,
     marginBottom: Spacing.base,
   },
   modalTitle: {
     ...Typography.styles.headlineMd,
-    color: Colors.onSurface,
+    color: colors.onSurface,
     textAlign: 'center',
   },
   modalAuthor: {
     ...Typography.styles.bodyMd,
-    color: Colors.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
     textAlign: 'center',
     opacity: 0.8,
   },
@@ -585,21 +592,21 @@ const styles = StyleSheet.create({
   },
   modalStatLabel: {
     ...Typography.styles.labelSm,
-    color: Colors.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
   },
   modalStatValue: {
     ...Typography.styles.bodyMd,
-    color: Colors.onSurface,
+    color: colors.onSurface,
   },
   modalGenreChip: {
-    backgroundColor: Colors.surfaceContainerHigh,
+    backgroundColor: colors.surfaceContainerHigh,
     borderRadius: Radius.full,
     paddingHorizontal: 8,
     paddingVertical: 4,
   },
   modalGenreChipText: {
     ...Typography.styles.labelSm,
-    color: Colors.onSurface,
+    color: colors.onSurface,
     fontSize: 11,
   },
   synopsisContainer: {
@@ -610,12 +617,12 @@ const styles = StyleSheet.create({
   },
   synopsisTitle: {
     ...Typography.styles.titleSm,
-    color: Colors.onSurface,
+    color: colors.onSurface,
     textAlign: 'left',
   },
   synopsisText: {
     ...Typography.styles.bodyMd,
-    color: Colors.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
     lineHeight: 22,
     textAlign: 'left',
   },
@@ -623,11 +630,11 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingVertical: 16,
     borderRadius: Radius.xl,
-    backgroundColor: Colors.surfaceContainerHighest,
+    backgroundColor: colors.surfaceContainerHighest,
     alignItems: 'center',
   },
   modalAddText: {
     ...Typography.styles.labelLg,
-    color: Colors.onSurface,
+    color: colors.onSurface,
   },
 });

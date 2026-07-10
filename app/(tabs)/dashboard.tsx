@@ -13,7 +13,7 @@ import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import Animated, { FadeInDown, useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
-import { Colors, Typography, Spacing, Radius, Shadows } from '@/theme';
+import { useTheme, Typography, Spacing, Radius, Shadows } from '@/theme';
 import { TopBar } from '@/components/TopBar';
 import { ProgressRing, ProgressBar } from '@/components/ProgressRing';
 import { useLibrary } from '@/hooks/useLibrary';
@@ -27,6 +27,8 @@ export default function DashboardScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
+  const { colors, isDark } = useTheme();
+  const styles = createStyles(colors, isDark);
 
   const { data: profile } = useProfile();
   const { data: sessions = [] } = useReadingSessions();
@@ -91,7 +93,7 @@ export default function DashboardScreen() {
 
   const maxWeekly = Math.max(...weeklyData, 1);
   return (
-    <View style={{ flex: 1, backgroundColor: Colors.background }}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
       <TopBar
         streak={profile?.streak?.current_streak ?? 0}
         avatarUrl={profile?.avatar_url ?? undefined}
@@ -190,24 +192,24 @@ export default function DashboardScreen() {
                   </View>
 
                   <View style={styles.continueButton}>
-                    <MaterialIcons name="play-circle" size={20} color={Colors.onPrimary} />
+                    <MaterialIcons name="play-circle" size={20} color={colors.onPrimary} />
                     <Text style={styles.continueButtonText}>Continue Reading</Text>
                   </View>
                 </View>
               </View>
             </AnimatedPressable>
           ) : (
-            <View style={[styles.currentReadCard, Shadows.card, { padding: Spacing.stackLg, alignItems: 'center', flexDirection: 'column' }]}>
+            <View style={[styles.currentReadCard, { padding: Spacing.stackLg, alignItems: 'center', flexDirection: 'column' }]}>
               <View style={styles.emptyStateIllustration}>
-                <MaterialIcons name="auto-stories" size={48} color={Colors.primary} style={{ opacity: 0.8 }} />
+                <MaterialIcons name="auto-stories" size={48} color={colors.primary} style={{ opacity: 0.8 }} />
               </View>
-              <Text style={{ ...Typography.styles.titleSm, color: Colors.onSurface, marginTop: 12 }}>No Active Books</Text>
-              <Text style={{ ...Typography.styles.bodyMd, color: Colors.onSurfaceVariant, textAlign: 'center', opacity: 0.7, marginTop: 4, paddingHorizontal: 16 }}>
+              <Text style={{ ...Typography.styles.titleSm, color: colors.onSurface, marginTop: 12 }}>No Active Books</Text>
+              <Text style={{ ...Typography.styles.bodyMd, color: colors.onSurfaceVariant, textAlign: 'center', opacity: 0.7, marginTop: 4, paddingHorizontal: 16 }}>
                 Search for a book to start tracking your reading habit and build your streaks.
               </Text>
               <AnimatedPressable onPress={() => router.push('/(tabs)/search')} style={{ width: '100%' }}>
                 <View style={[styles.continueButton, { marginTop: 24, width: '100%' }]}>
-                  <MaterialIcons name="search" size={20} color={Colors.onPrimary} />
+                  <MaterialIcons name="search" size={20} color={colors.onPrimary} />
                   <Text style={styles.continueButtonText}>Find a Book</Text>
                 </View>
               </AnimatedPressable>
@@ -233,7 +235,7 @@ export default function DashboardScreen() {
                       styles.bar,
                       {
                         height: Math.max(4, barH),
-                        backgroundColor: isToday ? Colors.primary : `${Colors.primary}33`,
+                        backgroundColor: isToday ? colors.primary : `${colors.primary}33`,
                       },
                     ]}
                   />
@@ -272,7 +274,7 @@ function getGreeting() {
   return 'Evening';
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   scroll: {
     paddingHorizontal: Spacing.containerPadding,
     paddingTop: Spacing.stackMd,
@@ -288,33 +290,35 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     ...Typography.styles.titleSm,
-    color: Colors.onSurface,
+    color: colors.onSurface,
   },
   sectionLink: {
     ...Typography.styles.labelSm,
-    color: Colors.primary,
+    color: colors.primary,
   },
   welcomeHeading: {
     ...Typography.styles.displayLgMobile,
-    color: Colors.onSurface,
+    color: colors.onSurface,
   },
   welcomeSub: {
     ...Typography.styles.bodyMd,
-    color: Colors.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
   },
   bentoGrid: {
     flexDirection: 'row',
     gap: Spacing.gutter,
   },
   bentoCard: {
-    backgroundColor: Colors.surfaceContainerLowest,
+    backgroundColor: colors.surfaceContainerLowest,
     borderRadius: Radius.xl,
-    borderWidth: 1,
-    borderColor: Colors.outlineVariant,
     padding: Spacing.stackMd,
     alignItems: 'center',
     gap: Spacing.base,
-    ...Shadows.card,
+    shadowColor: isDark ? '#000' : '#2d3a47',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: isDark ? 0.3 : 0.05,
+    shadowRadius: 24,
+    elevation: 4,
   },
   bentoCardHalf: {
     flex: 1,
@@ -323,24 +327,26 @@ const styles = StyleSheet.create({
   bentoStat: {
     ...Typography.styles.numericXl,
     fontSize: 32,
-    color: Colors.primary,
+    color: colors.primary,
   },
   bentoLabel: {
     ...Typography.styles.labelSm,
-    color: Colors.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
   },
   bentoSublabel: {
     ...Typography.styles.labelSm,
-    color: Colors.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
   },
   currentReadCard: {
-    backgroundColor: Colors.surfaceContainerLowest,
+    backgroundColor: colors.surfaceContainerLowest,
     borderRadius: Radius.xl,
-    borderWidth: 1,
-    borderColor: Colors.outlineVariant,
     overflow: 'hidden',
     flexDirection: 'row',
-    ...Shadows.card,
+    shadowColor: isDark ? '#000' : '#2d3a47',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: isDark ? 0.3 : 0.05,
+    shadowRadius: 24,
+    elevation: 4,
   },
   currentReadCover: {
     width: 120,
@@ -351,14 +357,14 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 10,
     left: 8,
-    backgroundColor: Colors.primary,
+    backgroundColor: colors.primary,
     borderRadius: Radius.full,
     paddingHorizontal: 8,
     paddingVertical: 2,
   },
   readBadgeText: {
     ...Typography.styles.labelSm,
-    color: Colors.onPrimary,
+    color: colors.onPrimary,
     fontSize: 10,
   },
   currentReadInfo: {
@@ -369,12 +375,12 @@ const styles = StyleSheet.create({
   },
   currentReadTitle: {
     ...Typography.styles.headlineMd,
-    color: Colors.onSurface,
+    color: colors.onSurface,
     fontSize: 20,
   },
   currentReadAuthor: {
     ...Typography.styles.bodyMd,
-    color: Colors.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
     fontSize: 14,
   },
   progressSection: {
@@ -386,13 +392,13 @@ const styles = StyleSheet.create({
   },
   progressLabel: {
     ...Typography.styles.labelSm,
-    color: Colors.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
   },
   emptyStateIllustration: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: `${Colors.primary}15`,
+    backgroundColor: `${colors.primary}15`,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -401,27 +407,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: Colors.primary,
+    backgroundColor: colors.primary,
     borderRadius: Radius.xl,
     paddingVertical: 14,
-    ...Shadows.button,
   },
   continueButtonText: {
     ...Typography.styles.labelLg,
-    color: Colors.onPrimary,
+    color: colors.onPrimary,
   },
   weeklyCard: {
-    backgroundColor: Colors.surfaceContainerLowest,
+    backgroundColor: colors.surfaceContainerLowest,
     borderRadius: Radius.xl,
-    borderWidth: 1,
-    borderColor: Colors.outlineVariant,
     padding: Spacing.stackMd,
     gap: Spacing.stackMd,
-    ...Shadows.card,
+    shadowColor: isDark ? '#000' : '#2d3a47',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: isDark ? 0.3 : 0.05,
+    shadowRadius: 24,
+    elevation: 4,
   },
   weeklySubtitle: {
     ...Typography.styles.labelSm,
-    color: Colors.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
   },
   barChart: {
     flexDirection: 'row',
@@ -443,6 +450,6 @@ const styles = StyleSheet.create({
   barLabel: {
     ...Typography.styles.labelSm,
     fontSize: 10,
-    color: Colors.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
   },
 });

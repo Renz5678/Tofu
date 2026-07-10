@@ -6,81 +6,97 @@
 // ─────────────────────────────────────────────
 // Colors (Material Design 3 color scheme)
 // ─────────────────────────────────────────────
-export const Colors = {
-  // Primary brand — slate blue
+export const LightColors = {
+  // Primary brand — Midnight Lagoon
   primary: '#2d3a47',
   onPrimary: '#ffffff',
   primaryContainer: '#e1e5e9',
   onPrimaryContainer: '#1c252d',
   inversePrimary: '#a5b5c9',
-  primaryFixed: '#d0e4ff',
-  primaryFixedDim: '#a8c8ec',
-  onPrimaryFixed: '#001d32',
-  onPrimaryFixedVariant: '#344758',
-
-  // Secondary — muted parchment/sage
+  
+  // Secondary
   secondary: '#8c867b',
   onSecondary: '#ffffff',
   secondaryContainer: '#f4f0ea',
   onSecondaryContainer: '#3d3932',
-  secondaryFixed: '#dbe5da',
-  secondaryFixedDim: '#bfc9bf',
-  onSecondaryFixed: '#151e17',
-  onSecondaryFixedVariant: '#404941',
-
-  // Tertiary — soft terracotta (streak/milestone highlights)
-  tertiary: '#9c6644',
-  onTertiary: '#ffffff',
-  tertiaryContainer: '#eddfd8',
-  onTertiaryContainer: '#54301c',
-  tertiaryFixed: '#ffdcbf',
-  tertiaryFixedDim: '#f7ba82',
-  onTertiaryFixed: '#2d1600',
-  onTertiaryFixedVariant: '#663d10',
-
+  
   // Error
   error: '#ba1a1a',
   onError: '#ffffff',
   errorContainer: '#ffdad6',
   onErrorContainer: '#93000a',
 
-  // Background / Surface - Soft book theme
-  background: '#fdfbf7',         // Warm, soft off-white canvas
-  onBackground: '#2d3a47',       // Use primary color instead of pure black
-  surface: '#fdfbf7',
-  onSurface: '#2d3a47',
-  surfaceDim: '#dbdad5',
-  surfaceBright: '#fbf9f4',
-  surfaceTint: '#4c5d70',
+  // Background / Surface (Minimalist Apple-style)
+  background: '#ffffff',
+  onBackground: '#1a1a1a',
+  surface: '#ffffff',
+  onSurface: '#1a1a1a',
+  
+  // Surface containers
+  surfaceContainerLowest: '#ffffff',
+  surfaceContainerLow: '#f5f5f7',
+  surfaceContainer: '#ebebeb',
+  surfaceContainerHigh: '#e0e0e0',
+  surfaceContainerHighest: '#d6d6d6',
 
-  // Surface containers (elevation layers)
-  surfaceContainerLowest: '#ffffff', // Pure white for highest contrast cards
-  surfaceContainerLow: '#faf7f2',
-  surfaceContainer: '#f4f0ea',
-  surfaceContainerHigh: '#efeae2',
-  surfaceContainerHighest: '#e8e2d8',
+  // Variants
+  onSurfaceVariant: '#6e6e73',
+  outline: '#d2d2d7',
+  outlineVariant: '#e5e5ea',
 
-  // On-surface / variants
-  onSurfaceVariant: '#687076',   // Muted gray-blue
-  surfaceVariant: '#f0ede6',
-  inverseSurface: '#30312e',
-  inverseOnSurface: '#f2f1ec',
-
-  // Borders / outlines
-  outline: '#d6d1c9', // Visible outline
-  outlineVariant: '#e3dfd6', // Subtle outline
-
-  // Convenience aliases for usage in components
-  cardBackground: '#ffffff',
+  // Aliases
   tabBarBackground: '#ffffff',
-  tabBarBorder: '#e3dfd6',
+  tabBarBorder: '#e5e5ea',
   activeTab: '#2d3a47',
-  inactiveTab: '#8c867b',
-  chipActive: '#2d3a47',
-  chipActiveText: '#ffffff',
-  chipInactive: '#f4f0ea',
-  chipInactiveText: '#687076',
+  inactiveTab: '#8e8e93',
 } as const;
+
+export const DarkColors = {
+  // Primary brand — Lighter Midnight Lagoon for contrast
+  primary: '#4c647a',
+  onPrimary: '#ffffff',
+  primaryContainer: '#1f2831',
+  onPrimaryContainer: '#a8c8ec',
+  inversePrimary: '#2d3a47',
+  
+  // Secondary
+  secondary: '#b4afa9',
+  onSecondary: '#3d3932',
+  secondaryContainer: '#403d38',
+  onSecondaryContainer: '#f4f0ea',
+  
+  // Error
+  error: '#ffb4ab',
+  onError: '#690005',
+  errorContainer: '#93000a',
+  onErrorContainer: '#ffdad6',
+
+  // Background / Surface (Minimalist Dark)
+  background: '#000000',
+  onBackground: '#ffffff',
+  surface: '#0a0a0a',
+  onSurface: '#ffffff',
+  
+  // Surface containers
+  surfaceContainerLowest: '#000000',
+  surfaceContainerLow: '#1c1c1e',
+  surfaceContainer: '#2c2c2e',
+  surfaceContainerHigh: '#3a3a3c',
+  surfaceContainerHighest: '#48484a',
+
+  // Variants
+  onSurfaceVariant: '#ebebf5',
+  outline: '#38383a',
+  outlineVariant: '#2c2c2e',
+
+  // Aliases
+  tabBarBackground: '#1c1c1e',
+  tabBarBorder: '#38383a',
+  activeTab: '#4c647a',
+  inactiveTab: '#8e8e93',
+} as const;
+
+export type AppColors = Record<keyof typeof LightColors, string>;
 
 // ─────────────────────────────────────────────
 // Typography

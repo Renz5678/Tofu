@@ -17,7 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-import { Colors, Typography, Spacing, Radius, Shadows } from '@/theme';
+import { useTheme, Typography, Spacing, Radius, Shadows } from '@/theme';
 import { readingProgress } from '@/lib/metrics';
 import { useLibrary, useUpdateBook, BookStatus } from '@/hooks/useLibrary';
 import { useFavorites, useToggleFavorite } from '@/hooks/useFavorites';
@@ -25,6 +25,9 @@ import { useSessionStore } from '@/store/sessionStore';
 import { ProgressBar } from '@/components/ProgressRing';
 
 export default function BookDetailScreen() {
+  const { colors, isDark } = useTheme();
+  const styles = createStyles(colors, isDark);
+
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -126,7 +129,7 @@ export default function BookDetailScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: Colors.background }}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
       {/* Hero cover */}
       <View style={[styles.heroContainer, { height: width * 0.65 }]}>
         <Image
@@ -142,7 +145,7 @@ export default function BookDetailScreen() {
           style={[styles.backButton, { top: insets.top + 8 }]}
           onPress={() => router.back()}
         >
-          <MaterialIcons name="arrow-back" size={22} color={Colors.onPrimary} />
+          <MaterialIcons name="arrow-back" size={22} color={colors.onPrimary} />
         </TouchableOpacity>
 
         {/* Favorite button */}
@@ -150,7 +153,7 @@ export default function BookDetailScreen() {
           style={[styles.backButton, { top: insets.top + 8, left: undefined, right: Spacing.containerPadding }]}
           onPress={handleToggleFavorite}
         >
-          <MaterialIcons name={isFavorite ? "favorite" : "favorite-border"} size={22} color={isFavorite ? Colors.error : Colors.onPrimary} />
+          <MaterialIcons name={isFavorite ? "favorite" : "favorite-border"} size={22} color={isFavorite ? colors.error : colors.onPrimary} />
         </TouchableOpacity>
 
         {/* Cover image centered */}
@@ -209,7 +212,7 @@ export default function BookDetailScreen() {
         {/* Start/Continue/Re-read reading button */}
         {book.status === 'finished' ? (
           <TouchableOpacity style={styles.primaryButton} onPress={handleReRead} activeOpacity={0.85}>
-            <MaterialIcons name="replay" size={22} color={Colors.onPrimary} />
+            <MaterialIcons name="replay" size={22} color={colors.onPrimary} />
             <Text style={styles.primaryButtonText}>Read Again</Text>
           </TouchableOpacity>
         ) : (
@@ -218,7 +221,7 @@ export default function BookDetailScreen() {
             onPress={handleStartReading}
             activeOpacity={0.85}
           >
-            <MaterialIcons name="play-circle" size={22} color={Colors.onPrimary} />
+            <MaterialIcons name="play-circle" size={22} color={colors.onPrimary} />
             <Text style={styles.primaryButtonText}>
               {book.current_page > 0 ? 'Continue Reading' : 'Start Reading'}
             </Text>
@@ -257,10 +260,10 @@ export default function BookDetailScreen() {
               {!isEditingReview && (
                 <View style={{ flexDirection: 'row', gap: 12 }}>
                   <TouchableOpacity onPress={() => setIsEditingReview(true)}>
-                    <MaterialIcons name="edit" size={20} color={Colors.primary} />
+                    <MaterialIcons name="edit" size={20} color={colors.primary} />
                   </TouchableOpacity>
                   <TouchableOpacity onPress={handleShare}>
-                    <MaterialIcons name="share" size={20} color={Colors.primary} />
+                    <MaterialIcons name="share" size={20} color={colors.primary} />
                   </TouchableOpacity>
                 </View>
               )}
@@ -287,7 +290,7 @@ export default function BookDetailScreen() {
                   <Text style={styles.placeholder}>No rating added yet.</Text>
                 )}
                 {book.review ? (
-                  <Text style={{ ...Typography.styles.bodyMd, color: Colors.onSurface }}>
+                  <Text style={{ ...Typography.styles.bodyMd, color: colors.onSurface }}>
                     "{book.review}"
                   </Text>
                 ) : (
@@ -343,14 +346,14 @@ export default function BookDetailScreen() {
               style={[styles.reviewInput, { width: '100%', marginBottom: Spacing.base }]}
               multiline
               placeholder="What did you think of the book?"
-              placeholderTextColor={Colors.onSurfaceVariant}
+              placeholderTextColor={colors.onSurfaceVariant}
               value={draftReview}
               onChangeText={setDraftReview}
             />
             
             <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
-              <TouchableOpacity style={[styles.primaryButton, { flex: 1, backgroundColor: Colors.surfaceContainerHigh }]} onPress={() => setIsEditingReview(false)}>
-                <Text style={[styles.primaryButtonText, { color: Colors.onSurface }]}>Cancel</Text>
+              <TouchableOpacity style={[styles.primaryButton, { flex: 1, backgroundColor: colors.surfaceContainerHigh }]} onPress={() => setIsEditingReview(false)}>
+                <Text style={[styles.primaryButtonText, { color: colors.onSurface }]}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[styles.primaryButton, { flex: 1 }]} onPress={handleSaveReview}>
                 <Text style={styles.primaryButtonText}>Save Review</Text>
@@ -409,11 +412,11 @@ export default function BookDetailScreen() {
             </View>
 
             <View style={{ flexDirection: 'row', gap: 12, marginTop: 24, width: '100%' }}>
-              <TouchableOpacity style={[styles.primaryButton, { flex: 1, backgroundColor: Colors.surfaceContainerHigh }]} onPress={() => setIsShareModalVisible(false)}>
-                <Text style={[styles.primaryButtonText, { color: Colors.onSurface }]}>Cancel</Text>
+              <TouchableOpacity style={[styles.primaryButton, { flex: 1, backgroundColor: colors.surfaceContainerHigh }]} onPress={() => setIsShareModalVisible(false)}>
+                <Text style={[styles.primaryButtonText, { color: colors.onSurface }]}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[styles.primaryButton, { flex: 1 }]} onPress={captureAndShare}>
-                <MaterialIcons name="ios-share" size={20} color={Colors.onPrimary} />
+                <MaterialIcons name="ios-share" size={20} color={colors.onPrimary} />
                 <Text style={styles.primaryButtonText}>Share Image</Text>
               </TouchableOpacity>
             </View>
@@ -424,7 +427,7 @@ export default function BookDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   heroContainer: {
     position: 'relative',
     alignItems: 'center',
@@ -466,12 +469,12 @@ const styles = StyleSheet.create({
   },
   bookTitle: {
     ...Typography.styles.headlineMd,
-    color: Colors.onSurface,
+    color: colors.onSurface,
     textAlign: 'center',
   },
   bookAuthor: {
     ...Typography.styles.bodyMd,
-    color: Colors.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
     textAlign: 'center',
   },
   metaRow: {
@@ -481,17 +484,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   genreChip: {
-    backgroundColor: Colors.secondaryContainer,
+    backgroundColor: colors.secondaryContainer,
     borderRadius: Radius.full,
     paddingHorizontal: 10,
     paddingVertical: 4,
   },
   genreChipText: {
     ...Typography.styles.labelSm,
-    color: Colors.onSecondaryContainer,
+    color: colors.onSecondaryContainer,
   },
   progressCard: {
-    backgroundColor: Colors.surfaceContainerLowest,
+    backgroundColor: colors.surfaceContainerLowest,
     borderRadius: Radius.xl,
     padding: Spacing.stackMd,
   },
@@ -503,32 +506,32 @@ const styles = StyleSheet.create({
   progressStat: {
     ...Typography.styles.numericXl,
     fontSize: 28,
-    color: Colors.primary,
+    color: colors.primary,
     textAlign: 'center',
   },
   progressStatLabel: {
     ...Typography.styles.labelSm,
-    color: Colors.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
     textAlign: 'center',
   },
   progressDivider: {
     width: StyleSheet.hairlineWidth,
     height: 40,
-    backgroundColor: Colors.outlineVariant,
+    backgroundColor: colors.outlineVariant,
   },
   primaryButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: Colors.primary,
+    backgroundColor: colors.primary,
     borderRadius: Radius.xl,
     paddingVertical: 16,
     ...Shadows.button,
   },
   primaryButtonText: {
     ...Typography.styles.labelLg,
-    color: Colors.onPrimary,
+    color: colors.onPrimary,
   },
   statusSection: {
     marginTop: Spacing.stackSm,
@@ -536,7 +539,7 @@ const styles = StyleSheet.create({
   },
   statusTabs: {
     flexDirection: 'row',
-    backgroundColor: Colors.surfaceContainerHigh,
+    backgroundColor: colors.surfaceContainerHigh,
     borderRadius: Radius.full,
     padding: 4,
   },
@@ -547,47 +550,47 @@ const styles = StyleSheet.create({
     borderRadius: Radius.full,
   },
   statusTabActive: {
-    backgroundColor: Colors.primary,
+    backgroundColor: colors.primary,
   },
   statusTabText: {
     ...Typography.styles.labelSm,
-    color: Colors.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
   },
   statusTabTextActive: {
-    color: Colors.onPrimary,
+    color: colors.onPrimary,
   },
   section: {
     gap: Spacing.base,
   },
   sectionTitle: {
     ...Typography.styles.titleSm,
-    color: Colors.onSurface,
+    color: colors.onSurface,
   },
   placeholder: {
     ...Typography.styles.bodyMd,
-    color: Colors.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
     opacity: 0.6,
   },
   reviewInput: {
-    backgroundColor: Colors.surfaceContainerLowest,
+    backgroundColor: colors.surfaceContainerLowest,
     borderWidth: 1,
-    borderColor: Colors.outlineVariant,
+    borderColor: colors.outlineVariant,
     borderRadius: Radius.md,
     padding: 12,
     minHeight: 100,
     ...Typography.styles.bodyMd,
-    color: Colors.onSurface,
+    color: colors.onSurface,
     textAlignVertical: 'top',
   },
   saveButton: {
-    backgroundColor: Colors.secondaryContainer,
+    backgroundColor: colors.secondaryContainer,
     borderRadius: Radius.full,
     paddingVertical: 10,
     alignItems: 'center',
   },
   saveButtonText: {
     ...Typography.styles.labelLg,
-    color: Colors.onSecondaryContainer,
+    color: colors.onSecondaryContainer,
   },
   shareModalOverlay: {
     flex: 1,
@@ -597,7 +600,7 @@ const styles = StyleSheet.create({
   },
   shareModalContent: {
     width: '85%',
-    backgroundColor: Colors.surfaceContainerLowest,
+    backgroundColor: colors.surfaceContainerLowest,
     borderRadius: Radius.xl,
     padding: Spacing.base,
     alignItems: 'center',
@@ -609,7 +612,7 @@ const styles = StyleSheet.create({
   },
   shareModalTitle: {
     ...Typography.styles.titleSm,
-    color: Colors.onSurface,
+    color: colors.onSurface,
     marginBottom: Spacing.base,
   },
   shareCard: {

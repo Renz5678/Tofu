@@ -10,11 +10,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-import { Colors, Typography, Spacing, Radius, Shadows } from '@/theme';
+import { useTheme, Typography, Spacing, Radius, Shadows } from '@/theme';
 import { EmptyState } from '@/components/EmptyState';
 import { usePlaylists, useCreatePlaylist } from '@/hooks/usePlaylists';
 
 export default function PlaylistsIndexScreen() {
+  const { colors, isDark } = useTheme();
+  const styles = createStyles(colors, isDark);
+
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
@@ -31,14 +34,14 @@ export default function PlaylistsIndexScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: Colors.background }}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <TouchableOpacity onPress={() => router.back()} hitSlop={12}>
-          <MaterialIcons name="arrow-back" size={24} color={Colors.onSurface} />
+          <MaterialIcons name="arrow-back" size={24} color={colors.onSurface} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Reading Lists</Text>
         <TouchableOpacity style={styles.addButton} onPress={handleCreate} hitSlop={12}>
-          <MaterialIcons name="add" size={22} color={Colors.onPrimary} />
+          <MaterialIcons name="add" size={22} color={colors.onPrimary} />
         </TouchableOpacity>
       </View>
 
@@ -64,7 +67,7 @@ export default function PlaylistsIndexScreen() {
             >
               {/* Cover collage fallback */}
               <View style={styles.collage}>
-                <MaterialIcons name="auto-awesome-motion" size={32} color={Colors.primary} style={{ margin: 'auto' }} />
+                <MaterialIcons name="auto-awesome-motion" size={32} color={colors.primary} style={{ margin: 'auto' }} />
               </View>
               <View style={{ flex: 1, gap: 4 }}>
                 <Text style={styles.cardTitle}>{pl.title}</Text>
@@ -75,7 +78,7 @@ export default function PlaylistsIndexScreen() {
                   {pl.is_public ? 'Public' : 'Private'}
                 </Text>
               </View>
-              <MaterialIcons name="chevron-right" size={20} color={Colors.onSurfaceVariant} style={{ opacity: 0.4 }} />
+              <MaterialIcons name="chevron-right" size={20} color={colors.onSurfaceVariant} style={{ opacity: 0.4 }} />
             </TouchableOpacity>
           ))}
         </ScrollView>
@@ -84,7 +87,7 @@ export default function PlaylistsIndexScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -92,12 +95,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.containerPadding,
     paddingBottom: Spacing.stackSm,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.outlineVariant,
+    borderBottomColor: colors.outlineVariant,
   },
-  headerTitle: { ...Typography.styles.titleSm, color: Colors.onSurface },
+  headerTitle: { ...Typography.styles.titleSm, color: colors.onSurface },
   addButton: {
     width: 36, height: 36, borderRadius: 18,
-    backgroundColor: Colors.primary,
+    backgroundColor: colors.primary,
     alignItems: 'center', justifyContent: 'center',
   },
   scroll: {
@@ -106,7 +109,7 @@ const styles = StyleSheet.create({
     gap: Spacing.stackSm,
   },
   card: {
-    backgroundColor: Colors.surfaceContainerLowest,
+    backgroundColor: colors.surfaceContainerLowest,
     borderRadius: Radius.xl,
     flexDirection: 'row',
     alignItems: 'center',
@@ -120,14 +123,14 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     flexDirection: 'row',
     flexWrap: 'wrap',
-    backgroundColor: Colors.surfaceContainerHigh,
+    backgroundColor: colors.surfaceContainerHigh,
   },
   collageCell: {
     width: '50%',
     height: '50%',
     overflow: 'hidden',
   },
-  cardTitle: { ...Typography.styles.titleSm, fontSize: 15, color: Colors.onSurface },
-  cardDesc: { ...Typography.styles.bodyMd, fontSize: 13, color: Colors.onSurfaceVariant, opacity: 0.7 },
-  cardMeta: { ...Typography.styles.labelSm, color: Colors.onSurfaceVariant, opacity: 0.6 },
+  cardTitle: { ...Typography.styles.titleSm, fontSize: 15, color: colors.onSurface },
+  cardDesc: { ...Typography.styles.bodyMd, fontSize: 13, color: colors.onSurfaceVariant, opacity: 0.7 },
+  cardMeta: { ...Typography.styles.labelSm, color: colors.onSurfaceVariant, opacity: 0.6 },
 });

@@ -15,9 +15,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Link, useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { supabase } from '@/lib/supabase';
-import { Colors, Typography, Spacing, Radius } from '@/theme';
+import { useTheme, Typography, Spacing, Radius } from '@/theme';
 
 export default function SignInScreen() {
+  const { colors, isDark } = useTheme();
+  const styles = createStyles(colors, isDark);
+
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [email, setEmail] = useState('');
@@ -42,7 +45,7 @@ export default function SignInScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: Colors.background }}
+      style={{ flex: 1, backgroundColor: colors.background }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView
@@ -52,7 +55,7 @@ export default function SignInScreen() {
         {/* Logo */}
         <View style={styles.logoRow}>
           <View style={styles.logoIcon}>
-            <MaterialIcons name="menu-book" size={28} color={Colors.onPrimary} />
+            <MaterialIcons name="menu-book" size={28} color={colors.onPrimary} />
           </View>
           <Text style={styles.logoText}>Tofu</Text>
         </View>
@@ -73,7 +76,7 @@ export default function SignInScreen() {
           <TextInput
             style={styles.input}
             placeholder="hello@example.com"
-            placeholderTextColor={`${Colors.onSurfaceVariant}66`}
+            placeholderTextColor={`${colors.onSurfaceVariant}66`}
             value={email}
             onChangeText={setEmail}
             autoCapitalize="none"
@@ -89,7 +92,7 @@ export default function SignInScreen() {
             <TextInput
               style={styles.input}
               placeholder="••••••••"
-              placeholderTextColor={`${Colors.onSurfaceVariant}66`}
+              placeholderTextColor={`${colors.onSurfaceVariant}66`}
               value={password}
               onChangeText={setPassword}
               secureTextEntry={!showPassword}
@@ -102,7 +105,7 @@ export default function SignInScreen() {
               <MaterialIcons
                 name={showPassword ? 'visibility' : 'visibility-off'}
                 size={20}
-                color={Colors.onSurfaceVariant}
+                color={colors.onSurfaceVariant}
               />
             </TouchableOpacity>
           </View>
@@ -116,7 +119,7 @@ export default function SignInScreen() {
           disabled={loading}
         >
           {loading ? (
-            <ActivityIndicator color={Colors.onPrimary} />
+            <ActivityIndicator color={colors.onPrimary} />
           ) : (
             <Text style={styles.primaryButtonText}>Start Reading</Text>
           )}
@@ -151,7 +154,7 @@ export default function SignInScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   scroll: {
     paddingHorizontal: Spacing.containerPadding,
     gap: Spacing.stackMd,
@@ -167,37 +170,37 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: Radius.lg,
-    backgroundColor: Colors.primary,
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   logoText: {
     ...Typography.styles.headlineMd,
-    color: Colors.primary,
+    color: colors.primary,
   },
   heroCard: {
     height: 160,
     borderRadius: Radius.xl,
-    backgroundColor: Colors.primaryContainer,
+    backgroundColor: colors.primaryContainer,
     overflow: 'hidden',
     justifyContent: 'flex-end',
     padding: Spacing.gutter,
   },
   heroGradient: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: `${Colors.primary}66`,
+    backgroundColor: `${colors.primary}66`,
   },
   heroText: {
     ...Typography.styles.displayLgMobile,
-    color: Colors.onPrimary,
+    color: colors.onPrimary,
   },
   heading: {
     ...Typography.styles.headlineMd,
-    color: Colors.onSurface,
+    color: colors.onSurface,
   },
   subheading: {
     ...Typography.styles.bodyMd,
-    color: Colors.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
     marginTop: -Spacing.stackSm,
   },
   fieldGroup: {
@@ -205,18 +208,18 @@ const styles = StyleSheet.create({
   },
   label: {
     ...Typography.styles.labelSm,
-    color: Colors.primary,
+    color: colors.primary,
     marginLeft: 4,
   },
   input: {
-    backgroundColor: Colors.surfaceContainerLow,
+    backgroundColor: colors.surfaceContainerLow,
     borderWidth: 1,
-    borderColor: Colors.outlineVariant,
+    borderColor: colors.outlineVariant,
     borderRadius: Radius.md,
     paddingHorizontal: Spacing.gutter,
     paddingVertical: 14,
     ...Typography.styles.bodyMd,
-    color: Colors.onSurface,
+    color: colors.onSurface,
   },
   eyeButton: {
     position: 'absolute',
@@ -224,11 +227,11 @@ const styles = StyleSheet.create({
     top: 14,
   },
   primaryButton: {
-    backgroundColor: Colors.primary,
+    backgroundColor: colors.primary,
     borderRadius: Radius.xl,
     paddingVertical: 16,
     alignItems: 'center',
-    shadowColor: Colors.primary,
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 12,
@@ -239,7 +242,7 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: {
     ...Typography.styles.labelLg,
-    color: Colors.onPrimary,
+    color: colors.onPrimary,
   },
   dividerRow: {
     flexDirection: 'row',
@@ -249,11 +252,11 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: StyleSheet.hairlineWidth,
-    backgroundColor: Colors.outlineVariant,
+    backgroundColor: colors.outlineVariant,
   },
   dividerText: {
     ...Typography.styles.labelSm,
-    color: `${Colors.onSurfaceVariant}99`,
+    color: `${colors.onSurfaceVariant}99`,
   },
   signUpRow: {
     flexDirection: 'row',
@@ -262,15 +265,15 @@ const styles = StyleSheet.create({
   },
   signUpText: {
     ...Typography.styles.bodyMd,
-    color: Colors.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
   },
   signUpLink: {
     ...Typography.styles.labelLg,
-    color: Colors.primary,
+    color: colors.primary,
     textDecorationLine: 'underline',
   },
   quoteBox: {
-    backgroundColor: `${Colors.surfaceContainerLow}88`,
+    backgroundColor: `${colors.surfaceContainerLow}88`,
     borderRadius: Radius.xl,
     padding: Spacing.stackMd,
     alignItems: 'center',
@@ -278,14 +281,14 @@ const styles = StyleSheet.create({
   },
   quoteText: {
     ...Typography.styles.titleSm,
-    color: Colors.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
     textAlign: 'center',
     fontStyle: 'italic',
     opacity: 0.7,
   },
   quoteAuthor: {
     ...Typography.styles.labelSm,
-    color: Colors.primary,
+    color: colors.primary,
     marginTop: Spacing.base,
     letterSpacing: 2,
   },

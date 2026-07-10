@@ -12,7 +12,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-import { Colors, Typography, Spacing, Radius, Shadows } from '@/theme';
+import { useTheme, Typography, Spacing, Radius, Shadows } from '@/theme';
 import { ProgressRing } from '@/components/ProgressRing';
 import { useGoals, useUpsertGoal, GoalType } from '@/hooks/useGoals';
 import { useReadingSessions } from '@/hooks/useReadingSessions';
@@ -24,6 +24,9 @@ const LABELS: Record<GoalType, string> = {
 };
 
 export default function GoalsScreen() {
+  const { colors, isDark } = useTheme();
+  const styles = createStyles(colors, isDark);
+
   const router = useRouter();
   const insets = useSafeAreaInsets();
   
@@ -94,14 +97,14 @@ export default function GoalsScreen() {
   });
 
   return (
-    <View style={{ flex: 1, backgroundColor: Colors.background }}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <TouchableOpacity onPress={() => router.back()} hitSlop={12}>
-          <MaterialIcons name="arrow-back" size={24} color={Colors.onSurface} />
+          <MaterialIcons name="arrow-back" size={24} color={colors.onSurface} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Reading Goals</Text>
         <TouchableOpacity style={styles.addButton} hitSlop={12} onPress={() => handleOpenModal()}>
-          <MaterialIcons name="add" size={22} color={Colors.onPrimary} />
+          <MaterialIcons name="add" size={22} color={colors.onPrimary} />
         </TouchableOpacity>
       </View>
 
@@ -128,12 +131,12 @@ export default function GoalsScreen() {
                   {goal.current} / {goal.target}
                 </Text>
                 <View style={styles.goalStatusRow}>
-                  <View style={[styles.statusDot, { backgroundColor: goal.active ? Colors.primary : Colors.outline }]} />
+                  <View style={[styles.statusDot, { backgroundColor: goal.active ? colors.primary : colors.outline }]} />
                   <Text style={styles.goalStatusText}>{goal.active ? 'Active' : 'Paused'}</Text>
                 </View>
               </View>
               <TouchableOpacity hitSlop={12} onPress={() => handleOpenModal(goal.goal_type, goal.target)}>
-                <MaterialIcons name="edit" size={20} color={Colors.onSurfaceVariant} style={{ opacity: 0.5 }} />
+                <MaterialIcons name="edit" size={20} color={colors.onSurfaceVariant} style={{ opacity: 0.5 }} />
               </TouchableOpacity>
             </View>
           );
@@ -141,7 +144,7 @@ export default function GoalsScreen() {
 
         {/* Add goal placeholder */}
         <TouchableOpacity style={styles.addGoalCard} onPress={() => handleOpenModal()}>
-          <MaterialIcons name="add-circle-outline" size={24} color={Colors.primary} />
+          <MaterialIcons name="add-circle-outline" size={24} color={colors.primary} />
           <Text style={styles.addGoalText}>Add a new goal</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -173,7 +176,7 @@ export default function GoalsScreen() {
                 value={targetValue}
                 onChangeText={setTargetValue}
                 placeholder={`Target value (e.g. ${editingType === 'minutes_per_day' && timeUnit === 'hours' ? '1.5' : '30'})`}
-                placeholderTextColor={Colors.onSurfaceVariant}
+                placeholderTextColor={colors.onSurfaceVariant}
                 autoFocus
               />
               
@@ -210,7 +213,7 @@ export default function GoalsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -218,12 +221,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.containerPadding,
     paddingBottom: Spacing.stackSm,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.outlineVariant,
+    borderBottomColor: colors.outlineVariant,
   },
-  headerTitle: { ...Typography.styles.titleSm, color: Colors.onSurface },
+  headerTitle: { ...Typography.styles.titleSm, color: colors.onSurface },
   addButton: {
     width: 36, height: 36, borderRadius: 18,
-    backgroundColor: Colors.primary,
+    backgroundColor: colors.primary,
     alignItems: 'center', justifyContent: 'center',
   },
   scroll: {
@@ -233,36 +236,36 @@ const styles = StyleSheet.create({
   },
   sectionSub: {
     ...Typography.styles.bodyMd,
-    color: Colors.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
     opacity: 0.7,
     marginBottom: Spacing.base,
   },
   goalCard: {
-    backgroundColor: Colors.surfaceContainerLowest,
+    backgroundColor: colors.surfaceContainerLowest,
     borderRadius: Radius.xl,
     flexDirection: 'row',
     alignItems: 'center',
     padding: Spacing.stackMd,
     gap: Spacing.stackMd,
   },
-  goalLabel: { ...Typography.styles.titleSm, fontSize: 15, color: Colors.onSurface },
-  goalValues: { ...Typography.styles.bodyMd, color: Colors.onSurfaceVariant },
+  goalLabel: { ...Typography.styles.titleSm, fontSize: 15, color: colors.onSurface },
+  goalValues: { ...Typography.styles.bodyMd, color: colors.onSurfaceVariant },
   goalStatusRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   statusDot: { width: 8, height: 8, borderRadius: 4 },
-  goalStatusText: { ...Typography.styles.labelSm, color: Colors.onSurfaceVariant },
+  goalStatusText: { ...Typography.styles.labelSm, color: colors.onSurfaceVariant },
   addGoalCard: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: Spacing.base,
-    backgroundColor: Colors.surfaceContainerLow,
+    backgroundColor: colors.surfaceContainerLow,
     borderRadius: Radius.xl,
     borderWidth: 1.5,
-    borderColor: Colors.outlineVariant,
+    borderColor: colors.outlineVariant,
     borderStyle: 'dashed',
     paddingVertical: Spacing.stackMd,
   },
-  addGoalText: { ...Typography.styles.labelLg, color: Colors.primary },
+  addGoalText: { ...Typography.styles.labelLg, color: colors.primary },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
@@ -270,28 +273,28 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.containerPadding,
   },
   modalContent: {
-    backgroundColor: Colors.surfaceContainerLowest,
+    backgroundColor: colors.surfaceContainerLowest,
     borderRadius: Radius.xl,
     padding: Spacing.containerPadding,
     gap: Spacing.stackMd,
   },
-  modalTitle: { ...Typography.styles.headlineMd, color: Colors.onSurface, marginBottom: Spacing.stackSm },
+  modalTitle: { ...Typography.styles.headlineMd, color: colors.onSurface, marginBottom: Spacing.stackSm },
   modalTypeRow: { gap: Spacing.stackSm },
   modalTypePill: {
     paddingVertical: 12, paddingHorizontal: 16,
     borderRadius: Radius.full,
-    borderWidth: 1, borderColor: Colors.outlineVariant,
+    borderWidth: 1, borderColor: colors.outlineVariant,
     alignItems: 'center',
   },
-  modalTypePillActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
-  modalTypeText: { ...Typography.styles.labelLg, color: Colors.onSurfaceVariant },
-  modalTypeTextActive: { color: Colors.onPrimary, fontWeight: 'bold' },
+  modalTypePillActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+  modalTypeText: { ...Typography.styles.labelLg, color: colors.onSurfaceVariant },
+  modalTypeTextActive: { color: colors.onPrimary, fontWeight: 'bold' },
   modalInput: {
     ...Typography.styles.bodyMd,
-    borderWidth: 1, borderColor: Colors.outlineVariant,
+    borderWidth: 1, borderColor: colors.outlineVariant,
     borderRadius: Radius.md,
     padding: 16, marginTop: Spacing.stackSm,
-    color: Colors.onSurface,
+    color: colors.onSurface,
   },
   unitToggleRow: {
     flexDirection: 'row',
@@ -304,23 +307,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: Radius.full,
     borderWidth: 1,
-    borderColor: Colors.outlineVariant,
+    borderColor: colors.outlineVariant,
   },
   unitToggleBtnActive: {
-    backgroundColor: Colors.secondaryContainer,
-    borderColor: Colors.secondaryContainer,
+    backgroundColor: colors.secondaryContainer,
+    borderColor: colors.secondaryContainer,
   },
   unitToggleText: {
     ...Typography.styles.labelSm,
-    color: Colors.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
   },
   unitToggleTextActive: {
-    color: Colors.onSecondaryContainer,
+    color: colors.onSecondaryContainer,
     fontWeight: 'bold',
   },
   modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: Spacing.stackSm, marginTop: Spacing.base },
   modalCancel: { paddingHorizontal: 20, paddingVertical: 12 },
-  modalCancelText: { ...Typography.styles.labelLg, color: Colors.onSurfaceVariant },
-  modalSave: { paddingHorizontal: 24, paddingVertical: 12, backgroundColor: Colors.primary, borderRadius: Radius.full },
-  modalSaveText: { ...Typography.styles.labelLg, color: Colors.onPrimary },
+  modalCancelText: { ...Typography.styles.labelLg, color: colors.onSurfaceVariant },
+  modalSave: { paddingHorizontal: 24, paddingVertical: 12, backgroundColor: colors.primary, borderRadius: Radius.full },
+  modalSaveText: { ...Typography.styles.labelLg, color: colors.onPrimary },
 });

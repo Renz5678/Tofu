@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { Colors, Typography, Spacing } from '@/theme';
+import { useTheme, Typography, Spacing } from '@/theme';
 
 interface EmptyStateProps {
   icon?: keyof typeof MaterialIcons.glyphMap;
@@ -18,10 +18,13 @@ export function EmptyState({
   actionLabel,
   onAction,
 }: EmptyStateProps) {
+  const { colors, isDark } = useTheme();
+  const styles = createStyles(colors, isDark);
+
   return (
     <View style={styles.container}>
       <View style={styles.iconWrapper}>
-        <MaterialIcons name={icon} size={48} color={Colors.primary} style={{ opacity: 0.4 }} />
+        <MaterialIcons name={icon} size={48} color={colors.primary} style={{ opacity: 0.4 }} />
       </View>
       <Text style={styles.title}>{title}</Text>
       {description && <Text style={styles.description}>{description}</Text>}
@@ -34,7 +37,7 @@ export function EmptyState({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
@@ -46,32 +49,32 @@ const styles = StyleSheet.create({
     width: 88,
     height: 88,
     borderRadius: 44,
-    backgroundColor: Colors.surfaceContainer,
+    backgroundColor: colors.surfaceContainer,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: Spacing.stackMd,
   },
   title: {
     ...Typography.styles.titleSm,
-    color: Colors.onSurface,
+    color: colors.onSurface,
     textAlign: 'center',
     marginBottom: Spacing.base,
   },
   description: {
     ...Typography.styles.bodyMd,
-    color: Colors.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
     textAlign: 'center',
     opacity: 0.7,
     marginBottom: Spacing.stackMd,
   },
   button: {
-    backgroundColor: Colors.primary,
+    backgroundColor: colors.primary,
     paddingHorizontal: Spacing.stackMd,
     paddingVertical: 14,
     borderRadius: 12,
   },
   buttonText: {
     ...Typography.styles.labelLg,
-    color: Colors.onPrimary,
+    color: colors.onPrimary,
   },
 });

@@ -12,13 +12,16 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-import { Colors, Typography, Spacing, Radius, Shadows } from '@/theme';
+import { useTheme, Typography, Spacing, Radius, Shadows } from '@/theme';
 import { useLibrary, useUpdateBook } from '@/hooks/useLibrary';
 import { useSessionStore } from '@/store/sessionStore';
 import { useLogSession } from '@/hooks/useReadingSessions';
 import { ActivityIndicator } from 'react-native';
 
 export default function SessionFinishScreen() {
+  const { colors, isDark } = useTheme();
+  const styles = createStyles(colors, isDark);
+
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { activeSession, clearSession } = useSessionStore();
@@ -34,10 +37,10 @@ export default function SessionFinishScreen() {
 
   if (!activeSession || !book) {
     return (
-      <View style={{ flex: 1, backgroundColor: Colors.background, alignItems: 'center', justifyContent: 'center' }}>
-         <Text style={{ color: Colors.onSurface }}>No active session to finish.</Text>
+      <View style={{ flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' }}>
+         <Text style={{ color: colors.onSurface }}>No active session to finish.</Text>
          <TouchableOpacity onPress={() => router.back()} style={{ marginTop: 16 }}>
-            <Text style={{ color: Colors.primary }}>Go Back</Text>
+            <Text style={{ color: colors.primary }}>Go Back</Text>
          </TouchableOpacity>
       </View>
     );
@@ -104,11 +107,11 @@ export default function SessionFinishScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: Colors.background }}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <TouchableOpacity onPress={() => router.back()} hitSlop={12}>
-          <MaterialIcons name="close" size={24} color={Colors.onSurface} />
+          <MaterialIcons name="close" size={24} color={colors.onSurface} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Session Complete</Text>
         <View style={{ width: 24 }} />
@@ -120,7 +123,7 @@ export default function SessionFinishScreen() {
       >
         {/* Trophy / celebration */}
         <View style={styles.celebrationCard}>
-          <MaterialIcons name="emoji-events" size={48} color={Colors.onPrimaryContainer} />
+          <MaterialIcons name="emoji-events" size={48} color={colors.onPrimaryContainer} />
           <Text style={styles.celebrationText}>Great reading session!</Text>
           <Text style={styles.celebrationSub}>{durationMinutes} minutes · {pagesRead} pages</Text>
         </View>
@@ -150,14 +153,14 @@ export default function SessionFinishScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>CURRENT PAGE</Text>
           <TextInput
-            style={[styles.pageInput, errorMessage ? { borderColor: Colors.error, borderWidth: 1 } : null]}
+            style={[styles.pageInput, errorMessage ? { borderColor: colors.error, borderWidth: 1 } : null]}
             value={endPage}
             onChangeText={setEndPage}
             keyboardType="numeric"
             placeholder={String(book.current_page)}
-            placeholderTextColor={`${Colors.onSurfaceVariant}66`}
+            placeholderTextColor={`${colors.onSurfaceVariant}66`}
           />
-          <Text style={[styles.pageHint, errorMessage ? { color: Colors.error } : null]}>
+          <Text style={[styles.pageHint, errorMessage ? { color: colors.error } : null]}>
             {errorMessage || 'Update your last page read'}
           </Text>
         </View>
@@ -172,7 +175,7 @@ export default function SessionFinishScreen() {
             multiline
             numberOfLines={4}
             placeholder="How was this reading session? Any thoughts on the book?"
-            placeholderTextColor={`${Colors.onSurfaceVariant}66`}
+            placeholderTextColor={`${colors.onSurfaceVariant}66`}
             textAlignVertical="top"
           />
         </View>
@@ -185,7 +188,7 @@ export default function SessionFinishScreen() {
           activeOpacity={0.85}
         >
           {isPending ? (
-            <ActivityIndicator size="small" color={Colors.onPrimary} />
+            <ActivityIndicator size="small" color={colors.onPrimary} />
           ) : (
             <Text style={styles.primaryButtonText}>Save Session</Text>
           )}
@@ -196,7 +199,7 @@ export default function SessionFinishScreen() {
           onPress={() => router.push('/share/session/latest')}
           activeOpacity={0.85}
         >
-          <MaterialIcons name="share" size={18} color={Colors.primary} />
+          <MaterialIcons name="share" size={18} color={colors.primary} />
           <Text style={styles.secondaryButtonText}>Share Reading Recap</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -205,6 +208,8 @@ export default function SessionFinishScreen() {
 }
 
 function StatItem({ label, value }: { label: string; value: string }) {
+  const { colors, isDark } = useTheme();
+  const styles = createStyles(colors, isDark);
   return (
     <View style={styles.statItem}>
       <Text style={styles.statValue}>{value}</Text>
@@ -213,7 +218,7 @@ function StatItem({ label, value }: { label: string; value: string }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -221,11 +226,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.containerPadding,
     paddingBottom: Spacing.stackSm,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.outlineVariant,
+    borderBottomColor: colors.outlineVariant,
   },
   headerTitle: {
     ...Typography.styles.titleSm,
-    color: Colors.onSurface,
+    color: colors.onSurface,
   },
   scroll: {
     paddingHorizontal: Spacing.containerPadding,
@@ -233,7 +238,7 @@ const styles = StyleSheet.create({
     gap: Spacing.stackMd,
   },
   celebrationCard: {
-    backgroundColor: Colors.primaryContainer,
+    backgroundColor: colors.primaryContainer,
     borderRadius: Radius.xl,
     padding: Spacing.stackMd,
     alignItems: 'center',
@@ -244,18 +249,18 @@ const styles = StyleSheet.create({
   },
   celebrationText: {
     ...Typography.styles.titleSm,
-    color: Colors.onPrimaryContainer,
+    color: colors.onPrimaryContainer,
   },
   celebrationSub: {
     ...Typography.styles.bodyMd,
-    color: Colors.onPrimaryContainer,
+    color: colors.onPrimaryContainer,
     opacity: 0.8,
   },
   recapCard: {
-    backgroundColor: Colors.surfaceContainerLowest,
+    backgroundColor: colors.surfaceContainerLowest,
     borderRadius: Radius.xl,
     borderWidth: 1,
-    borderColor: Colors.outlineVariant,
+    borderColor: colors.outlineVariant,
     padding: Spacing.stackMd,
     gap: Spacing.stackMd,
     ...Shadows.card,
@@ -273,11 +278,11 @@ const styles = StyleSheet.create({
   },
   bookTitle: {
     ...Typography.styles.titleSm,
-    color: Colors.onSurface,
+    color: colors.onSurface,
   },
   bookAuthor: {
     ...Typography.styles.bodyMd,
-    color: Colors.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
     fontSize: 14,
   },
   statsRow: {
@@ -285,7 +290,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     paddingTop: Spacing.stackSm,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Colors.outlineVariant,
+    borderTopColor: colors.outlineVariant,
   },
   statItem: {
     alignItems: 'center',
@@ -294,49 +299,49 @@ const styles = StyleSheet.create({
   statValue: {
     ...Typography.styles.numericXl,
     fontSize: 22,
-    color: Colors.primary,
+    color: colors.primary,
   },
   statLabel: {
     ...Typography.styles.labelSm,
-    color: Colors.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
   },
   section: {
     gap: 6,
   },
   sectionLabel: {
     ...Typography.styles.labelSm,
-    color: Colors.primary,
+    color: colors.primary,
     marginLeft: 4,
   },
   pageInput: {
-    backgroundColor: Colors.surfaceContainerLow,
+    backgroundColor: colors.surfaceContainerLow,
     borderWidth: 1,
-    borderColor: Colors.outlineVariant,
+    borderColor: colors.outlineVariant,
     borderRadius: Radius.md,
     paddingHorizontal: Spacing.gutter,
     paddingVertical: 14,
     ...Typography.styles.bodyMd,
-    color: Colors.onSurface,
+    color: colors.onSurface,
   },
   pageHint: {
     ...Typography.styles.labelSm,
-    color: Colors.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
     opacity: 0.6,
     marginLeft: 4,
   },
   notesInput: {
-    backgroundColor: Colors.surfaceContainerLow,
+    backgroundColor: colors.surfaceContainerLow,
     borderWidth: 1,
-    borderColor: Colors.outlineVariant,
+    borderColor: colors.outlineVariant,
     borderRadius: Radius.md,
     paddingHorizontal: Spacing.gutter,
     paddingVertical: 14,
     ...Typography.styles.bodyMd,
-    color: Colors.onSurface,
+    color: colors.onSurface,
     minHeight: 100,
   },
   primaryButton: {
-    backgroundColor: Colors.primary,
+    backgroundColor: colors.primary,
     borderRadius: Radius.xl,
     paddingVertical: 16,
     alignItems: 'center',
@@ -344,19 +349,19 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: {
     ...Typography.styles.labelLg,
-    color: Colors.onPrimary,
+    color: colors.onPrimary,
   },
   secondaryButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: Colors.secondaryContainer,
+    backgroundColor: colors.secondaryContainer,
     borderRadius: Radius.xl,
     paddingVertical: 16,
   },
   secondaryButtonText: {
     ...Typography.styles.labelLg,
-    color: Colors.primary,
+    color: colors.primary,
   },
 });

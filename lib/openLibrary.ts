@@ -25,17 +25,18 @@ interface OpenLibraryDoc {
 }
 
 export async function searchBooks(query: string, genre?: string, language?: string): Promise<BookItem[]> {
-  const params = new URLSearchParams({ 
-    q: query, 
-    limit: '20',
-    fields: 'key,title,author_name,cover_i,number_of_pages_median,isbn,subject,language'
-  });
-  if (genre) params.set('subject', genre);
-  if (language) params.set('language', language);
+  const params = [
+    `q=${encodeURIComponent(query)}`,
+    `limit=20`,
+    `fields=key,title,author_name,cover_i,number_of_pages_median,isbn,subject,language`
+  ];
+  if (genre) params.push(`subject=${encodeURIComponent(genre)}`);
+  if (language) params.push(`language=${encodeURIComponent(language)}`);
   
-  const res = await fetch(`https://openlibrary.org/search.json?${params.toString()}`, {
+  const url = `https://openlibrary.org/search.json?${params.join('&')}`;
+  
+  const res = await fetch(url, {
     headers: {
-      'User-Agent': 'TofuApp/1.0 (https://github.com/Renz5678/Tofu)',
       'Accept': 'application/json'
     }
   });

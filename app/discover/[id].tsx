@@ -37,7 +37,6 @@ export default function DiscoverBookScreen() {
       try {
         const res = await fetch(`https://openlibrary.org${book.open_library_id}.json`, {
           headers: {
-            'User-Agent': 'TofuApp/1.0 (https://github.com/Renz5678/Tofu)',
             'Accept': 'application/json'
           }
         });

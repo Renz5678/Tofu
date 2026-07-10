@@ -83,7 +83,6 @@ export default function DashboardScreen() {
     router.push('/session/active');
   };
 
-  const maxWeekly = Math.max(...weeklyData, 1);
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <TopBar

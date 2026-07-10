@@ -33,7 +33,12 @@ export async function searchBooks(query: string, genre?: string, language?: stri
   if (genre) params.set('subject', genre);
   if (language) params.set('language', language);
   
-  const res = await fetch(`https://openlibrary.org/search.json?${params.toString()}`);
+  const res = await fetch(`https://openlibrary.org/search.json?${params.toString()}`, {
+    headers: {
+      'User-Agent': 'TofuApp/1.0 (https://github.com/Renz5678/Tofu)',
+      'Accept': 'application/json'
+    }
+  });
   if (!res.ok) throw new Error(`Open Library API error: ${res.status}`);
   
   const data = await res.json();

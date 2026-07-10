@@ -35,7 +35,12 @@ export default function DiscoverBookScreen() {
     const fetchSynopsis = async () => {
       setLoadingSynopsis(true);
       try {
-        const res = await fetch(`https://openlibrary.org${book.open_library_id}.json`);
+        const res = await fetch(`https://openlibrary.org${book.open_library_id}.json`, {
+          headers: {
+            'User-Agent': 'TofuApp/1.0 (https://github.com/Renz5678/Tofu)',
+            'Accept': 'application/json'
+          }
+        });
         const data = await res.json();
         if (data.description) {
           const desc = typeof data.description === 'string' ? data.description : data.description.value;

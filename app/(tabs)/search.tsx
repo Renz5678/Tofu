@@ -83,7 +83,8 @@ export default function SearchScreen() {
             setUserResults([]);
           }
         }
-      } catch {
+      } catch (e) {
+        console.error('Search error:', e);
         setResults([]);
         setUserResults([]);
       } finally {

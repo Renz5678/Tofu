@@ -7,6 +7,7 @@ import {
   StyleSheet,
   useWindowDimensions,
   Pressable,
+  Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
@@ -80,10 +81,41 @@ export default function DashboardScreen() {
 
   const handleContinueReading = async () => {
     if (!currentBook) return;
+    
+    if (activeSession && activeSession.userBookId !== currentBook.id) {
+      Alert.alert(
+        'Active Session Exists',
+        `You have an active reading session for "${activeSession.bookTitle || 'another book'}".`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { 
+            text: 'Go to Session', 
+            onPress: () => router.push('/session/active') 
+          },
+          { 
+            text: 'Discard Old', 
+            style: 'destructive',
+            onPress: async () => {
+              await startSession({
+                userBookId: currentBook.id,
+                bookTitle: currentBook.title,
+                startPage: currentBook.current_page || 0,
+                startTime: new Date().toISOString(),
+                totalPausedSeconds: 0,
+              });
+              router.push('/session/active');
+            }
+          }
+        ]
+      );
+      return;
+    }
+
     if (activeSession?.userBookId !== currentBook.id) {
       await startSession({
         userBookId: currentBook.id,
-        startPage: currentBook.current_page,
+        bookTitle: currentBook.title,
+        startPage: currentBook.current_page || 0,
         startTime: new Date().toISOString(),
         totalPausedSeconds: 0,
       });

@@ -9,6 +9,7 @@ const SESSION_STORAGE_KEY = '@tofu/active_session';
 
 export interface ActiveSession {
   userBookId: string;
+  bookTitle?: string;
   startPage: number;
   startTime: string; // ISO string
   pausedAt?: string; // ISO string — set when paused

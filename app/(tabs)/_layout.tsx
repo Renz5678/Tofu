@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme, Typography, Spacing } from '@/theme';
 import { supabase } from '@/lib/supabase';
+import { GlobalSessionBanner } from '@/components/GlobalSessionBanner';
 
 type TabIconProps = {
   name: keyof typeof MaterialIcons.glyphMap;
@@ -59,7 +60,8 @@ export default function TabsLayout() {
   }, []);
 
   return (
-    <Tabs
+    <>
+      <Tabs
       screenOptions={{
         headerShown: false,
         animation: 'shift',
@@ -117,6 +119,8 @@ export default function TabsLayout() {
         }}
       />
     </Tabs>
+    <GlobalSessionBanner />
+    </>
   );
 }
 

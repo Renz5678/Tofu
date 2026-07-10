@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -24,7 +24,7 @@ export default function SessionFinishScreen() {
 
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { activeSession, clearSession } = useSessionStore();
+  const { activeSession, clearSession, pauseSession } = useSessionStore();
   const { data: libraryBooks = [] } = useLibrary();
   const book = libraryBooks.find((b) => b.id === activeSession?.userBookId);
   const { mutateAsync: logSession, isPending: isLogging } = useLogSession();
@@ -34,6 +34,12 @@ export default function SessionFinishScreen() {
   const [endTime] = useState(() => new Date());
   const [endPage, setEndPage] = useState(book ? String(book.current_page) : '');
   const [notes, setNotes] = useState('');
+
+  useEffect(() => {
+    if (activeSession && !activeSession.pausedAt) {
+      pauseSession();
+    }
+  }, []);
 
   if (!activeSession || !book) {
     return (

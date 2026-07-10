@@ -62,10 +62,40 @@ export default function BookDetailScreen() {
   const progress = readingProgress(book.current_page, book.total_pages || 1);
 
   const handleStartReading = async () => {
+    if (activeSession && activeSession.userBookId !== book.id) {
+      Alert.alert(
+        'Active Session Exists',
+        `You have an active reading session for "${activeSession.bookTitle || 'another book'}".`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { 
+            text: 'Go to Session', 
+            onPress: () => router.push('/session/active') 
+          },
+          { 
+            text: 'Discard Old', 
+            style: 'destructive',
+            onPress: async () => {
+              await startSession({
+                userBookId: book.id,
+                bookTitle: book.title,
+                startPage: book.current_page || 0,
+                startTime: new Date().toISOString(),
+                totalPausedSeconds: 0,
+              });
+              router.push('/session/active');
+            }
+          }
+        ]
+      );
+      return;
+    }
+
     if (activeSession?.userBookId !== book.id) {
       await startSession({
         userBookId: book.id,
-        startPage: book.current_page,
+        bookTitle: book.title,
+        startPage: book.current_page || 0,
         startTime: new Date().toISOString(),
         totalPausedSeconds: 0,
       });

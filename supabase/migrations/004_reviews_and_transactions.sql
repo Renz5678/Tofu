@@ -104,12 +104,16 @@ on conflict (user_id, book_id) do nothing;
 -- ─────────────────────────────────────────────
 -- 4. Drop rating / review from user_books
 -- ─────────────────────────────────────────────
+-- The old book_stats view (from migration 003) depends on user_books.rating.
+-- Drop it first so the ALTER TABLE below succeeds, then recreate it below.
+drop view if exists book_stats cascade;
+
 alter table user_books
   drop column if exists rating,
   drop column if exists review;
 
 -- ─────────────────────────────────────────────
--- 5. Refresh book_stats view
+-- 5. Recreate book_stats view from reviews table
 -- ─────────────────────────────────────────────
 create or replace view book_stats as
 select

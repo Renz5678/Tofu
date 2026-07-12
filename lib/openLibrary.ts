@@ -43,7 +43,7 @@ export async function searchBooks(query: string, genre?: string, language?: stri
   if (!res.ok) throw new Error(`Open Library API error: ${res.status}`);
   
   const data = await res.json();
-  return (data.docs || []).map((doc: OpenLibraryDoc) => ({
+  const rawBooks: BookItem[] = (data.docs || []).map((doc: OpenLibraryDoc) => ({
     open_library_id: doc.key,
     title: doc.title,
     author: doc.author_name?.join(', '),
@@ -54,4 +54,21 @@ export async function searchBooks(query: string, genre?: string, language?: stri
     language: doc.language?.[0],
     country: null,
   }));
+
+  // Deduplicate by normalised title + author fingerprint.
+  // Open Library contains many duplicate Works/editions for the same book —
+  // this keeps only the first occurrence of each unique title/author pair.
+  const seen = new Set<string>();
+  const uniqueBooks: BookItem[] = [];
+  for (const book of rawBooks) {
+    const title = book.title.toLowerCase().trim();
+    const author = book.author ? book.author.toLowerCase().trim() : '__unknown__';
+    const fingerprint = `${title}|${author}`;
+    if (!seen.has(fingerprint)) {
+      seen.add(fingerprint);
+      uniqueBooks.push(book);
+    }
+  }
+
+  return uniqueBooks;
 }

@@ -7,7 +7,6 @@ import {
   StyleSheet,
   useWindowDimensions,
   Share,
-  TextInput,
   Modal,
   Alert,
 } from 'react-native';
@@ -22,8 +21,9 @@ import { readingProgress } from '@/lib/metrics';
 import { useLibrary, useUpdateBook, BookStatus } from '@/hooks/useLibrary';
 import { useFavorites, useToggleFavorite } from '@/hooks/useFavorites';
 import { useSessionStore } from '@/store/sessionStore';
-import { useBookStats, useBookReviews, CommunityReview } from '@/hooks/useSocial';
+import { useBookStats, useBookReviews, useMyReview, useToggleReviewLike, CommunityReview } from '@/hooks/useSocial';
 import { ProgressBar } from '@/components/ProgressRing';
+import { LogBookSheet } from '@/components/LogBookSheet';
 
 export default function BookDetailScreen() {
   const { colors, isDark } = useTheme();
@@ -42,24 +42,13 @@ export default function BookDetailScreen() {
   const startSession = useSessionStore((s) => s.startSession);
   const activeSession = useSessionStore((s) => s.activeSession);
 
-  const { data: stats } = useBookStats(id);
-  const { data: communityReviews = [] } = useBookReviews(id);
+  const { data: stats } = useBookStats(book?.book_id ?? '');
+  const { data: communityReviews = [] } = useBookReviews(book?.book_id ?? '');
+  const { data: myReview } = useMyReview(book?.book_id ?? '');
 
-  const [isEditingReview, setIsEditingReview] = React.useState(false);
-  const [draftRating, setDraftRating] = React.useState(0);
-  const [draftReview, setDraftReview] = React.useState('');
-  
+  const [isLogSheetOpen, setIsLogSheetOpen] = React.useState(false);
   const [isShareModalVisible, setIsShareModalVisible] = React.useState(false);
   const shareViewRef = React.useRef<View>(null);
-
-  const isFavorite = favorites.some(f => f.book_id === book?.book_id);
-
-  React.useEffect(() => {
-    if (book) {
-      setDraftRating(book.rating || 0);
-      setDraftReview(book.review || '');
-    }
-  }, [book?.rating, book?.review]);
 
   if (!book) return null; // Or a loading/not-found state
 
@@ -122,16 +111,6 @@ export default function BookDetailScreen() {
     } catch (e: any) {
       console.warn('Failed to re-read', e);
       Alert.alert('Error', e.message || 'Failed to restart reading.');
-    }
-  };
-
-  const handleSaveReview = async () => {
-    try {
-      await updateBook({ userBookId: book.id, rating: draftRating, review: draftReview });
-      setIsEditingReview(false);
-    } catch (e: any) {
-      console.warn('Failed to save review', e);
-      Alert.alert('Error', e.message || 'Failed to save review.');
     }
   };
 
@@ -308,49 +287,60 @@ export default function BookDetailScreen() {
 
         {/* Review & Rating */}
         <View style={styles.section}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Text style={styles.sectionTitle}>My Review</Text>
-              {!isEditingReview && (
-                <View style={{ flexDirection: 'row', gap: 12 }}>
-                  <TouchableOpacity onPress={() => setIsEditingReview(true)}>
-                    <MaterialIcons name="edit" size={20} color={colors.primary} />
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={handleShare}>
-                    <MaterialIcons name="share" size={20} color={colors.primary} />
-                  </TouchableOpacity>
-                </View>
-              )}
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Text style={styles.sectionTitle}>My Log</Text>
+            <View style={{ flexDirection: 'row', gap: 12 }}>
+              <TouchableOpacity onPress={() => setIsLogSheetOpen(true)}>
+                <MaterialIcons name="edit" size={20} color={colors.primary} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleShare}>
+                <MaterialIcons name="share" size={20} color={colors.primary} />
+              </TouchableOpacity>
             </View>
+          </View>
 
-            {!isEditingReview && (
-              <View style={[styles.progressCard, Shadows.card]}>
-                {book.rating ? (
-                  <View style={{ flexDirection: 'row', marginBottom: 12 }}>
-                    {[1, 2, 3, 4, 5].map((star) => {
-                      const isFull = book.rating! >= star;
-                      const isHalf = book.rating! >= star - 0.5 && book.rating! < star;
-                      return (
-                        <MaterialIcons 
-                          key={star} 
-                          name={isFull ? 'star' : isHalf ? 'star-half' : 'star-outline'} 
-                          size={20} 
-                          color="#FFC107" 
-                        />
-                      );
-                    })}
-                  </View>
-                ) : (
-                  <Text style={styles.placeholder}>No rating added yet.</Text>
-                )}
-                {book.review ? (
-                  <Text style={{ ...Typography.styles.bodyMd, color: colors.onSurface }}>
-                    "{book.review}"
-                  </Text>
-                ) : (
-                  <Text style={styles.placeholder}>No review written yet.</Text>
-                )}
+          <View style={[styles.progressCard, Shadows.card]}>
+            {/* Heart */}
+            {myReview?.liked && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 8 }}>
+                <MaterialIcons name="favorite" size={16} color="#E91E63" />
+                <Text style={{ ...Typography.styles.labelSm, color: '#E91E63' }}>Liked</Text>
               </View>
             )}
+            {/* Stars */}
+            {myReview?.rating ? (
+              <View style={{ flexDirection: 'row', marginBottom: 12 }}>
+                {[1, 2, 3, 4, 5].map((star) => {
+                  const isFull = myReview.rating! >= star;
+                  const isHalf = myReview.rating! >= star - 0.5 && myReview.rating! < star;
+                  return (
+                    <MaterialIcons
+                      key={star}
+                      name={isFull ? 'star' : isHalf ? 'star-half' : 'star-outline'}
+                      size={20}
+                      color="#FFC107"
+                    />
+                  );
+                })}
+              </View>
+            ) : (
+              <Text style={styles.placeholder}>No rating added yet.</Text>
+            )}
+            {/* Review text */}
+            {myReview?.content ? (
+              <Text style={{ ...Typography.styles.bodyMd, color: colors.onSurface }}>
+                "{myReview.content}"
+              </Text>
+            ) : (
+              <Text style={styles.placeholder}>No review written yet. Tap ✏️ to add one.</Text>
+            )}
+            {myReview?.contains_spoilers && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 8 }}>
+                <MaterialIcons name="warning" size={12} color={colors.onSurfaceVariant} />
+                <Text style={{ ...Typography.styles.labelSm, color: colors.onSurfaceVariant }}>Contains spoilers</Text>
+              </View>
+            )}
+          </View>
         </View>
 
         {/* Notes placeholder */}
@@ -365,7 +355,7 @@ export default function BookDetailScreen() {
           {communityReviews.length > 0 ? (
             <View style={{ gap: Spacing.stackSm }}>
               {communityReviews.map((review) => (
-                <CommunityReviewCard key={review.id} review={review} />
+                <CommunityReviewCard key={review.id} review={review} bookId={book.book_id} />
               ))}
             </View>
           ) : (
@@ -374,60 +364,19 @@ export default function BookDetailScreen() {
         </View>
       </ScrollView>
 
-      {/* Edit Review Modal */}
-      <Modal visible={isEditingReview} animationType="fade" transparent>
-        <View style={styles.shareModalOverlay}>
-          <View style={[styles.shareModalContent, { width: '90%' }]}>
-            <Text style={styles.shareModalTitle}>Rate & Review</Text>
-            
-            <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 8, marginBottom: Spacing.base }}>
-              {[1, 2, 3, 4, 5].map((star) => {
-                const isFull = draftRating >= star;
-                const isHalf = draftRating >= star - 0.5 && draftRating < star;
-                return (
-                  <View key={star} style={{ position: 'relative' }}>
-                    <MaterialIcons 
-                      name={isFull ? 'star' : isHalf ? 'star-half' : 'star-outline'} 
-                      size={44} 
-                      color="#FFC107" 
-                    />
-                    <View style={{ position: 'absolute', width: '100%', height: '100%', flexDirection: 'row' }}>
-                      <TouchableOpacity 
-                        style={{ flex: 1 }} 
-                        onPress={() => setDraftRating(star === 1 && draftRating === 0.5 ? 0 : star - 0.5)} 
-                        activeOpacity={1}
-                      />
-                      <TouchableOpacity 
-                        style={{ flex: 1 }} 
-                        onPress={() => setDraftRating(star)} 
-                        activeOpacity={1}
-                      />
-                    </View>
-                  </View>
-                );
-              })}
-            </View>
-            
-            <TextInput
-              style={[styles.reviewInput, { width: '100%', marginBottom: Spacing.base }]}
-              multiline
-              placeholder="What did you think of the book?"
-              placeholderTextColor={colors.onSurfaceVariant}
-              value={draftReview}
-              onChangeText={setDraftReview}
-            />
-            
-            <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
-              <TouchableOpacity style={[styles.primaryButton, { flex: 1, backgroundColor: colors.surfaceContainerHigh }]} onPress={() => setIsEditingReview(false)}>
-                <Text style={[styles.primaryButtonText, { color: colors.onSurface }]}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={[styles.primaryButton, { flex: 1 }]} onPress={handleSaveReview}>
-                <Text style={styles.primaryButtonText}>Save Review</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      {/* Log Book Sheet */}
+      <LogBookSheet
+        visible={isLogSheetOpen}
+        bookId={book.book_id}
+        bookTitle={book.title}
+        onClose={() => setIsLogSheetOpen(false)}
+        initialValues={myReview ? {
+          rating: myReview.rating ?? 0,
+          liked: myReview.liked,
+          content: myReview.content ?? '',
+          contains_spoilers: myReview.contains_spoilers,
+        } : undefined}
+      />
 
       {/* Share Modal Preview */}
       <Modal visible={isShareModalVisible} animationType="slide" transparent>
@@ -493,14 +442,21 @@ export default function BookDetailScreen() {
   );
 }
 
-function CommunityReviewCard({ review }: { review: CommunityReview }) {
+function CommunityReviewCard({ review, bookId }: { review: CommunityReview; bookId: string }) {
   const { colors, isDark } = useTheme();
   const styles = createStyles(colors, isDark);
   const router = useRouter();
+  const { mutate: toggleLike } = useToggleReviewLike();
+  const [spoilerRevealed, setSpoilerRevealed] = React.useState(false);
+
+  const handleLike = () => {
+    toggleLike({ reviewId: review.id, isLiked: review.is_liked_by_me ?? false, bookId });
+  };
 
   return (
     <View style={[styles.progressCard, Shadows.card]}>
-      <TouchableOpacity 
+      {/* Author row */}
+      <TouchableOpacity
         style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}
         onPress={() => router.push(`/profile/${review.profiles.id}` as any)}
       >
@@ -514,33 +470,63 @@ function CommunityReviewCard({ review }: { review: CommunityReview }) {
           </View>
         )}
         <Text style={{ ...Typography.styles.labelSm, color: colors.onSurface }}>{review.profiles.display_name || review.profiles.username}</Text>
-        
+
+        {review.liked && (
+          <MaterialIcons name="favorite" size={12} color="#E91E63" style={{ marginLeft: 2 }} />
+        )}
+
         {review.rating && (
           <View style={{ flexDirection: 'row', marginLeft: 'auto' }}>
             {[1, 2, 3, 4, 5].map((star) => (
-              <MaterialIcons 
-                key={star} 
-                name={review.rating! >= star ? 'star' : review.rating! >= star - 0.5 ? 'star-half' : 'star-outline'} 
-                size={12} 
-                color="#FFC107" 
+              <MaterialIcons
+                key={star}
+                name={review.rating! >= star ? 'star' : review.rating! >= star - 0.5 ? 'star-half' : 'star-outline'}
+                size={12}
+                color="#FFC107"
               />
             ))}
           </View>
         )}
       </TouchableOpacity>
 
-      <Text style={{ ...Typography.styles.bodyMd, color: colors.onSurface, fontStyle: 'italic' }}>"{review.review}"</Text>
+      {/* Review text with spoiler gate */}
+      {review.contains_spoilers && !spoilerRevealed ? (
+        <TouchableOpacity
+          onPress={() => setSpoilerRevealed(true)}
+          style={{ backgroundColor: colors.surfaceContainer, borderRadius: Radius.md, padding: 12, alignItems: 'center' }}
+        >
+          <MaterialIcons name="visibility-off" size={18} color={colors.onSurfaceVariant} />
+          <Text style={{ ...Typography.styles.labelSm, color: colors.onSurfaceVariant, marginTop: 4 }}>Tap to reveal spoilers</Text>
+        </TouchableOpacity>
+      ) : (
+        <Text style={{ ...Typography.styles.bodyMd, color: colors.onSurface, fontStyle: 'italic' }}>"{review.content}"</Text>
+      )}
 
-      <TouchableOpacity 
-        style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 12 }}
-        onPress={() => router.push(`/review/${review.id}` as any)}
-      >
-        <MaterialIcons name="chat-bubble-outline" size={16} color={colors.primary} />
-        <Text style={{ ...Typography.styles.labelSm, color: colors.primary }}>View Comments</Text>
-      </TouchableOpacity>
+      {/* Footer: likes + comments */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16, marginTop: 12 }}>
+        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }} onPress={handleLike}>
+          <MaterialIcons
+            name={review.is_liked_by_me ? 'favorite' : 'favorite-border'}
+            size={16}
+            color={review.is_liked_by_me ? '#E91E63' : colors.onSurfaceVariant}
+          />
+          {(review.likes_count ?? 0) > 0 && (
+            <Text style={{ ...Typography.styles.labelSm, color: colors.onSurfaceVariant }}>{review.likes_count}</Text>
+          )}
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
+          onPress={() => router.push(`/review/${review.id}` as any)}
+        >
+          <MaterialIcons name="chat-bubble-outline" size={16} color={colors.primary} />
+          <Text style={{ ...Typography.styles.labelSm, color: colors.primary }}>Comments</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
+
 
 const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   heroContainer: {

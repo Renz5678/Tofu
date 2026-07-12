@@ -62,8 +62,8 @@ export default function ReviewThreadScreen() {
       <ScrollView contentContainerStyle={styles.scroll}>
         {/* Original Review */}
         <View style={styles.reviewCard}>
-          <TouchableOpacity 
-            style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}
+          <TouchableOpacity
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}
             onPress={() => router.push(`/profile/${review.profiles.id}` as any)}
           >
             {review.profiles.avatar_url ? (
@@ -75,23 +75,29 @@ export default function ReviewThreadScreen() {
                 </Text>
               </View>
             )}
-            <Text style={{ ...Typography.styles.labelLg, color: colors.onSurface }}>{review.profiles.display_name || review.profiles.username}</Text>
-            
+            <View style={{ flex: 1 }}>
+              <Text style={{ ...Typography.styles.labelLg, color: colors.onSurface }}>{review.profiles.display_name || review.profiles.username}</Text>
+            </View>
+
+            {review.liked && (
+              <MaterialIcons name="favorite" size={14} color="#E91E63" />
+            )}
+
             {review.rating && (
-              <View style={{ flexDirection: 'row', marginLeft: 'auto' }}>
+              <View style={{ flexDirection: 'row', marginLeft: 4 }}>
                 {[1, 2, 3, 4, 5].map((star) => (
-                  <MaterialIcons 
-                    key={star} 
-                    name={review.rating! >= star ? 'star' : review.rating! >= star - 0.5 ? 'star-half' : 'star-outline'} 
-                    size={16} 
-                    color="#FFC107" 
+                  <MaterialIcons
+                    key={star}
+                    name={review.rating! >= star ? 'star' : review.rating! >= star - 0.5 ? 'star-half' : 'star-outline'}
+                    size={16}
+                    color="#FFC107"
                   />
                 ))}
               </View>
             )}
           </TouchableOpacity>
 
-          <Text style={{ ...Typography.styles.bodyLg, color: colors.onSurface }}>{review.review}</Text>
+          <Text style={{ ...Typography.styles.bodyLg, color: colors.onSurface }}>{review.content}</Text>
         </View>
 
         {/* Divider */}

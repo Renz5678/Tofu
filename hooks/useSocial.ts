@@ -23,18 +23,25 @@ export interface BookStats {
   average_rating: number | null;
   ratings_count: number;
   reviews_count: number;
+  likes_count: number;
 }
 
+/** A review row from the dedicated reviews table */
 export interface CommunityReview {
   id: string;
   user_id: string;
   book_id: string;
   rating: number | null;
-  review: string | null;
-  status: string;
-  added_at: string;
-  finished_at: string | null;
+  liked: boolean;
+  content: string | null;
+  contains_spoilers: boolean;
+  created_at: string;
+  updated_at: string;
   profiles: Profile;
+  /** Number of review_likes rows for this review */
+  likes_count: number;
+  /** Whether the current user has liked this review (populated client-side) */
+  is_liked_by_me?: boolean;
 }
 
 export interface TimelineItem {
@@ -42,10 +49,10 @@ export interface TimelineItem {
   user_id: string;
   book_id: string;
   rating: number | null;
-  review: string | null;
-  status: string;
-  added_at: string;
-  finished_at: string | null;
+  liked: boolean;
+  content: string | null;
+  contains_spoilers: boolean;
+  created_at: string;
   profiles: Profile;
   books: DatabaseBookRow;
 }
@@ -157,20 +164,20 @@ export function useTimeline() {
       const followingIds = following?.map(f => f.following_id) || [];
       if (followingIds.length === 0) return [];
 
-      // 2. Fetch recent user_books activity from these users
+      // 2. Fetch recent reviews from people I follow
       const { data, error } = await supabase
-        .from('user_books')
+        .from('reviews')
         .select(`
           *,
           profiles:user_id (*),
           books:book_id (*)
         `)
         .in('user_id', followingIds)
-        .order('added_at', { ascending: false })
+        .order('created_at', { ascending: false })
         .limit(50);
 
       if (error) throw error;
-      return data as TimelineItem[];
+      return (data ?? []) as TimelineItem[];
     },
   });
 }
@@ -264,18 +271,28 @@ export function useBookReviews(bookId: string) {
   return useQuery({
     queryKey: ['bookReviews', bookId],
     queryFn: async (): Promise<CommunityReview[]> => {
+      const { data: { user } } = await supabase.auth.getUser();
+
+      // Fetch reviews with profile and like count
       const { data, error } = await supabase
-        .from('user_books')
+        .from('reviews')
         .select(`
           *,
-          profiles:user_id (*)
+          profiles:user_id (*),
+          review_likes (id, user_id)
         `)
         .eq('book_id', bookId)
-        .not('review', 'is', null)
-        .order('added_at', { ascending: false });
+        .not('content', 'is', null)
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as CommunityReview[];
+
+      return (data ?? []).map((row: any) => ({
+        ...row,
+        likes_count: row.review_likes?.length ?? 0,
+        is_liked_by_me: user ? row.review_likes?.some((l: any) => l.user_id === user.id) : false,
+        review_likes: undefined, // strip raw join data
+      })) as CommunityReview[];
     },
     enabled: !!bookId,
   });
@@ -305,19 +322,120 @@ export function useReview(reviewId: string) {
   return useQuery({
     queryKey: ['review', reviewId],
     queryFn: async (): Promise<CommunityReview | null> => {
+      const { data: { user } } = await supabase.auth.getUser();
+
       const { data, error } = await supabase
-        .from('user_books')
+        .from('reviews')
         .select(`
           *,
-          profiles:user_id (*)
+          profiles:user_id (*),
+          review_likes (id, user_id)
         `)
         .eq('id', reviewId)
         .single();
 
       if (error && error.code !== 'PGRST116') throw error;
-      return data as CommunityReview;
+      if (!data) return null;
+
+      return {
+        ...data,
+        likes_count: data.review_likes?.length ?? 0,
+        is_liked_by_me: user ? data.review_likes?.some((l: any) => l.user_id === user.id) : false,
+        review_likes: undefined,
+      } as CommunityReview;
     },
     enabled: !!reviewId,
+  });
+}
+
+/** Fetch the current user's own review for a specific book */
+export function useMyReview(bookId: string) {
+  return useQuery({
+    queryKey: ['myReview', bookId],
+    queryFn: async (): Promise<CommunityReview | null> => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+
+      const { data, error } = await supabase
+        .from('reviews')
+        .select('*')
+        .eq('book_id', bookId)
+        .eq('user_id', user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') throw error;
+      return data as CommunityReview | null;
+    },
+    enabled: !!bookId,
+  });
+}
+
+export interface UpsertReviewInput {
+  bookId: string;
+  rating?: number | null;
+  liked?: boolean;
+  content?: string | null;
+  contains_spoilers?: boolean;
+}
+
+/** Create or update the current user's review for a book */
+export function useUpsertReview() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: UpsertReviewInput) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { error } = await supabase.from('reviews').upsert(
+        {
+          user_id: user.id,
+          book_id: input.bookId,
+          rating: input.rating ?? null,
+          liked: input.liked ?? false,
+          content: input.content ?? null,
+          contains_spoilers: input.contains_spoilers ?? false,
+        },
+        { onConflict: 'user_id,book_id' }
+      );
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => {
+      qc.invalidateQueries({ queryKey: ['myReview', variables.bookId] });
+      qc.invalidateQueries({ queryKey: ['bookReviews', variables.bookId] });
+      qc.invalidateQueries({ queryKey: ['bookStats', variables.bookId] });
+      qc.invalidateQueries({ queryKey: ['timeline'] });
+    },
+  });
+}
+
+/** Toggle a like on a community review */
+export function useToggleReviewLike() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ reviewId, isLiked, bookId }: { reviewId: string; isLiked: boolean; bookId: string }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      if (isLiked) {
+        // Already liked — remove the like
+        const { error } = await supabase
+          .from('review_likes')
+          .delete()
+          .eq('review_id', reviewId)
+          .eq('user_id', user.id);
+        if (error) throw error;
+      } else {
+        // Not yet liked — add the like
+        const { error } = await supabase
+          .from('review_likes')
+          .insert({ review_id: reviewId, user_id: user.id });
+        if (error) throw error;
+      }
+    },
+    onSuccess: (_, variables) => {
+      qc.invalidateQueries({ queryKey: ['bookReviews', variables.bookId] });
+      qc.invalidateQueries({ queryKey: ['review', variables.reviewId] });
+    },
   });
 }
 

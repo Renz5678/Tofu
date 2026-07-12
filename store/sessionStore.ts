@@ -1,6 +1,11 @@
 /**
  * Zustand store — active reading session state
- * Persisted to AsyncStorage so timer survives app relaunches
+ * Persisted to AsyncStorage so the timer survives app relaunches.
+ *
+ * Write-safety: All AsyncStorage writes are serialised through a single
+ * promise chain (writeChain) so rapid pause/resume events cannot interleave
+ * and produce stale data on disk. The in-memory Zustand state is updated
+ * synchronously (instant UI), while the disk write is queued behind the chain.
  */
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -27,21 +32,38 @@ interface SessionState {
   hydrateFromStorage: () => Promise<void>;
 }
 
+/** Serialise all disk writes so rapid pause/resume can't race each other. */
+let writeChain: Promise<void> = Promise.resolve();
+function enqueueWrite(fn: () => Promise<void>): Promise<void> {
+  writeChain = writeChain.then(fn).catch(() => {
+    // Individual write failure should not break the chain for future writes.
+  });
+  return writeChain;
+}
+
+function persist(session: ActiveSession | null): Promise<void> {
+  return enqueueWrite(() =>
+    session
+      ? AsyncStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session))
+      : AsyncStorage.removeItem(SESSION_STORAGE_KEY)
+  );
+}
+
 export const useSessionStore = create<SessionState>((set, get) => ({
   activeSession: null,
   isLoading: false,
 
   startSession: async (session) => {
-    await AsyncStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
-    set({ activeSession: session });
+    set({ activeSession: session }); // instant UI update
+    await persist(session);
   },
 
   pauseSession: async () => {
     const { activeSession } = get();
     if (!activeSession) return;
-    const updated = { ...activeSession, pausedAt: new Date().toISOString() };
-    await AsyncStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(updated));
-    set({ activeSession: updated });
+    const updated: ActiveSession = { ...activeSession, pausedAt: new Date().toISOString() };
+    set({ activeSession: updated }); // instant UI update
+    await persist(updated);
   },
 
   resumeSession: async () => {
@@ -55,13 +77,13 @@ export const useSessionStore = create<SessionState>((set, get) => ({
       pausedAt: undefined,
       totalPausedSeconds: (activeSession.totalPausedSeconds ?? 0) + pausedSeconds,
     };
-    await AsyncStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(updated));
-    set({ activeSession: updated });
+    set({ activeSession: updated }); // instant UI update
+    await persist(updated);
   },
 
   clearSession: async () => {
-    await AsyncStorage.removeItem(SESSION_STORAGE_KEY);
-    set({ activeSession: null });
+    set({ activeSession: null }); // instant UI update
+    await persist(null);
   },
 
   hydrateFromStorage: async () => {
@@ -70,10 +92,11 @@ export const useSessionStore = create<SessionState>((set, get) => ({
       const raw = await AsyncStorage.getItem(SESSION_STORAGE_KEY);
       if (raw) set({ activeSession: JSON.parse(raw) });
     } catch {
-      // Corrupted data — clear it
+      // Corrupted data — clear it silently
       await AsyncStorage.removeItem(SESSION_STORAGE_KEY);
     } finally {
       set({ isLoading: false });
     }
   },
 }));
+

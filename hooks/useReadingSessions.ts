@@ -1,10 +1,11 @@
 /**
  * useReadingSessions — logs new sessions & fetches session history
- * Also handles streak + current_page update after session finish
+ * Session logging uses an atomic Postgres RPC so the insert, page update,
+ * and streak update all commit or roll back together.
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import { calculateSessionMetrics, calculateStreakUpdate } from '@/lib/metrics';
+import { calculateSessionMetrics } from '@/lib/metrics';
 
 export interface ReadingSession {
   id: string;
@@ -60,6 +61,13 @@ export function useReadingSessions(userBookId?: string) {
 export function useLogSession() {
   const qc = useQueryClient();
   return useMutation({
+    // Optimistically invalidate before the round-trip completes so the
+    // library and dashboard feel instant even on a slow connection.
+    onMutate: () => {
+      qc.invalidateQueries({ queryKey: ['sessions'] });
+      qc.invalidateQueries({ queryKey: ['library'] });
+    },
+
     mutationFn: async (input: LogSessionInput) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
@@ -72,58 +80,36 @@ export function useLogSession() {
         input.pausedSeconds ?? 0
       );
 
-      // 1. Insert reading session
-      const { data: sessionData, error: sessionError } = await supabase.from('reading_sessions').insert({
-        user_id: user.id,
-        user_book_id: input.userBookId,
-        start_time: input.startTime.toISOString(),
-        end_time: input.endTime.toISOString(),
-        duration_seconds: metrics.duration_seconds,
-        start_page: input.startPage,
-        end_page: input.endPage,
-        pages_per_hour: metrics.pages_per_hour,
-        minutes_per_page: metrics.minutes_per_page,
-        notes: input.notes ?? null,
-      }).select('id').single();
-      if (sessionError) throw sessionError;
+      // Single atomic RPC — inserts the session, updates current_page, and
+      // recalculates the streak inside one Postgres transaction.
+      const { error } = await supabase.rpc('log_reading_session', {
+        p_user_id:          user.id,
+        p_user_book_id:     input.userBookId,
+        p_start_time:       input.startTime.toISOString(),
+        p_end_time:         input.endTime.toISOString(),
+        p_duration_seconds: metrics.duration_seconds,
+        p_start_page:       input.startPage,
+        p_end_page:         input.endPage,
+        p_pages_per_hour:   metrics.pages_per_hour,
+        p_minutes_per_page: metrics.minutes_per_page,
+        p_notes:            input.notes ?? null,
+      });
 
-      // 2. Update current_page on user_books
-      const { error: bookError } = await supabase
-        .from('user_books')
-        .update({ current_page: input.endPage })
-        .eq('id', input.userBookId);
-
-      if (bookError) {
-        // Rollback reading session
-        await supabase.from('reading_sessions').delete().eq('id', sessionData.id);
-        throw bookError;
-      }
-
-      // 3. Update streak
-      const { data: streakRow, error: streakFetchError } = await supabase
-        .from('streaks')
-        .select('current_streak, longest_streak, last_read_date')
-        .eq('user_id', user.id)
-        .single();
-
-      if (streakFetchError && streakFetchError.code !== 'PGRST116') {
-        console.warn('Failed to fetch streak', streakFetchError);
-      } else if (streakRow) {
-        const updated = calculateStreakUpdate(
-          streakRow.current_streak,
-          streakRow.longest_streak,
-          streakRow.last_read_date
-        );
-        const { error: streakUpdateError } = await supabase.from('streaks').update(updated).eq('user_id', user.id);
-        if (streakUpdateError) {
-          console.warn('Failed to update streak', streakUpdateError);
-        }
-      }
+      if (error) throw error;
     },
-    onSuccess: (_, variables) => {
+
+    onSuccess: () => {
+      // Confirm invalidation after the server confirms the write.
       qc.invalidateQueries({ queryKey: ['sessions'] });
       qc.invalidateQueries({ queryKey: ['library'] });
       qc.invalidateQueries({ queryKey: ['profile'] });
     },
+
+    onError: () => {
+      // Revert optimistic invalidation — refetch to restore correct state.
+      qc.invalidateQueries({ queryKey: ['sessions'] });
+      qc.invalidateQueries({ queryKey: ['library'] });
+    },
   });
 }
+

@@ -16,8 +16,6 @@ export interface LibraryBook {
   started_at: string | null;
   finished_at: string | null;
   added_at: string;
-  rating?: number | null;
-  review?: string | null;
   // Joined from books table
   open_library_id: string;
   title: string;
@@ -29,7 +27,7 @@ export interface LibraryBook {
   language: string | null;
 }
 
-export type DatabaseBookRow = Omit<LibraryBook, 'id' | 'book_id' | 'status' | 'current_page' | 'started_at' | 'finished_at' | 'added_at' | 'rating' | 'review'>;
+export type DatabaseBookRow = Omit<LibraryBook, 'id' | 'book_id' | 'status' | 'current_page' | 'started_at' | 'finished_at' | 'added_at'>;
 
 async function fetchLibrary(status?: BookStatus): Promise<LibraryBook[]> {
   const { data: { user } } = await supabase.auth.getUser();
@@ -45,8 +43,6 @@ async function fetchLibrary(status?: BookStatus): Promise<LibraryBook[]> {
       started_at,
       finished_at,
       added_at,
-      rating,
-      review,
       books (
         open_library_id,
         title,
@@ -74,8 +70,6 @@ async function fetchLibrary(status?: BookStatus): Promise<LibraryBook[]> {
     started_at: string | null;
     finished_at: string | null;
     added_at: string;
-    rating?: number | null;
-    review?: string | null;
     books: DatabaseBookRow;
   };
 
@@ -89,8 +83,6 @@ async function fetchLibrary(status?: BookStatus): Promise<LibraryBook[]> {
       started_at: r.started_at,
       finished_at: r.finished_at,
       added_at: r.added_at,
-      rating: r.rating,
-      review: r.review,
       ...r.books,
     };
   });
@@ -158,7 +150,7 @@ export function useAddBook() {
   });
 }
 
-/** Update current page and optionally status for a user_books row */
+/** Update current page and/or status for a user_books row */
 export function useUpdateBook() {
   const qc = useQueryClient();
   return useMutation({
@@ -166,19 +158,13 @@ export function useUpdateBook() {
       userBookId,
       currentPage,
       status,
-      rating,
-      review,
     }: {
       userBookId: string;
       currentPage?: number;
       status?: BookStatus;
-      rating?: number | null;
-      review?: string | null;
     }) => {
       const updates: Record<string, unknown> = {};
       if (currentPage !== undefined) updates.current_page = currentPage;
-      if (rating !== undefined) updates.rating = rating;
-      if (review !== undefined) updates.review = review;
       if (status !== undefined) {
         updates.status = status;
         if (status === 'finished') updates.finished_at = new Date().toISOString();

@@ -236,11 +236,10 @@ function TimelineCard({ item }: { item: TimelineItem }) {
   const styles = createStyles(colors, isDark);
   const router = useRouter();
 
-  const timeAgo = formatDistanceToNow(new Date(item.added_at), { addSuffix: true });
+  const timeAgo = formatDistanceToNow(new Date(item.created_at), { addSuffix: true });
   
-  let actionText = 'started reading';
-  if (item.status === 'finished') actionText = 'finished reading';
-  if (item.review || item.rating) actionText = 'reviewed';
+  let actionText = 'reviewed';
+  if (!item.content && !item.rating) actionText = 'logged';
 
   return (
     <View style={[styles.timelineCard, Shadows.card]}>
@@ -279,19 +278,28 @@ function TimelineCard({ item }: { item: TimelineItem }) {
           
           {item.rating ? (
             <View style={styles.timelineRatingRow}>
+              {item.liked && <MaterialIcons name="favorite" size={14} color="#E91E63" style={{ marginRight: 4 }} />}
               {[1, 2, 3, 4, 5].map((star) => (
-                <MaterialIcons 
-                  key={star} 
-                  name={item.rating! >= star ? 'star' : item.rating! >= star - 0.5 ? 'star-half' : 'star-outline'} 
-                  size={14} 
-                  color="#FFC107" 
+                <MaterialIcons
+                  key={star}
+                  name={item.rating! >= star ? 'star' : item.rating! >= star - 0.5 ? 'star-half' : 'star-outline'}
+                  size={14}
+                  color="#FFC107"
                 />
               ))}
             </View>
+          ) : item.liked ? (
+            <View style={styles.timelineRatingRow}>
+              <MaterialIcons name="favorite" size={14} color="#E91E63" />
+            </View>
           ) : null}
 
-          {item.review ? (
-            <Text style={styles.timelineReview} numberOfLines={4}>"{item.review}"</Text>
+          {item.content ? (
+            item.contains_spoilers ? (
+              <Text style={[styles.timelineReview, { color: colors.onSurfaceVariant, fontStyle: 'normal', opacity: 0.5 }]}>⚠ Spoiler — tap review to read</Text>
+            ) : (
+              <Text style={styles.timelineReview} numberOfLines={4}>"{item.content}"</Text>
+            )
           ) : null}
         </View>
       </TouchableOpacity>

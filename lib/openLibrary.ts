@@ -40,10 +40,24 @@ export async function searchBooks(
 
   const url = `https://openlibrary.org/search.json?${params.join('&')}`;
 
-  const res = await fetch(url, {
-    headers: { Accept: 'application/json' },
-    signal, // honour cancellation — prevents dangling XHR errors on Android
-  });
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      headers: { Accept: 'application/json' },
+      signal,
+    });
+  } catch (err: any) {
+    // The whatwg-fetch polyfill (used on Android) maps xhr.abort() to
+    // TypeError('Network request failed') instead of DOMException('AbortError').
+    // TanStack Query only suppresses errors whose name === 'AbortError', so we
+    // re-map it here. If the signal was NOT aborted it's a genuine network
+    // failure and we re-throw so the error UI is shown correctly.
+    if (signal?.aborted) {
+      throw new DOMException('Request aborted', 'AbortError');
+    }
+    throw err;
+  }
+
   if (!res.ok) throw new Error(`Open Library API error: ${res.status}`);
 
   const data = await res.json();

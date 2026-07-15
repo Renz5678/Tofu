@@ -24,24 +24,28 @@ interface OpenLibraryDoc {
   language?: string[];
 }
 
-export async function searchBooks(query: string, genre?: string, language?: string): Promise<BookItem[]> {
+export async function searchBooks(
+  query: string,
+  genre?: string,
+  language?: string,
+  signal?: AbortSignal,
+): Promise<BookItem[]> {
   const params = [
-    `q=${encodeURIComponent(query)}`,
+    `q=${encodeURIComponent(query || '*')}`,
     `limit=20`,
-    `fields=key,title,author_name,cover_i,number_of_pages_median,isbn,subject,language`
+    `fields=key,title,author_name,cover_i,number_of_pages_median,isbn,subject,language`,
   ];
   if (genre) params.push(`subject=${encodeURIComponent(genre)}`);
   if (language) params.push(`language=${encodeURIComponent(language)}`);
-  
+
   const url = `https://openlibrary.org/search.json?${params.join('&')}`;
-  
+
   const res = await fetch(url, {
-    headers: {
-      'Accept': 'application/json'
-    }
+    headers: { Accept: 'application/json' },
+    signal, // honour cancellation — prevents dangling XHR errors on Android
   });
   if (!res.ok) throw new Error(`Open Library API error: ${res.status}`);
-  
+
   const data = await res.json();
   const rawBooks: BookItem[] = (data.docs || []).map((doc: OpenLibraryDoc) => ({
     open_library_id: doc.key,

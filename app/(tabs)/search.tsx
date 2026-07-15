@@ -20,6 +20,7 @@ import { FilterBar } from '@/components/FilterBar';
 import { searchBooks, type BookItem } from '@/lib/openLibrary';
 import { useLibrary, useAddBook } from '@/hooks/useLibrary';
 import { useDebounce } from '@/hooks/useDebounce';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { Profile, useBulkBookStats, BookStats } from '@/hooks/useSocial';
 import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, withSequence } from 'react-native-reanimated';
@@ -42,57 +43,33 @@ export default function SearchScreen() {
   const insets = useSafeAreaInsets();
   const [query, setQuery] = useState('');
   const debouncedQuery = useDebounce(query, 400);
-  const [results, setResults] = useState<BookItem[]>([]);
   const [userResults, setUserResults] = useState<Profile[]>([]);
-  const [loading, setLoading] = useState(false);
   const [activeGenre, setActiveGenre] = useState<string | null>(null);
   const [searchMode, setSearchMode] = useState<'books' | 'users'>('books');
-  const [loadingSynopsis, setLoadingSynopsis] = useState(false);
 
   const { data: libraryBooks = [] } = useLibrary();
 
+  // ── Book search via TanStack Query ──────────────────────────────────────
+  // useQuery automatically passes an AbortSignal to the queryFn so that when
+  // debouncedQuery or activeGenre changes, the previous in-flight fetch is
+  // cancelled before the new one fires. This eliminates the Android
+  // "Network request failed" error caused by dangling / racing XHRs.
+  const hasBookSearchInput = searchMode === 'books' && (!!debouncedQuery.trim() || !!activeGenre);
+  const {
+    data: results = [],
+    isFetching: loading,
+    isError: isSearchError,
+  } = useQuery({
+    queryKey: ['bookSearch', debouncedQuery, activeGenre],
+    queryFn: ({ signal }) => searchBooks(debouncedQuery, activeGenre ?? undefined, undefined, signal),
+    enabled: hasBookSearchInput,
+    staleTime: 1000 * 30,  // 30 s — re-use cached results for the same query
+    gcTime: 1000 * 60 * 5,
+    retry: false,          // don't retry on error; let the user re-type
+  });
+
   const bookIds = React.useMemo(() => results.map(b => b.open_library_id), [results]);
   const { data: bulkStats } = useBulkBookStats(bookIds);
-
-
-
-  React.useEffect(() => {
-    if (!debouncedQuery.trim() && !activeGenre) {
-      setResults([]);
-      setUserResults([]);
-      setLoading(false);
-      return;
-    }
-    const runSearch = async () => {
-      setLoading(true);
-      try {
-        if (searchMode === 'books') {
-          const res = await searchBooks(debouncedQuery, activeGenre ?? undefined);
-          setResults(res);
-        } else {
-          // Search users in Supabase
-          const { data, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .or(`username.ilike.%${debouncedQuery}%,display_name.ilike.%${debouncedQuery}%`)
-            .limit(20);
-          
-          if (!error && data) {
-            setUserResults(data as Profile[]);
-          } else {
-            setUserResults([]);
-          }
-        }
-      } catch (e) {
-        console.error('Search error:', e);
-        setResults([]);
-        setUserResults([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    runSearch();
-  }, [debouncedQuery, activeGenre, searchMode]);
 
   const handleQueryChange = (text: string) => {
     setQuery(text);
@@ -157,6 +134,14 @@ export default function SearchScreen() {
       {loading ? (
         <View style={[styles.list, { paddingBottom: insets.bottom + 80 }]}>
           {Array.from({ length: 5 }).map((_, i) => <SearchSkeleton key={i} />)}
+        </View>
+      ) : isSearchError ? (
+        <View style={styles.emptyState}>
+          <MaterialIcons name="wifi-off" size={56} color={colors.error ?? '#B00020'} style={{ opacity: 0.5 }} />
+          <Text style={styles.emptyTitle}>Couldn't reach Open Library</Text>
+          <Text style={styles.emptyDescription}>
+            Check your internet connection and try again.
+          </Text>
         </View>
       ) : searchMode === 'books' && results.length === 0 ? (
         <View style={styles.emptyState}>

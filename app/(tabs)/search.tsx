@@ -18,6 +18,7 @@ import { useRouter } from 'expo-router';
 import { useTheme, Typography, Spacing, Radius, Shadows } from '@/theme';
 import { FilterBar } from '@/components/FilterBar';
 import { searchBooks, type BookItem } from '@/lib/openLibrary';
+import { searchLocalBooks, type LocalSearchResult } from '@/lib/localBookSearch';
 import { useLibrary, useAddBook } from '@/hooks/useLibrary';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useQuery } from '@tanstack/react-query';
@@ -56,17 +57,34 @@ export default function SearchScreen() {
   // "Network request failed" error caused by dangling / racing XHRs.
   const hasBookSearchInput = searchMode === 'books' && (!!debouncedQuery.trim() || !!activeGenre);
   const {
-    data: results = [],
-    isFetching: loading,
-    isError: isSearchError,
+    data: olResults = [],
+    isFetching: olLoading,
+    isError: isOLError,
   } = useQuery({
     queryKey: ['bookSearch', debouncedQuery, activeGenre],
     queryFn: ({ signal }) => searchBooks(debouncedQuery, activeGenre ?? undefined, undefined, signal),
     enabled: hasBookSearchInput,
-    staleTime: 1000 * 30,  // 30 s — re-use cached results for the same query
+    staleTime: 1000 * 30,
     gcTime: 1000 * 60 * 5,
-    retry: false,          // don't retry on error; let the user re-type
+    retry: false,
   });
+
+  // ── Local cache fallback — fires only when Open Library is unreachable ───
+  const {
+    data: cacheResults = [],
+    isFetching: cacheLoading,
+  } = useQuery({
+    queryKey: ['bookSearchCache', debouncedQuery],
+    queryFn: () => searchLocalBooks(debouncedQuery),
+    enabled: isOLError && !!debouncedQuery.trim(),
+    staleTime: 1000 * 60 * 2,
+    retry: false,
+  });
+
+  const isFromCache = isOLError && !olLoading;
+  const results: (BookItem | LocalSearchResult)[] = isFromCache ? cacheResults : olResults;
+  const loading = olLoading || (isFromCache && cacheLoading);
+  const isSearchError = isOLError && !cacheLoading && cacheResults.length === 0 && !!debouncedQuery.trim();
 
   const bookIds = React.useMemo(() => results.map(b => b.open_library_id), [results]);
   const { data: bulkStats } = useBulkBookStats(bookIds);
@@ -138,9 +156,9 @@ export default function SearchScreen() {
       ) : isSearchError ? (
         <View style={styles.emptyState}>
           <MaterialIcons name="wifi-off" size={56} color={colors.error ?? '#B00020'} style={{ opacity: 0.5 }} />
-          <Text style={styles.emptyTitle}>Couldn't reach Open Library</Text>
+          <Text style={styles.emptyTitle}>Open Library is unreachable</Text>
           <Text style={styles.emptyDescription}>
-            Check your internet connection and try again.
+            No cached results found for this search. Try again when you're back online.
           </Text>
         </View>
       ) : searchMode === 'books' && results.length === 0 ? (
@@ -160,19 +178,30 @@ export default function SearchScreen() {
           </Text>
         </View>
       ) : searchMode === 'books' ? (
-        <FlatList
-          data={results}
-          keyExtractor={(item) => item.open_library_id}
-          contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 80 }]}
-          renderItem={({ item }) => (
-            <SearchResultCard 
-              book={item} 
-              isAdded={libraryBooks.some(b => b.open_library_id === item.open_library_id)}
-              stats={bulkStats?.[item.open_library_id]}
-              onPress={() => router.push({ pathname: `/discover/${encodeURIComponent(item.open_library_id)}` as any, params: { bookData: JSON.stringify(item) } })}
-            />
+        <>
+          {/* Cached results banner */}
+          {isFromCache && results.length > 0 && (
+            <View style={styles.cacheBanner}>
+              <MaterialIcons name="cloud-off" size={14} color="#92400e" />
+              <Text style={styles.cacheBannerText}>
+                Open Library offline — showing {results.length} cached result{results.length !== 1 ? 's' : ''}
+              </Text>
+            </View>
           )}
-        />
+          <FlatList
+            data={results}
+            keyExtractor={(item) => item.open_library_id}
+            contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 80 }]}
+            renderItem={({ item }) => (
+              <SearchResultCard
+                book={item}
+                isAdded={libraryBooks.some(b => b.open_library_id === item.open_library_id)}
+                stats={bulkStats?.[item.open_library_id]}
+                onPress={() => router.push({ pathname: `/discover/${encodeURIComponent(item.open_library_id)}` as any, params: { bookData: JSON.stringify(item) } })}
+              />
+            )}
+          />
+        </>
       ) : (
         <FlatList
           data={userResults}
@@ -407,6 +436,22 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     color: colors.onSurfaceVariant,
     textAlign: 'center',
     opacity: 0.7,
+  },
+  cacheBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginHorizontal: Spacing.containerPadding,
+    marginBottom: 4,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    backgroundColor: '#fef3c7',
+    borderRadius: Radius.md,
+  },
+  cacheBannerText: {
+    ...Typography.styles.labelSm,
+    color: '#92400e',
+    flex: 1,
   },
   list: {
     paddingHorizontal: Spacing.containerPadding,

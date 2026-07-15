@@ -40,23 +40,37 @@ export async function searchBooks(
 
   const url = `https://openlibrary.org/search.json?${params.join('&')}`;
 
+  // Race a 5-second timeout against the caller's cancellation signal so that
+  // a slow or unresponsive Open Library triggers the local cache fallback.
+  const timeoutController = new AbortController();
+  const timeoutId = setTimeout(() => timeoutController.abort(), 5000);
+
+  // Merge the caller's signal with our timeout signal
+  const mergedSignal = signal
+    ? AbortSignal.any
+      ? AbortSignal.any([signal, timeoutController.signal])
+      : timeoutController.signal          // older RN — timeout only
+    : timeoutController.signal;
+
   let res: Response;
   try {
     res = await fetch(url, {
       headers: { Accept: 'application/json' },
-      signal,
+      signal: mergedSignal,
     });
   } catch (err: any) {
+    clearTimeout(timeoutId);
     // The whatwg-fetch polyfill (used on Android) maps xhr.abort() to
     // TypeError('Network request failed') instead of DOMException('AbortError').
     // TanStack Query only suppresses errors whose name === 'AbortError', so we
     // re-map it here. If the signal was NOT aborted it's a genuine network
     // failure and we re-throw so the error UI is shown correctly.
-    if (signal?.aborted) {
+    if (mergedSignal.aborted) {
       throw new DOMException('Request aborted', 'AbortError');
     }
     throw err;
   }
+  clearTimeout(timeoutId);
 
   if (!res.ok) throw new Error(`Open Library API error: ${res.status}`);
 

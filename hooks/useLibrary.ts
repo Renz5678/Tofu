@@ -5,6 +5,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import type { BookItem } from '@/lib/openLibrary';
+import { uploadBookCover } from '@/lib/uploadBookCover';
 
 export type BookStatus = 'reading' | 'finished' | 'on_hold';
 
@@ -145,8 +146,16 @@ export function useAddBook() {
       );
 
       if (userBookError) throw userBookError;
+
+      // Return enough info for onSuccess to kick off the cover upload
+      return { bookId: bookRow.id, coverUrl: book.cover_url };
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['library'] }),
+    onSuccess: ({ bookId, coverUrl }) => {
+      qc.invalidateQueries({ queryKey: ['library'] });
+      // Fire-and-forget: download the OL cover and cache it in Supabase Storage.
+      // Runs entirely in the background — any failure is silently swallowed.
+      if (coverUrl) uploadBookCover(bookId, coverUrl);
+    },
   });
 }
 

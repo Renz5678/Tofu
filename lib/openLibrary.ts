@@ -72,3 +72,26 @@ export async function searchBooks(query: string, genre?: string, language?: stri
 
   return uniqueBooks;
 }
+
+/**
+ * Fetch the synopsis/description for a book from the Open Library Works API.
+ * The `openLibraryId` is the Works key, e.g. "/works/OL45804W".
+ * Returns null if no description is available or the request fails.
+ *
+ * Callers should wrap this in a TanStack Query hook for caching.
+ */
+export async function fetchSynopsis(openLibraryId: string): Promise<string | null> {
+  try {
+    const url = `https://openlibrary.org${openLibraryId}.json`;
+    const res = await fetch(url, { headers: { Accept: 'application/json' } });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!data.description) return null;
+    // description can be a plain string or { type, value } object
+    return typeof data.description === 'string'
+      ? data.description
+      : data.description?.value ?? null;
+  } catch {
+    return null;
+  }
+}

@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useQuery } from '@tanstack/react-query';
 import { useTheme, Typography, Spacing, Radius, Shadows } from '@/theme';
-import { BookItem } from '@/lib/openLibrary';
+import { BookItem, fetchSynopsis } from '@/lib/openLibrary';
 import { useBookStats, useBookReviews, CommunityReview } from '@/hooks/useSocial';
 import { useLibrary, useAddBook } from '@/hooks/useLibrary';
 
@@ -24,37 +25,19 @@ export default function DiscoverBookScreen() {
   const { data: libraryBooks = [] } = useLibrary();
   const { mutateAsync: addBook, isPending: isAdding } = useAddBook();
 
-  const [synopsis, setSynopsis] = useState<string | null>(null);
-  const [loadingSynopsis, setLoadingSynopsis] = useState(false);
-
   const libraryBook = libraryBooks.find(b => b.open_library_id === decodedId);
   const isAdded = !!libraryBook;
 
-  useEffect(() => {
-    if (!book) return;
-    const fetchSynopsis = async () => {
-      setLoadingSynopsis(true);
-      try {
-        const res = await fetch(`https://openlibrary.org${book.open_library_id}.json`, {
-          headers: {
-            'Accept': 'application/json'
-          }
-        });
-        const data = await res.json();
-        if (data.description) {
-          const desc = typeof data.description === 'string' ? data.description : data.description.value;
-          setSynopsis(desc);
-        } else {
-          setSynopsis(null);
-        }
-      } catch (e) {
-        setSynopsis(null);
-      } finally {
-        setLoadingSynopsis(false);
-      }
-    };
-    fetchSynopsis();
-  }, [book]);
+  // Cached synopsis fetch — result persists for 5 min so back-navigation
+  // never triggers a second network request to the slow Works API.
+  const { data: synopsis = null, isLoading: loadingSynopsis } = useQuery({
+    queryKey: ['synopsis', decodedId],
+    queryFn: () => fetchSynopsis(decodedId),
+    staleTime: 1000 * 60 * 5,  // 5 minutes
+    gcTime: 1000 * 60 * 30,    // keep in cache for 30 minutes
+    enabled: !!decodedId && decodedId.startsWith('/works/'),
+    retry: 1,
+  });
 
   if (!book) {
     return (

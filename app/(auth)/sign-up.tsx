@@ -16,36 +16,92 @@ import { Link, useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { supabase } from '@/lib/supabase';
 import { useTheme, Typography, Spacing, Radius } from '@/theme';
+import {
+  useUsernameCheck,
+  getUsernameHint,
+  type UsernameStatus,
+} from '@/hooks/useUsernameCheck';
 
+// ── Username status indicator ─────────────────────────────────────────────────
+function UsernameStatusRow({ status }: { status: UsernameStatus }) {
+  const { colors } = useTheme();
+  const hint = getUsernameHint(status);
+
+  const iconName =
+    status === 'available' ? 'check-circle' :
+    status === 'taken' || status === 'invalid' ? 'cancel' :
+    status === 'checking' ? 'hourglass-empty' :
+    'info-outline';
+
+  const color =
+    hint.color === 'green' ? '#22c55e' :
+    hint.color === 'red'   ? (colors.error ?? '#ef4444') :
+    hint.color === 'amber' ? '#f59e0b' :
+    colors.onSurfaceVariant;
+
+  if (status === 'idle') {
+    return (
+      <Text style={[styles.hintText, { color: colors.onSurfaceVariant, opacity: 0.6 }]}>
+        {hint.text}
+      </Text>
+    );
+  }
+
+  return (
+    <View style={styles.hintRow}>
+      {status === 'checking' ? (
+        <ActivityIndicator size={12} color={color} />
+      ) : (
+        <MaterialIcons name={iconName as any} size={14} color={color} />
+      )}
+      <Text style={[styles.hintText, { color }]}>{hint.text}</Text>
+    </View>
+  );
+}
+
+// ── Main screen ───────────────────────────────────────────────────────────────
 export default function SignUpScreen() {
   const { colors, isDark } = useTheme();
-  const styles = createStyles(colors, isDark);
-
   const router = useRouter();
   const insets = useSafeAreaInsets();
+
   const [displayName, setDisplayName] = useState('');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // Real-time username availability
+  const { status: usernameStatus } = useUsernameCheck(username);
+  const canSubmit =
+    !loading &&
+    displayName.trim().length > 0 &&
+    usernameStatus === 'available' &&
+    email.trim().length > 0 &&
+    password.length >= 6;
+
+  // Sanitise: lowercase + remove anything that's not a-z 0-9 _
+  function handleUsernameChange(text: string) {
+    setUsername(text.toLowerCase().replace(/[^a-z0-9_]/g, ''));
+  }
+
   async function handleSignUp() {
-    if (!displayName.trim() || !username.trim() || !email.trim() || !password) {
-      Alert.alert('Missing fields', 'Please fill in all fields.');
-      return;
-    }
-    if (password.length < 6) {
-      Alert.alert('Weak password', 'Password must be at least 6 characters.');
-      return;
-    }
+    if (!canSubmit) return;
+
     setLoading(true);
 
-    // 1. Create auth user
+    // 1. Create auth user — pass username in raw_user_meta_data so the
+    //    DB trigger (handle_new_user) can write the correct username.
+    const cleanUsername = username.trim().toLowerCase();
     const { data, error } = await supabase.auth.signUp({
       email: email.trim(),
       password,
       options: {
-        data: { display_name: displayName.trim(), username: username.trim() },
+        data: {
+          display_name: displayName.trim(),
+          username: cleanUsername,
+        },
       },
     });
 
@@ -55,25 +111,24 @@ export default function SignUpScreen() {
       return;
     }
 
-    // 2. Insert profiles row (user_id = auth.uid())
+    // 2. Safety-net upsert — in case the DB trigger fired before the
+    //    raw_user_meta_data was available (edge case).
     if (data.user) {
-      const { error: profileError } = await supabase.from('profiles').upsert({
-        id: data.user.id,
-        username: username.trim().toLowerCase().replace(/\s+/g, '_'),
-        display_name: displayName.trim(),
-      });
-      if (profileError) {
-        console.warn('[Tofu] Profile creation error:', profileError.message);
-      }
+      await supabase.from('profiles').upsert(
+        {
+          id: data.user.id,
+          username: cleanUsername,
+          display_name: displayName.trim(),
+        },
+        { onConflict: 'id' }
+      );
     }
 
     setLoading(false);
 
     if (data.session) {
-      // Auto-confirmed — go straight to app
       router.replace('/(tabs)/dashboard');
     } else {
-      // Email confirmation required
       Alert.alert(
         'Check your email',
         'We sent a confirmation link. Click it, then come back to log in.',
@@ -81,6 +136,14 @@ export default function SignUpScreen() {
       );
     }
   }
+
+  const borderColor = (field: 'username') => {
+    if (field === 'username') {
+      if (usernameStatus === 'available') return '#22c55e';
+      if (usernameStatus === 'taken' || usernameStatus === 'invalid') return colors.error ?? '#ef4444';
+    }
+    return colors.outlineVariant;
+  };
 
   return (
     <KeyboardAvoidingView
@@ -96,20 +159,22 @@ export default function SignUpScreen() {
       >
         {/* Logo */}
         <View style={styles.logoRow}>
-          <View style={styles.logoIcon}>
+          <View style={[styles.logoIcon, { backgroundColor: colors.primary }]}>
             <MaterialIcons name="menu-book" size={28} color={colors.onPrimary} />
           </View>
-          <Text style={styles.logoText}>Tofu</Text>
+          <Text style={[styles.logoText, { color: colors.primary }]}>Tofu</Text>
         </View>
 
-        <Text style={styles.heading}>Create your account</Text>
-        <Text style={styles.subheading}>Start tracking your reading journey</Text>
+        <Text style={[styles.heading, { color: colors.onSurface }]}>Create your account</Text>
+        <Text style={[styles.subheading, { color: colors.onSurfaceVariant }]}>
+          Start tracking your reading journey
+        </Text>
 
         {/* Full Name */}
         <View style={styles.fieldGroup}>
-          <Text style={styles.label}>FULL NAME</Text>
+          <Text style={[styles.label, { color: colors.primary }]}>FULL NAME</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { backgroundColor: colors.surfaceContainerLow, borderColor: colors.outlineVariant, color: colors.onSurface }]}
             placeholder="Elias Thorne"
             placeholderTextColor={`${colors.onSurfaceVariant}66`}
             value={displayName}
@@ -120,23 +185,39 @@ export default function SignUpScreen() {
 
         {/* Username */}
         <View style={styles.fieldGroup}>
-          <Text style={styles.label}>USERNAME</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="elias_reads"
-            placeholderTextColor={`${colors.onSurfaceVariant}66`}
-            value={username}
-            onChangeText={setUsername}
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
+          <Text style={[styles.label, { color: colors.primary }]}>USERNAME</Text>
+          {/* Input row with @ prefix */}
+          <View style={[styles.usernameRow, { backgroundColor: colors.surfaceContainerLow, borderColor: borderColor('username') }]}>
+            <Text style={[styles.atPrefix, { color: colors.onSurfaceVariant }]}>@</Text>
+            <TextInput
+              style={[styles.usernameInput, { color: colors.onSurface }]}
+              placeholder="elias_reads"
+              placeholderTextColor={`${colors.onSurfaceVariant}66`}
+              value={username}
+              onChangeText={handleUsernameChange}
+              autoCapitalize="none"
+              autoCorrect={false}
+              maxLength={30}
+            />
+            {/* Status icon on the right */}
+            {usernameStatus === 'checking' && (
+              <ActivityIndicator size={16} color={colors.onSurfaceVariant} style={{ marginRight: 12 }} />
+            )}
+            {usernameStatus === 'available' && (
+              <MaterialIcons name="check-circle" size={18} color="#22c55e" style={{ marginRight: 12 }} />
+            )}
+            {(usernameStatus === 'taken' || usernameStatus === 'invalid') && (
+              <MaterialIcons name="cancel" size={18} color={colors.error ?? '#ef4444'} style={{ marginRight: 12 }} />
+            )}
+          </View>
+          <UsernameStatusRow status={usernameStatus} />
         </View>
 
         {/* Email */}
         <View style={styles.fieldGroup}>
-          <Text style={styles.label}>EMAIL ADDRESS</Text>
+          <Text style={[styles.label, { color: colors.primary }]}>EMAIL ADDRESS</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { backgroundColor: colors.surfaceContainerLow, borderColor: colors.outlineVariant, color: colors.onSurface }]}
             placeholder="elias@books.com"
             placeholderTextColor={`${colors.onSurfaceVariant}66`}
             value={email}
@@ -149,38 +230,63 @@ export default function SignUpScreen() {
 
         {/* Password */}
         <View style={styles.fieldGroup}>
-          <Text style={styles.label}>PASSWORD</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Create a strong password"
-            placeholderTextColor={`${colors.onSurfaceVariant}66`}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            autoComplete="new-password"
-          />
+          <Text style={[styles.label, { color: colors.primary }]}>PASSWORD</Text>
+          <View>
+            <TextInput
+              style={[styles.input, { backgroundColor: colors.surfaceContainerLow, borderColor: colors.outlineVariant, color: colors.onSurface }]}
+              placeholder="Create a strong password"
+              placeholderTextColor={`${colors.onSurfaceVariant}66`}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+              autoComplete="new-password"
+            />
+            <TouchableOpacity
+              style={styles.eyeButton}
+              onPress={() => setShowPassword(v => !v)}
+            >
+              <MaterialIcons
+                name={showPassword ? 'visibility' : 'visibility-off'}
+                size={20}
+                color={colors.onSurfaceVariant}
+              />
+            </TouchableOpacity>
+          </View>
+          {password.length > 0 && password.length < 6 && (
+            <Text style={[styles.hintText, { color: colors.error ?? '#ef4444' }]}>
+              Password must be at least 6 characters.
+            </Text>
+          )}
         </View>
 
         {/* Primary CTA */}
         <TouchableOpacity
-          style={[styles.primaryButton, loading && styles.primaryButtonDisabled]}
+          style={[
+            styles.primaryButton,
+            { backgroundColor: colors.primary },
+            !canSubmit && styles.primaryButtonDisabled,
+          ]}
           onPress={handleSignUp}
           activeOpacity={0.85}
-          disabled={loading}
+          disabled={!canSubmit}
         >
           {loading ? (
             <ActivityIndicator color={colors.onPrimary} />
           ) : (
-            <Text style={styles.primaryButtonText}>Create Account</Text>
+            <Text style={[styles.primaryButtonText, { color: colors.onPrimary }]}>
+              Create Account
+            </Text>
           )}
         </TouchableOpacity>
 
         {/* Sign in link */}
         <View style={styles.signInRow}>
-          <Text style={styles.signInText}>Already have an account? </Text>
+          <Text style={[styles.signInText, { color: colors.onSurfaceVariant }]}>
+            Already have an account?{' '}
+          </Text>
           <Link href="/(auth)/sign-in" asChild>
             <TouchableOpacity>
-              <Text style={styles.signInLink}>Log In</Text>
+              <Text style={[styles.signInLink, { color: colors.primary }]}>Log In</Text>
             </TouchableOpacity>
           </Link>
         </View>
@@ -189,7 +295,7 @@ export default function SignUpScreen() {
   );
 }
 
-const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
+const styles = StyleSheet.create({
   scroll: {
     paddingHorizontal: Spacing.containerPadding,
     gap: Spacing.stackMd,
@@ -205,21 +311,17 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: Radius.lg,
-    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   logoText: {
     ...Typography.styles.headlineMd,
-    color: colors.primary,
   },
   heading: {
     ...Typography.styles.headlineMd,
-    color: colors.onSurface,
   },
   subheading: {
     ...Typography.styles.bodyMd,
-    color: colors.onSurfaceVariant,
     marginTop: -Spacing.stackSm,
   },
   fieldGroup: {
@@ -227,34 +329,62 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   },
   label: {
     ...Typography.styles.labelSm,
-    color: colors.primary,
     marginLeft: 4,
   },
   input: {
-    backgroundColor: colors.surfaceContainerLow,
     borderWidth: 1,
-    borderColor: colors.outlineVariant,
     borderRadius: Radius.md,
     paddingHorizontal: Spacing.gutter,
     paddingVertical: 14,
     ...Typography.styles.bodyMd,
-    color: colors.onSurface,
+  },
+  // Username field — row with @ prefix and status icon
+  usernameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: Radius.md,
+    height: 52,
+  },
+  atPrefix: {
+    ...Typography.styles.bodyMd,
+    paddingLeft: Spacing.gutter,
+    paddingRight: 2,
+    opacity: 0.6,
+  },
+  usernameInput: {
+    flex: 1,
+    ...Typography.styles.bodyMd,
+    paddingVertical: 14,
+    paddingRight: 4,
+  },
+  hintRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginLeft: 4,
+  },
+  hintText: {
+    ...Typography.styles.labelSm,
+    marginLeft: 4,
+  },
+  eyeButton: {
+    position: 'absolute',
+    right: 14,
+    top: 14,
   },
   primaryButton: {
-    backgroundColor: colors.primary,
     borderRadius: Radius.xl,
     paddingVertical: 16,
     alignItems: 'center',
-    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 12,
     elevation: 4,
   },
-  primaryButtonDisabled: { opacity: 0.7 },
+  primaryButtonDisabled: { opacity: 0.45 },
   primaryButtonText: {
     ...Typography.styles.labelLg,
-    color: colors.onPrimary,
   },
   signInRow: {
     flexDirection: 'row',
@@ -263,11 +393,9 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   },
   signInText: {
     ...Typography.styles.bodyMd,
-    color: colors.onSurfaceVariant,
   },
   signInLink: {
     ...Typography.styles.labelLg,
-    color: colors.primary,
     textDecorationLine: 'underline',
   },
 });

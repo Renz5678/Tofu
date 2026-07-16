@@ -299,17 +299,44 @@ export function useBulkBookStats(bookIds: string[]) {
   return useQuery({
     queryKey: ['bulkBookStats', bookIds],
     queryFn: async (): Promise<Record<string, BookStats>> => {
+      // 1. First find which of these IDs are UUIDs vs string OL IDs
+      const isUUID = (id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+      
+      const olIds = bookIds.filter(id => !isUUID(id));
+      const validUUIDs = bookIds.filter(id => isUUID(id));
+
+      let dbIds = [...validUUIDs];
+
+      let dbBooksList: any[] = [];
+      // 2. Resolve OL IDs to DB UUIDs
+      if (olIds.length > 0) {
+        const { data: dbBooks } = await supabase.from('books').select('id, open_library_id').in('open_library_id', olIds);
+        if (dbBooks) {
+          dbBooksList = dbBooks;
+          dbIds = [...dbIds, ...dbBooks.map(b => b.id)];
+        }
+      }
+
+      if (dbIds.length === 0) return {};
+
+      // 3. Fetch stats using valid UUIDs
       const { data, error } = await supabase
         .from('book_stats')
         .select('*')
-        .in('book_id', bookIds);
+        .in('book_id', dbIds);
 
       if (error) throw error;
       
       const statsMap: Record<string, BookStats> = {};
       if (data) {
+        let dbIdToOlId: Record<string, string> = {};
+        dbBooksList.forEach(b => dbIdToOlId[b.id] = b.open_library_id);
+        
         data.forEach(stat => {
           statsMap[stat.book_id] = stat as BookStats;
+          if (dbIdToOlId[stat.book_id]) {
+            statsMap[dbIdToOlId[stat.book_id]] = stat as BookStats;
+          }
         });
       }
       return statsMap;
@@ -481,13 +508,17 @@ export function useUpsertReview() {
       if (error) throw error;
     },
     onSuccess: (_, variables) => {
+      let bookId;
+      if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(variables.book.open_library_id)) {
+        bookId = variables.book.open_library_id;
+      }
       qc.invalidateQueries({ queryKey: ['myReview', variables.book.open_library_id] });
-      qc.invalidateQueries({ queryKey: ['myReview', variables.book.id] }); // In case it's queried by DB ID
+      qc.invalidateQueries({ queryKey: ['myReview', bookId] });
       qc.invalidateQueries({ queryKey: ['bookReviews', variables.book.open_library_id] });
-      qc.invalidateQueries({ queryKey: ['bookReviews', variables.book.id] });
+      qc.invalidateQueries({ queryKey: ['bookReviews', bookId] });
       qc.invalidateQueries({ queryKey: ['bookStats', variables.book.open_library_id] });
-      qc.invalidateQueries({ queryKey: ['bookStats', variables.book.id] });
-      qc.invalidateQueries({ queryKey: ['timeline'] });
+      qc.invalidateQueries({ queryKey: ['bookStats', bookId] });
+      qc.invalidateQueries({ queryKey: ['library'] });
     },
   });
 }

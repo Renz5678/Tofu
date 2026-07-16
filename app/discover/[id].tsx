@@ -208,84 +208,37 @@ export default function DiscoverBookScreen() {
           </View>
         )}
 
-        {/* Rate this book CTA - Only show if NO myReview */}
-        {!myReview && (
-          <View style={styles.rateSection}>
-            <Text style={styles.sectionTitle}>Rate this book</Text>
-            <View style={{ flexDirection: 'row', gap: 8 }}>
-              {[1, 2, 3, 4, 5].map(star => (
+        {/* Rate this book / Your Rating */}
+        <View style={styles.rateSection}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <Text style={styles.sectionTitle}>{myReview ? 'Your Rating' : 'Rate this book'}</Text>
+            {myReview && (
+              <TouchableOpacity onPress={() => setIsShareModalVisible(true)} style={{ padding: 4 }}>
+                <MaterialIcons name="share" size={24} color={colors.primary} />
+              </TouchableOpacity>
+            )}
+          </View>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            {[1, 2, 3, 4, 5].map(star => {
+              const ratingValue = myReview?.rating || 0;
+              const isFull = star <= ratingValue;
+              const isHalf = !isFull && star - 0.5 <= ratingValue;
+              return (
                 <TouchableOpacity 
                   key={star} 
                   onPress={() => setIsLogSheetOpen(true)}
                 >
                   <MaterialIcons 
-                    name={'star-outline'} 
+                    name={isFull ? 'star' : isHalf ? 'star-half' : 'star-outline'} 
                     size={36} 
                     color={colors.primary} 
-                    style={{ opacity: 0.8 }}
+                    style={{ opacity: myReview?.rating ? 1 : 0.8 }}
                   />
                 </TouchableOpacity>
-              ))}
-            </View>
+              );
+            })}
           </View>
-        )}
-
-        {/* My Log */}
-        {myReview && (
-          <View style={styles.section}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Text style={styles.sectionTitle}>My Log</Text>
-              <View style={{ flexDirection: 'row', gap: 12 }}>
-                <TouchableOpacity onPress={() => setIsLogSheetOpen(true)}>
-                  <MaterialIcons name="edit" size={20} color={colors.primary} />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => setIsShareModalVisible(true)}>
-                  <MaterialIcons name="share" size={20} color={colors.primary} />
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            <View style={[styles.progressCard, Shadows.card]}>
-              {myReview.liked && (
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 8 }}>
-                  <MaterialIcons name="favorite" size={16} color="#E91E63" />
-                  <Text style={{ ...Typography.styles.labelSm, color: '#E91E63' }}>Liked</Text>
-                </View>
-              )}
-              {myReview.rating ? (
-                <View style={{ flexDirection: 'row', marginBottom: 12 }}>
-                  {[1, 2, 3, 4, 5].map((star) => {
-                    const isFull = myReview.rating! >= star;
-                    const isHalf = myReview.rating! >= star - 0.5 && myReview.rating! < star;
-                    return (
-                      <MaterialIcons
-                        key={star}
-                        name={isFull ? 'star' : isHalf ? 'star-half' : 'star-outline'}
-                        size={20}
-                        color="#FFC107"
-                      />
-                    );
-                  })}
-                </View>
-              ) : (
-                <Text style={styles.placeholder}>No rating added yet.</Text>
-              )}
-              {myReview.content ? (
-                <Text style={{ ...Typography.styles.bodyMd, color: colors.onSurface }}>
-                  "{myReview.content}"
-                </Text>
-              ) : (
-                <Text style={styles.placeholder}>No review written yet. Tap ✏️ to add one.</Text>
-              )}
-              {myReview.contains_spoilers && (
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 8 }}>
-                  <MaterialIcons name="warning" size={12} color={colors.onSurfaceVariant} />
-                  <Text style={{ ...Typography.styles.labelSm, color: colors.onSurfaceVariant }}>Contains spoilers</Text>
-                </View>
-              )}
-            </View>
-          </View>
-        )}
+        </View>
 
         {/* Synopsis */}
         {loadingSynopsis ? (

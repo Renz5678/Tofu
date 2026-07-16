@@ -32,11 +32,23 @@ export default function SignInScreen() {
 
   async function handleSignIn() {
     if (!email.trim() || !password) {
-      Alert.alert('Missing fields', 'Please enter your email and password.');
+      Alert.alert('Missing fields', 'Please enter your username/email and password.');
       return;
     }
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+
+    let loginEmail = email.trim();
+    if (!loginEmail.includes('@')) {
+      const { data, error: rpcError } = await supabase.rpc('get_email_for_username', { p_username: loginEmail });
+      if (rpcError || !data) {
+        setLoading(false);
+        Alert.alert('Sign In Failed', 'Username not found.');
+        return;
+      }
+      loginEmail = data;
+    }
+
+    const { error } = await supabase.auth.signInWithPassword({ email: loginEmail, password });
     setLoading(false);
     if (error) {
       Alert.alert('Sign In Failed', error.message);
@@ -96,12 +108,12 @@ export default function SignInScreen() {
           <View style={styles.dividerLine} />
         </View>
 
-        {/* Email */}
+        {/* Inputs */}
         <View style={styles.fieldGroup}>
-          <Text style={styles.label}>EMAIL ADDRESS</Text>
+          <Text style={styles.label}>USERNAME OR EMAIL</Text>
           <TextInput
             style={styles.input}
-            placeholder="hello@example.com"
+            placeholder="Enter your username or email"
             placeholderTextColor={`${colors.onSurfaceVariant}66`}
             value={email}
             onChangeText={setEmail}

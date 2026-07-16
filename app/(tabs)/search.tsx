@@ -92,12 +92,19 @@ export default function SearchScreen() {
     queryFn: async () => {
       if (!debouncedQuery.trim()) return [];
       const term = `%${debouncedQuery.trim()}%`;
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .or(`username.ilike.${term},display_name.ilike.${term}`)
-        .limit(20);
-      if (error) throw error;
+        let query = supabase
+          .from('profiles')
+          .select('*')
+          .or(`username.ilike.${term},display_name.ilike.${term}`)
+          .limit(20);
+          
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user?.id) {
+          query = query.neq('id', session.user.id);
+        }
+        
+        const { data, error } = await query;
+        if (error) throw error;
       return data as Profile[];
     },
     enabled: searchMode === 'users' && !!debouncedQuery.trim(),

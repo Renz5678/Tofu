@@ -13,7 +13,7 @@ export function GlobalSessionBanner() {
   const router = useRouter();
   const { width } = useWindowDimensions();
 
-  const { activeSession } = useSessionStore();
+  const { activeSession, clearSession } = useSessionStore();
   const [elapsed, setElapsed] = useState(0);
 
   useEffect(() => {
@@ -72,7 +72,12 @@ export function GlobalSessionBanner() {
 
         <View style={styles.rightContent}>
           <Text style={styles.timer}>{formatSessionTime(elapsed)}</Text>
-          <MaterialIcons name="chevron-right" size={20} color={colors.onPrimaryContainer} />
+          <TouchableOpacity 
+            onPress={(e) => { e.stopPropagation(); clearSession(); }}
+            style={{ padding: 4 }}
+          >
+            <MaterialIcons name="close" size={20} color={colors.onPrimaryContainer} />
+          </TouchableOpacity>
         </View>
       </TouchableOpacity>
     </Animated.View>

@@ -1,5 +1,7 @@
-import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, Modal } from 'react-native';
+import * as Sharing from 'expo-sharing';
+import { captureRef } from 'react-native-view-shot';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -7,7 +9,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { useTheme, Typography, Spacing, Radius, Shadows } from '@/theme';
 import { BookItem, fetchSynopsis } from '@/lib/openLibrary';
-import { useBookStats, useBookReviews, CommunityReview } from '@/hooks/useSocial';
+import { useBookStats, useBookReviews, CommunityReview, useMyReview } from '@/hooks/useSocial';
+import { useLibrary, useAddBook } from '@/hooks/useLibrary';
+import { LogBookSheet } from '@/components/LogBookSheet';
 import { useLibrary, useAddBook } from '@/hooks/useLibrary';
 
 export default function DiscoverBookScreen() {
@@ -22,6 +26,7 @@ export default function DiscoverBookScreen() {
 
   const { data: stats } = useBookStats(decodedId);
   const { data: communityReviews = [] } = useBookReviews(decodedId);
+  const { data: myReview } = useMyReview(decodedId);
   const { data: libraryBooks = [] } = useLibrary();
   const { mutateAsync: addBook, isPending: isAdding } = useAddBook();
 
@@ -38,6 +43,40 @@ export default function DiscoverBookScreen() {
     enabled: !!decodedId && decodedId.startsWith('/works/'),
     retry: 1,
   });
+
+  const [isLogSheetOpen, setIsLogSheetOpen] = useState(false);
+  const [isShareModalVisible, setIsShareModalVisible] = useState(false);
+  const shareViewRef = useRef<View>(null);
+
+  const captureAndShare = async () => {
+    try {
+      if (!shareViewRef.current) return;
+      const uri = await captureRef(shareViewRef, {
+        format: 'png',
+        quality: 1,
+      });
+      await Sharing.shareAsync(uri, {
+        dialogTitle: 'Share your review',
+        mimeType: 'image/png',
+      });
+      setIsShareModalVisible(false);
+    } catch (error) {
+      console.warn('Error sharing image', error);
+    }
+  };
+
+  const handleSaveReviewSuccess = () => {
+    if (!isAdded) {
+      Alert.alert(
+        'Review Saved!',
+        'Would you like to add this book to your reading library?',
+        [
+          { text: 'No Thanks', style: 'cancel' },
+          { text: 'Yes, Add', onPress: () => handleAdd() }
+        ]
+      );
+    }
+  };
 
   if (!book) {
     return (
@@ -170,38 +209,84 @@ export default function DiscoverBookScreen() {
           </View>
         )}
 
-        {/* Rate this book CTA */}
-        <View style={styles.rateSection}>
-          <Text style={styles.sectionTitle}>Rate this book</Text>
-          <View style={{ flexDirection: 'row', gap: 8 }}>
-            {[1, 2, 3, 4, 5].map(star => (
-              <TouchableOpacity 
-                key={star} 
-                onPress={() => {
-                  if (!isAdded) {
-                    Alert.alert(
-                      'Add to Library',
-                      'Would you like to add this book to your library to rate it?',
-                      [
-                        { text: 'Cancel', style: 'cancel' },
-                        { text: 'Add', onPress: () => handleAdd() }
-                      ]
-                    );
-                  } else {
-                    router.push(`/book/${libraryBook.id}` as any);
-                  }
-                }}
-              >
-                <MaterialIcons 
-                  name={isAdded && libraryBook?.rating && libraryBook.rating >= star ? 'star' : 'star-outline'} 
-                  size={36} 
-                  color={colors.primary} 
-                  style={{ opacity: 0.8 }}
-                />
-              </TouchableOpacity>
-            ))}
+        {/* Rate this book CTA - Only show if NO myReview */}
+        {!myReview && (
+          <View style={styles.rateSection}>
+            <Text style={styles.sectionTitle}>Rate this book</Text>
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              {[1, 2, 3, 4, 5].map(star => (
+                <TouchableOpacity 
+                  key={star} 
+                  onPress={() => setIsLogSheetOpen(true)}
+                >
+                  <MaterialIcons 
+                    name={'star-outline'} 
+                    size={36} 
+                    color={colors.primary} 
+                    style={{ opacity: 0.8 }}
+                  />
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
-        </View>
+        )}
+
+        {/* My Log */}
+        {myReview && (
+          <View style={styles.section}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Text style={styles.sectionTitle}>My Log</Text>
+              <View style={{ flexDirection: 'row', gap: 12 }}>
+                <TouchableOpacity onPress={() => setIsLogSheetOpen(true)}>
+                  <MaterialIcons name="edit" size={20} color={colors.primary} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => setIsShareModalVisible(true)}>
+                  <MaterialIcons name="share" size={20} color={colors.primary} />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <View style={[styles.progressCard, Shadows.card]}>
+              {myReview.liked && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 8 }}>
+                  <MaterialIcons name="favorite" size={16} color="#E91E63" />
+                  <Text style={{ ...Typography.styles.labelSm, color: '#E91E63' }}>Liked</Text>
+                </View>
+              )}
+              {myReview.rating ? (
+                <View style={{ flexDirection: 'row', marginBottom: 12 }}>
+                  {[1, 2, 3, 4, 5].map((star) => {
+                    const isFull = myReview.rating! >= star;
+                    const isHalf = myReview.rating! >= star - 0.5 && myReview.rating! < star;
+                    return (
+                      <MaterialIcons
+                        key={star}
+                        name={isFull ? 'star' : isHalf ? 'star-half' : 'star-outline'}
+                        size={20}
+                        color="#FFC107"
+                      />
+                    );
+                  })}
+                </View>
+              ) : (
+                <Text style={styles.placeholder}>No rating added yet.</Text>
+              )}
+              {myReview.content ? (
+                <Text style={{ ...Typography.styles.bodyMd, color: colors.onSurface }}>
+                  "{myReview.content}"
+                </Text>
+              ) : (
+                <Text style={styles.placeholder}>No review written yet. Tap ✏️ to add one.</Text>
+              )}
+              {myReview.contains_spoilers && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 8 }}>
+                  <MaterialIcons name="warning" size={12} color={colors.onSurfaceVariant} />
+                  <Text style={{ ...Typography.styles.labelSm, color: colors.onSurfaceVariant }}>Contains spoilers</Text>
+                </View>
+              )}
+            </View>
+          </View>
+        )}
 
         {/* Synopsis */}
         {loadingSynopsis ? (
@@ -245,6 +330,80 @@ export default function DiscoverBookScreen() {
         </View>
 
       </ScrollView>
+
+      {/* Log Book Sheet */}
+      <LogBookSheet
+        visible={isLogSheetOpen}
+        book={book}
+        onClose={() => setIsLogSheetOpen(false)}
+        onSaveSuccess={handleSaveReviewSuccess}
+        initialValues={myReview ? {
+          rating: myReview.rating ?? 0,
+          liked: myReview.liked,
+          content: myReview.content ?? '',
+          contains_spoilers: myReview.contains_spoilers,
+        } : undefined}
+      />
+
+      {/* Share Modal */}
+      <Modal visible={isShareModalVisible} animationType="slide" transparent>
+        <View style={styles.shareModalOverlay}>
+          <View style={styles.shareModalContent}>
+            <Text style={styles.shareModalTitle}>Share Review</Text>
+            
+            <View 
+              ref={shareViewRef} 
+              collapsable={false}
+              style={styles.shareCard}
+            >
+              <Image source={{ uri: book.cover_url ?? undefined }} style={styles.shareCardBackground} contentFit="cover" blurRadius={40} />
+              <View style={styles.shareCardOverlay} />
+              
+              <View style={styles.shareCardContent}>
+                <Image source={{ uri: book.cover_url ?? undefined }} style={styles.shareCardCoverLarge} contentFit="cover" />
+                
+                <Text style={styles.shareCardBookTitle} numberOfLines={2}>{book.title}</Text>
+                <Text style={styles.shareCardBookAuthor} numberOfLines={1}>{book.author?.toUpperCase()}</Text>
+                
+                {myReview?.rating ? (
+                  <View style={{ flexDirection: 'row', marginTop: 12, marginBottom: 32, justifyContent: 'center' }}>
+                    {[1, 2, 3, 4, 5].map((star) => {
+                      const isFull = myReview.rating! >= star;
+                      const isHalf = myReview.rating! >= star - 0.5 && myReview.rating! < star;
+                      return (
+                        <MaterialIcons 
+                          key={star} 
+                          name={isFull ? 'star' : isHalf ? 'star-half' : 'star-outline'} 
+                          size={16} 
+                          color="#00E054" 
+                        />
+                      );
+                    })}
+                  </View>
+                ) : <View style={{ height: 32 }} />}
+                
+                {myReview?.content ? (
+                  <Text style={styles.shareCardReviewText}>"{myReview.content}"</Text>
+                ) : null}
+              </View>
+
+              <View style={styles.shareCardFooter}>
+                <Text style={styles.shareCardTofuLogo}>T O F U</Text>
+              </View>
+            </View>
+
+            <View style={{ flexDirection: 'row', gap: 12, marginTop: 24, width: '100%' }}>
+              <TouchableOpacity style={[styles.primaryButton, { flex: 1, backgroundColor: colors.surfaceContainerHigh }]} onPress={() => setIsShareModalVisible(false)}>
+                <Text style={[styles.primaryButtonText, { color: colors.onSurface }]}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.primaryButton, { flex: 1 }]} onPress={captureAndShare}>
+                <MaterialIcons name="ios-share" size={20} color={colors.onPrimary} />
+                <Text style={styles.primaryButtonText}>Share Image</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -462,5 +621,114 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     backgroundColor: colors.surfaceContainerLow,
     padding: Spacing.stackLg,
     borderRadius: Radius.xl,
+  },
+  section: {
+    marginBottom: Spacing.stackLg,
+    gap: Spacing.base,
+  },
+  progressCard: {
+    backgroundColor: colors.surfaceContainerLowest,
+    borderRadius: Radius.xl,
+    padding: Spacing.stackMd,
+  },
+  placeholder: {
+    ...Typography.styles.bodyMd,
+    color: colors.onSurfaceVariant,
+    opacity: 0.6,
+  },
+  shareModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    padding: Spacing.containerPadding,
+  },
+  shareModalContent: {
+    width: '85%',
+    backgroundColor: colors.surfaceContainerLowest,
+    borderRadius: Radius.xl,
+    padding: Spacing.base,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  shareModalTitle: {
+    ...Typography.styles.titleSm,
+    color: colors.onSurface,
+    marginBottom: Spacing.base,
+  },
+  shareCard: {
+    width: '100%',
+    aspectRatio: 9/16,
+    backgroundColor: '#0F0F0F',
+    borderRadius: Radius.lg,
+    overflow: 'hidden',
+    paddingHorizontal: 40,
+    paddingTop: 60,
+    paddingBottom: 32,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  shareCardBackground: {
+    ...StyleSheet.absoluteFillObject,
+    opacity: 0.7,
+  },
+  shareCardOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(15,15,15,0.85)',
+  },
+  shareCardContent: {
+    flex: 1,
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1,
+  },
+  shareCardCoverLarge: {
+    width: 140,
+    height: 210,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 16 },
+    shadowOpacity: 0.8,
+    shadowRadius: 24,
+    elevation: 20,
+  },
+  shareCardBookTitle: {
+    fontSize: 18,
+    color: '#FFFFFF',
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    textAlign: 'center',
+    marginBottom: 6,
+  },
+  shareCardBookAuthor: {
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.5)',
+    fontWeight: '600',
+    letterSpacing: 2,
+    textAlign: 'center',
+  },
+  shareCardReviewText: {
+    fontSize: 13,
+    lineHeight: 20,
+    color: 'rgba(255,255,255,0.8)',
+    textAlign: 'center',
+    fontStyle: 'italic',
+  },
+  shareCardFooter: {
+    alignItems: 'center',
+    zIndex: 1,
+  },
+  shareCardTofuLogo: {
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 4,
+    color: '#00E054',
   },
 });

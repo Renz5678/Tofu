@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { DatabaseBookRow } from './useLibrary';
+import { BookItem } from '@/lib/openLibrary';
 
 export interface Profile {
   id: string;
@@ -78,6 +79,7 @@ export function useFollowUser() {
       qc.invalidateQueries({ queryKey: ['followers'] });
       qc.invalidateQueries({ queryKey: ['following'] });
       qc.invalidateQueries({ queryKey: ['isFollowing', followingId] });
+      qc.invalidateQueries({ queryKey: ['followCounts', followingId] });
       qc.invalidateQueries({ queryKey: ['timeline'] });
     },
   });
@@ -101,6 +103,7 @@ export function useUnfollowUser() {
       qc.invalidateQueries({ queryKey: ['followers'] });
       qc.invalidateQueries({ queryKey: ['following'] });
       qc.invalidateQueries({ queryKey: ['isFollowing', followingId] });
+      qc.invalidateQueries({ queryKey: ['followCounts', followingId] });
       qc.invalidateQueries({ queryKey: ['timeline'] });
     },
   });
@@ -139,6 +142,46 @@ export function useFollowCounts(userId: string) {
         followers: followers.count || 0,
         following: following.count || 0
       };
+    },
+    enabled: !!userId,
+  });
+}
+
+export function useFollowersList(userId: string) {
+  return useQuery({
+    queryKey: ['followersList', userId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('followers')
+        .select(`
+          follower_id,
+          profiles!followers_follower_id_fkey (*)
+        `)
+        .eq('following_id', userId)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data.map((d: any) => d.profiles as Profile);
+    },
+    enabled: !!userId,
+  });
+}
+
+export function useFollowingList(userId: string) {
+  return useQuery({
+    queryKey: ['followingList', userId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('followers')
+        .select(`
+          following_id,
+          profiles!followers_following_id_fkey (*)
+        `)
+        .eq('follower_id', userId)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data.map((d: any) => d.profiles as Profile);
     },
     enabled: !!userId,
   });
@@ -371,7 +414,7 @@ export function useMyReview(bookId: string) {
 }
 
 export interface UpsertReviewInput {
-  bookId: string;
+  book: BookItem;
   rating?: number | null;
   liked?: boolean;
   content?: string | null;
@@ -386,10 +429,24 @@ export function useUpsertReview() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
+      // 1. Upsert book to ensure foreign key exists
+      const { error: bookError } = await supabase.from('books').upsert({
+        id: input.book.open_library_id,
+        open_library_id: input.book.open_library_id,
+        title: input.book.title,
+        author: input.book.author,
+        cover_url: input.book.cover_url,
+        total_pages: input.book.total_pages,
+        genres: input.book.genres,
+        language: input.book.language,
+      });
+      if (bookError) throw bookError;
+
+      // 2. Upsert review
       const { error } = await supabase.from('reviews').upsert(
         {
           user_id: user.id,
-          book_id: input.bookId,
+          book_id: input.book.open_library_id,
           rating: input.rating ?? null,
           liked: input.liked ?? false,
           content: input.content ?? null,
@@ -400,9 +457,9 @@ export function useUpsertReview() {
       if (error) throw error;
     },
     onSuccess: (_, variables) => {
-      qc.invalidateQueries({ queryKey: ['myReview', variables.bookId] });
-      qc.invalidateQueries({ queryKey: ['bookReviews', variables.bookId] });
-      qc.invalidateQueries({ queryKey: ['bookStats', variables.bookId] });
+      qc.invalidateQueries({ queryKey: ['myReview', variables.book.open_library_id] });
+      qc.invalidateQueries({ queryKey: ['bookReviews', variables.book.open_library_id] });
+      qc.invalidateQueries({ queryKey: ['bookStats', variables.book.open_library_id] });
       qc.invalidateQueries({ queryKey: ['timeline'] });
     },
   });

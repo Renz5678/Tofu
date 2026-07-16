@@ -10,7 +10,7 @@
  * Usage:
  *   <LogBookSheet
  *     visible={isOpen}
- *     bookId={book.book_id}
+ *     book={bookItem}
  *     onClose={() => setIsOpen(false)}
  *     initialValues={{ rating: 3.5, liked: false, content: '', contains_spoilers: false }}
  *   />
@@ -32,6 +32,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme, Typography, Spacing, Radius, Shadows } from '@/theme';
 import { useUpsertReview, UpsertReviewInput } from '@/hooks/useSocial';
+import { BookItem } from '@/lib/openLibrary';
 
 export interface LogBookSheetValues {
   rating: number;     // 0 = not set; 0.5 – 5.0 in 0.5 steps
@@ -42,9 +43,9 @@ export interface LogBookSheetValues {
 
 interface Props {
   visible: boolean;
-  bookId: string;
-  bookTitle?: string;
+  book: BookItem;
   onClose: () => void;
+  onSaveSuccess?: () => void;
   initialValues?: Partial<LogBookSheetValues>;
 }
 
@@ -55,7 +56,7 @@ const DEFAULT_VALUES: LogBookSheetValues = {
   contains_spoilers: false,
 };
 
-export function LogBookSheet({ visible, bookId, bookTitle, onClose, initialValues }: Props) {
+export function LogBookSheet({ visible, book, onClose, onSaveSuccess, initialValues }: Props) {
   const { colors, isDark } = useTheme();
   const styles = createStyles(colors, isDark);
   const insets = useSafeAreaInsets();
@@ -73,7 +74,7 @@ export function LogBookSheet({ visible, bookId, bookTitle, onClose, initialValue
   const handleSave = async () => {
     try {
       const input: UpsertReviewInput = {
-        bookId,
+        book,
         rating: values.rating > 0 ? values.rating : null,
         liked: values.liked,
         content: values.content.trim() || null,
@@ -81,6 +82,7 @@ export function LogBookSheet({ visible, bookId, bookTitle, onClose, initialValue
       };
       await upsertReview(input);
       onClose();
+      onSaveSuccess?.();
     } catch (e) {
       // Error is surfaced via react-query; no extra handling needed here
     }
@@ -109,9 +111,7 @@ export function LogBookSheet({ visible, bookId, bookTitle, onClose, initialValue
           <View style={styles.headerRow}>
             <View>
               <Text style={styles.headerTitle}>Log Book</Text>
-              {bookTitle ? (
-                <Text style={styles.headerSubtitle} numberOfLines={1}>{bookTitle}</Text>
-              ) : null}
+              <Text style={styles.headerSubtitle} numberOfLines={1}>{book.title}</Text>
             </View>
             <TouchableOpacity onPress={onClose} hitSlop={12}>
               <MaterialIcons name="close" size={22} color={colors.onSurface} />

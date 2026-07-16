@@ -261,12 +261,24 @@ create trigger on_profile_created
 -- ─────────────────────────────────────────────
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer as $$
+declare
+  base_username text;
+  final_username text;
+  counter int := 1;
 begin
+  base_username := coalesce(new.raw_user_meta_data->>'username', split_part(new.email, '@', 1));
+  final_username := base_username;
+
+  while exists (select 1 from public.profiles where username = final_username) loop
+    final_username := base_username || counter;
+    counter := counter + 1;
+  end loop;
+
   insert into public.profiles (id, username, display_name, avatar_url)
   values (
     new.id, 
-    coalesce(new.raw_user_meta_data->>'username', split_part(new.email, '@', 1)), 
-    coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1)),
+    final_username, 
+    coalesce(new.raw_user_meta_data->>'display_name', new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1)),
     coalesce(new.raw_user_meta_data->>'avatar_url', null)
   )
   on conflict (id) do nothing;

@@ -16,6 +16,7 @@ import { Link, useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { supabase } from '@/lib/supabase';
 import { useTheme, Typography, Spacing, Radius } from '@/theme';
+import { useGoogleAuth } from '@/hooks/useGoogleAuth';
 
 export default function SignInScreen() {
   const { colors, isDark } = useTheme();
@@ -27,6 +28,7 @@ export default function SignInScreen() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { signInWithGoogle, loading: googleLoading } = useGoogleAuth();
 
   async function handleSignIn() {
     if (!email.trim() || !password) {
@@ -69,6 +71,30 @@ export default function SignInScreen() {
         {/* Heading */}
         <Text style={styles.heading}>Welcome back</Text>
         <Text style={styles.subheading}>Log in to your reading sanctuary</Text>
+
+        {/* Google Sign In */}
+        <TouchableOpacity
+          style={[styles.googleButton, googleLoading && styles.primaryButtonDisabled]}
+          onPress={signInWithGoogle}
+          activeOpacity={0.85}
+          disabled={googleLoading}
+        >
+          {googleLoading ? (
+            <ActivityIndicator color={colors.onSurface} />
+          ) : (
+            <>
+              <MaterialIcons name="g-translate" size={20} color={colors.onSurface} style={{ position: 'absolute', left: 20 }} />
+              <Text style={styles.googleButtonText}>Continue with Google</Text>
+            </>
+          )}
+        </TouchableOpacity>
+
+        {/* Divider */}
+        <View style={styles.dividerRow}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>OR LOG IN WITH EMAIL</Text>
+          <View style={styles.dividerLine} />
+        </View>
 
         {/* Email */}
         <View style={styles.fieldGroup}>
@@ -124,13 +150,6 @@ export default function SignInScreen() {
             <Text style={styles.primaryButtonText}>Start Reading</Text>
           )}
         </TouchableOpacity>
-
-        {/* Divider */}
-        <View style={styles.dividerRow}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>OR CONTINUE WITH</Text>
-          <View style={styles.dividerLine} />
-        </View>
 
         {/* Sign up link */}
         <View style={styles.signUpRow}>
@@ -243,6 +262,25 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   primaryButtonText: {
     ...Typography.styles.labelLg,
     color: colors.onPrimary,
+  },
+  googleButton: {
+    backgroundColor: colors.surfaceContainerLow,
+    borderWidth: 1,
+    borderColor: colors.outlineVariant,
+    borderRadius: Radius.xl,
+    paddingVertical: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: isDark ? '#000' : colors.onSurface,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  googleButtonText: {
+    ...Typography.styles.labelLg,
+    color: colors.onSurface,
   },
   dividerRow: {
     flexDirection: 'row',

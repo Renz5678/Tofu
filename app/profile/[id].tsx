@@ -76,14 +76,14 @@ export default function PublicProfileScreen() {
           <Text style={styles.displayName}>{profile.display_name || profile.username}</Text>
           
           <View style={styles.statsRow}>
-            <View style={styles.statBox}>
+            <TouchableOpacity style={styles.statBox} onPress={() => router.push(`/profile/${id}/followers` as any)}>
               <Text style={styles.statNumber}>{counts?.followers || 0}</Text>
               <Text style={styles.statLabel}>Followers</Text>
-            </View>
-            <View style={styles.statBox}>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.statBox} onPress={() => router.push(`/profile/${id}/following` as any)}>
               <Text style={styles.statNumber}>{counts?.following || 0}</Text>
               <Text style={styles.statLabel}>Following</Text>
-            </View>
+            </TouchableOpacity>
           </View>
 
           {!isSelf && currentUserId && (

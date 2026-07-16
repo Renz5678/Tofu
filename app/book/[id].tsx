@@ -367,8 +367,15 @@ export default function BookDetailScreen() {
       {/* Log Book Sheet */}
       <LogBookSheet
         visible={isLogSheetOpen}
-        bookId={book.book_id}
-        bookTitle={book.title}
+        book={{
+          open_library_id: book.book_id,
+          title: book.title,
+          author: book.author || '',
+          cover_url: book.cover_url || null,
+          total_pages: book.total_pages || null,
+          genres: book.genres || [],
+          language: book.language || null,
+        }}
         onClose={() => setIsLogSheetOpen(false)}
         initialValues={myReview ? {
           rating: myReview.rating ?? 0,

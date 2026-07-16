@@ -44,7 +44,6 @@ export default function SearchScreen() {
   const insets = useSafeAreaInsets();
   const [query, setQuery] = useState('');
   const debouncedQuery = useDebounce(query, 400);
-  const [userResults, setUserResults] = useState<Profile[]>([]);
   const [activeGenre, setActiveGenre] = useState<string | null>(null);
   const [searchMode, setSearchMode] = useState<'books' | 'users'>('books');
 
@@ -83,8 +82,33 @@ export default function SearchScreen() {
 
   const isFromCache = isOLError && !olLoading;
   const results: (BookItem | LocalSearchResult)[] = isFromCache ? cacheResults : olResults;
-  const loading = olLoading || (isFromCache && cacheLoading);
-  const isSearchError = isOLError && !cacheLoading && cacheResults.length === 0 && !!debouncedQuery.trim();
+  
+  // ── User Search ──────────────────────────────────────────────────────────
+  const {
+    data: userResults = [],
+    isFetching: userLoading,
+  } = useQuery({
+    queryKey: ['userSearch', debouncedQuery],
+    queryFn: async () => {
+      if (!debouncedQuery.trim()) return [];
+      const term = `%${debouncedQuery.trim()}%`;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .or(`username.ilike.${term},display_name.ilike.${term}`)
+        .limit(20);
+      if (error) throw error;
+      return data as Profile[];
+    },
+    enabled: searchMode === 'users' && !!debouncedQuery.trim(),
+    staleTime: 1000 * 60,
+  });
+
+  const loading = searchMode === 'books' 
+    ? (olLoading || (isFromCache && cacheLoading))
+    : userLoading;
+
+  const isSearchError = searchMode === 'books' && isOLError && !cacheLoading && cacheResults.length === 0 && !!debouncedQuery.trim();
 
   const bookIds = React.useMemo(() => results.map(b => b.open_library_id), [results]);
   const { data: bulkStats } = useBulkBookStats(bookIds);

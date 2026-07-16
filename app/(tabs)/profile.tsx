@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useTheme, Typography, Spacing, Radius, Shadows } from '@/theme';
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
@@ -168,6 +169,7 @@ function EditProfileModal({
 export default function ProfileScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const queryClient = useQueryClient();
 
   const { data: profile } = useProfile();
   const { data: sessions = [] } = useReadingSessions();
@@ -194,6 +196,7 @@ export default function ProfileScreen() {
         style: 'destructive',
         onPress: async () => {
           await supabase.auth.signOut();
+          queryClient.clear();
           router.replace('/(auth)/sign-in');
         },
       },

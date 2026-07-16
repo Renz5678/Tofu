@@ -21,6 +21,8 @@ import {
   getUsernameHint,
   type UsernameStatus,
 } from '@/hooks/useUsernameCheck';
+import { useGoogleAuth } from '@/hooks/useGoogleAuth';
+import { makeRedirectUri } from 'expo-auth-session';
 
 // ── Username status indicator ─────────────────────────────────────────────────
 function UsernameStatusRow({ status }: { status: UsernameStatus }) {
@@ -71,6 +73,7 @@ export default function SignUpScreen() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { signInWithGoogle, loading: googleLoading } = useGoogleAuth();
 
   // Real-time username availability
   const { status: usernameStatus } = useUsernameCheck(username);
@@ -98,6 +101,10 @@ export default function SignUpScreen() {
       email: email.trim(),
       password,
       options: {
+        emailRedirectTo: makeRedirectUri({
+          scheme: 'tofu',
+          path: 'auth/callback',
+        }),
         data: {
           display_name: displayName.trim(),
           username: cleanUsername,
@@ -107,6 +114,11 @@ export default function SignUpScreen() {
 
     if (error) {
       setLoading(false);
+      console.error('\n[SUPABASE SIGN UP ERROR] ============================');
+      console.error('Error Code:', error.code);
+      console.error('Error Message:', error.message);
+      console.error('Full Error Object:', JSON.stringify(error, null, 2));
+      console.error('=====================================================\n');
       Alert.alert('Sign Up Failed', error.message);
       return;
     }
@@ -170,12 +182,40 @@ export default function SignUpScreen() {
           Start tracking your reading journey
         </Text>
 
+        {/* Google Sign In */}
+        <TouchableOpacity
+          style={[
+            styles.googleButton,
+            { borderColor: colors.outlineVariant, backgroundColor: colors.surfaceContainerLow },
+            googleLoading && styles.primaryButtonDisabled
+          ]}
+          onPress={signInWithGoogle}
+          activeOpacity={0.85}
+          disabled={googleLoading}
+        >
+          {googleLoading ? (
+            <ActivityIndicator color={colors.onSurface} />
+          ) : (
+            <>
+              <MaterialIcons name="g-translate" size={20} color={colors.onSurface} style={{ position: 'absolute', left: 20 }} />
+              <Text style={[styles.googleButtonText, { color: colors.onSurface }]}>Continue with Google</Text>
+            </>
+          )}
+        </TouchableOpacity>
+
+        {/* Divider */}
+        <View style={styles.dividerRow}>
+          <View style={[styles.dividerLine, { backgroundColor: colors.outlineVariant }]} />
+          <Text style={[styles.dividerText, { color: `${colors.onSurfaceVariant}99` }]}>OR SIGN UP WITH EMAIL</Text>
+          <View style={[styles.dividerLine, { backgroundColor: colors.outlineVariant }]} />
+        </View>
+
         {/* Full Name */}
         <View style={styles.fieldGroup}>
-          <Text style={[styles.label, { color: colors.primary }]}>FULL NAME</Text>
+          <Text style={[styles.label, { color: colors.primary }]}>Display Name</Text>
           <TextInput
             style={[styles.input, { backgroundColor: colors.surfaceContainerLow, borderColor: colors.outlineVariant, color: colors.onSurface }]}
-            placeholder="Elias Thorne"
+            placeholder="BaggyPants123"
             placeholderTextColor={`${colors.onSurfaceVariant}66`}
             value={displayName}
             onChangeText={setDisplayName}
@@ -185,7 +225,7 @@ export default function SignUpScreen() {
 
         {/* Username */}
         <View style={styles.fieldGroup}>
-          <Text style={[styles.label, { color: colors.primary }]}>USERNAME</Text>
+          <Text style={[styles.label, { color: colors.primary }]}>Username</Text>
           {/* Input row with @ prefix */}
           <View style={[styles.usernameRow, { backgroundColor: colors.surfaceContainerLow, borderColor: borderColor('username') }]}>
             <Text style={[styles.atPrefix, { color: colors.onSurfaceVariant }]}>@</Text>
@@ -215,7 +255,7 @@ export default function SignUpScreen() {
 
         {/* Email */}
         <View style={styles.fieldGroup}>
-          <Text style={[styles.label, { color: colors.primary }]}>EMAIL ADDRESS</Text>
+          <Text style={[styles.label, { color: colors.primary }]}>Email Address</Text>
           <TextInput
             style={[styles.input, { backgroundColor: colors.surfaceContainerLow, borderColor: colors.outlineVariant, color: colors.onSurface }]}
             placeholder="elias@books.com"
@@ -230,7 +270,7 @@ export default function SignUpScreen() {
 
         {/* Password */}
         <View style={styles.fieldGroup}>
-          <Text style={[styles.label, { color: colors.primary }]}>PASSWORD</Text>
+          <Text style={[styles.label, { color: colors.primary }]}>Password</Text>
           <View>
             <TextInput
               style={[styles.input, { backgroundColor: colors.surfaceContainerLow, borderColor: colors.outlineVariant, color: colors.onSurface }]}
@@ -385,6 +425,34 @@ const styles = StyleSheet.create({
   primaryButtonDisabled: { opacity: 0.45 },
   primaryButtonText: {
     ...Typography.styles.labelLg,
+  },
+  googleButton: {
+    borderWidth: 1,
+    borderRadius: Radius.xl,
+    paddingVertical: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  googleButtonText: {
+    ...Typography.styles.labelLg,
+  },
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.gutter,
+  },
+  dividerLine: {
+    flex: 1,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: '#cccccc', // Will be overridden by theme colors dynamically if needed, but keeping simple
+  },
+  dividerText: {
+    ...Typography.styles.labelSm,
   },
   signInRow: {
     flexDirection: 'row',

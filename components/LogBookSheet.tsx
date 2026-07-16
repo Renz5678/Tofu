@@ -27,6 +27,7 @@ import {
   Platform,
   ScrollView,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -82,9 +83,11 @@ export function LogBookSheet({ visible, book, onClose, onSaveSuccess, initialVal
       };
       await upsertReview(input);
       onClose();
-      onSaveSuccess?.();
-    } catch (e) {
-      // Error is surfaced via react-query; no extra handling needed here
+      setTimeout(() => {
+        onSaveSuccess?.();
+      }, 500);
+    } catch (e: any) {
+      Alert.alert('Error', e.message || 'Failed to save review. Please try again.');
     }
   };
 

@@ -39,6 +39,8 @@ export default function BookDetailScreen() {
   const { mutateAsync: updateBook } = useUpdateBook();
   const { mutate: toggleFavorite } = useToggleFavorite();
   const book = libraryBooks.find((b) => b.id === id);
+  const isFavorite = favorites.some((f) => f.book_id === book?.book_id);
+  
   const startSession = useSessionStore((s) => s.startSession);
   const activeSession = useSessionStore((s) => s.activeSession);
 
@@ -368,7 +370,7 @@ export default function BookDetailScreen() {
       <LogBookSheet
         visible={isLogSheetOpen}
         book={{
-          open_library_id: book.book_id,
+          open_library_id: book.open_library_id,
           title: book.title,
           author: book.author || '',
           cover_url: book.cover_url || null,

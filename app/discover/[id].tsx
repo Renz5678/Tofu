@@ -12,7 +12,6 @@ import { BookItem, fetchSynopsis } from '@/lib/openLibrary';
 import { useBookStats, useBookReviews, CommunityReview, useMyReview } from '@/hooks/useSocial';
 import { useLibrary, useAddBook } from '@/hooks/useLibrary';
 import { LogBookSheet } from '@/components/LogBookSheet';
-import { useLibrary, useAddBook } from '@/hooks/useLibrary';
 
 export default function DiscoverBookScreen() {
   const { id, bookData } = useLocalSearchParams<{ id: string, bookData: string }>();

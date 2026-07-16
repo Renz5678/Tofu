@@ -274,10 +274,18 @@ export function useBookStats(bookId: string) {
   return useQuery({
     queryKey: ['bookStats', bookId],
     queryFn: async (): Promise<BookStats | null> => {
+      let targetId = bookId;
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(bookId);
+      if (!isUUID) {
+        const { data: b } = await supabase.from('books').select('id').eq('open_library_id', bookId).single();
+        if (!b) return null;
+        targetId = b.id;
+      }
+
       const { data, error } = await supabase
         .from('book_stats')
         .select('*')
-        .eq('book_id', bookId)
+        .eq('book_id', targetId)
         .single();
       
       if (error && error.code !== 'PGRST116') throw error;
@@ -316,6 +324,14 @@ export function useBookReviews(bookId: string) {
     queryFn: async (): Promise<CommunityReview[]> => {
       const { data: { user } } = await supabase.auth.getUser();
 
+      let targetId = bookId;
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(bookId);
+      if (!isUUID) {
+        const { data: b } = await supabase.from('books').select('id').eq('open_library_id', bookId).single();
+        if (!b) return [];
+        targetId = b.id;
+      }
+
       // Fetch reviews with profile and like count
       const { data, error } = await supabase
         .from('reviews')
@@ -324,7 +340,7 @@ export function useBookReviews(bookId: string) {
           profiles:user_id (*),
           review_likes (id, user_id)
         `)
-        .eq('book_id', bookId)
+        .eq('book_id', targetId)
         .not('content', 'is', null)
         .order('created_at', { ascending: false });
 
@@ -399,10 +415,18 @@ export function useMyReview(bookId: string) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
 
+      let targetId = bookId;
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(bookId);
+      if (!isUUID) {
+        const { data: b } = await supabase.from('books').select('id').eq('open_library_id', bookId).single();
+        if (!b) return null;
+        targetId = b.id;
+      }
+
       const { data, error } = await supabase
         .from('reviews')
         .select('*')
-        .eq('book_id', bookId)
+        .eq('book_id', targetId)
         .eq('user_id', user.id)
         .single();
 
@@ -430,8 +454,7 @@ export function useUpsertReview() {
       if (!user) throw new Error('Not authenticated');
 
       // 1. Upsert book to ensure foreign key exists
-      const { error: bookError } = await supabase.from('books').upsert({
-        id: input.book.open_library_id,
+      const { data: bookRow, error: bookError } = await supabase.from('books').upsert({
         open_library_id: input.book.open_library_id,
         title: input.book.title,
         author: input.book.author,
@@ -439,14 +462,15 @@ export function useUpsertReview() {
         total_pages: input.book.total_pages,
         genres: input.book.genres,
         language: input.book.language,
-      });
+      }, { onConflict: 'open_library_id' }).select('id').single();
+      
       if (bookError) throw bookError;
 
       // 2. Upsert review
       const { error } = await supabase.from('reviews').upsert(
         {
           user_id: user.id,
-          book_id: input.book.open_library_id,
+          book_id: bookRow.id,
           rating: input.rating ?? null,
           liked: input.liked ?? false,
           content: input.content ?? null,
@@ -458,8 +482,11 @@ export function useUpsertReview() {
     },
     onSuccess: (_, variables) => {
       qc.invalidateQueries({ queryKey: ['myReview', variables.book.open_library_id] });
+      qc.invalidateQueries({ queryKey: ['myReview', variables.book.id] }); // In case it's queried by DB ID
       qc.invalidateQueries({ queryKey: ['bookReviews', variables.book.open_library_id] });
+      qc.invalidateQueries({ queryKey: ['bookReviews', variables.book.id] });
       qc.invalidateQueries({ queryKey: ['bookStats', variables.book.open_library_id] });
+      qc.invalidateQueries({ queryKey: ['bookStats', variables.book.id] });
       qc.invalidateQueries({ queryKey: ['timeline'] });
     },
   });

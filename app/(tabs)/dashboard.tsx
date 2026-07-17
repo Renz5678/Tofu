@@ -186,7 +186,7 @@ export default function DashboardScreen() {
           </View>
 
           {isTimelineLoading ? (
-            <Text style={styles.placeholder}>Loading feed...</Text>
+            <Text style={styles.sectionTitle}>Loading feed...</Text>
           ) : timeline.length > 0 ? (
             timeline.map((item, index) => (
               <TimelineCard key={item.id} item={item} />

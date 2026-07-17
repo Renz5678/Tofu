@@ -373,10 +373,12 @@ export default function BookDetailScreen() {
           open_library_id: book.open_library_id,
           title: book.title,
           author: book.author || '',
-          cover_url: book.cover_url || null,
-          total_pages: book.total_pages || null,
+          cover_url: book.cover_url || undefined,
+          total_pages: book.total_pages || undefined,
           genres: book.genres || [],
-          language: book.language || null,
+          language: book.language || undefined,
+          isbn: book.isbn || undefined,
+          country: undefined,
         }}
         onClose={() => setIsLogSheetOpen(false)}
         initialValues={myReview ? {
@@ -408,11 +410,11 @@ export default function BookDetailScreen() {
                 <Text style={styles.shareCardBookTitle} numberOfLines={2}>{book.title}</Text>
                 <Text style={styles.shareCardBookAuthor} numberOfLines={1}>{book.author?.toUpperCase()}</Text>
                 
-                {book.rating ? (
+                {myReview?.rating ? (
                   <View style={{ flexDirection: 'row', marginTop: 12, marginBottom: 32, justifyContent: 'center' }}>
                     {[1, 2, 3, 4, 5].map((star) => {
-                      const isFull = book.rating! >= star;
-                      const isHalf = book.rating! >= star - 0.5 && book.rating! < star;
+                      const isFull = myReview.rating! >= star;
+                      const isHalf = myReview.rating! >= star - 0.5 && myReview.rating! < star;
                       return (
                         <MaterialIcons 
                           key={star} 
@@ -425,8 +427,8 @@ export default function BookDetailScreen() {
                   </View>
                 ) : <View style={{ height: 32 }} />}
                 
-                {book.review ? (
-                  <Text style={styles.shareCardReviewText}>"{book.review}"</Text>
+                {myReview?.content ? (
+                  <Text style={styles.shareCardReviewText}>"{myReview.content}"</Text>
                 ) : null}
               </View>
 
@@ -507,9 +509,9 @@ function CommunityReviewCard({ review, bookId }: { review: CommunityReview; book
           <MaterialIcons name="visibility-off" size={18} color={colors.onSurfaceVariant} />
           <Text style={{ ...Typography.styles.labelSm, color: colors.onSurfaceVariant, marginTop: 4 }}>Tap to reveal spoilers</Text>
         </TouchableOpacity>
-      ) : (
+      ) : review.content ? (
         <Text style={{ ...Typography.styles.bodyMd, color: colors.onSurface, fontStyle: 'italic' }}>"{review.content}"</Text>
-      )}
+      ) : null}
 
       {/* Footer: likes + comments */}
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16, marginTop: 12 }}>

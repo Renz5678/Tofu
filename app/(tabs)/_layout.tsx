@@ -103,6 +103,14 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="feed"
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <TabIcon name="dynamic-feed" label="Feed" focused={focused} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="stats"
         options={{
           tabBarIcon: ({ focused }) => (

@@ -65,9 +65,22 @@ export default function PlaylistsIndexScreen() {
               onPress={() => router.push(`/playlists/${pl.id}` as any)}
               activeOpacity={0.85}
             >
-              {/* Cover collage fallback */}
+              {/* Cover collage */}
               <View style={styles.collage}>
-                <MaterialIcons name="auto-awesome-motion" size={32} color={colors.primary} style={{ margin: 'auto' }} />
+                {pl.items && pl.items.length > 0 ? (
+                  <View style={styles.grid}>
+                    {[0, 1, 2, 3].map((index) => {
+                      const cover = pl.items![index]?.book?.cover_url;
+                      return cover ? (
+                        <Image key={index} source={{ uri: cover }} style={styles.gridImage} contentFit="cover" />
+                      ) : (
+                        <View key={index} style={[styles.gridImage, styles.gridEmpty]} />
+                      );
+                    })}
+                  </View>
+                ) : (
+                  <MaterialIcons name="auto-awesome-motion" size={32} color={colors.primary} style={{ margin: 'auto' }} />
+                )}
               </View>
               <View style={{ flex: 1, gap: 4 }}>
                 <Text style={styles.cardTitle}>{pl.title}</Text>
@@ -101,7 +114,21 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   addButton: {
     width: 36, height: 36, borderRadius: 18,
     backgroundColor: colors.primary,
-    alignItems: 'center', justifyContent: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  grid: {
+    width: '100%',
+    height: '100%',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  gridImage: {
+    width: '50%',
+    height: '50%',
+  },
+  gridEmpty: {
+    backgroundColor: colors.surfaceContainerHigh,
   },
   scroll: {
     paddingHorizontal: Spacing.containerPadding,

@@ -163,7 +163,7 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     color: colors.onPrimaryContainer,
   },
   displayName: {
-    ...Typography.styles.titleMd,
+    ...Typography.styles.titleSm,
     color: colors.onSurface,
   },
   statsRow: {
@@ -175,7 +175,7 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     alignItems: 'center',
   },
   statNumber: {
-    ...Typography.styles.titleMd,
+    ...Typography.styles.titleSm,
     color: colors.primary,
   },
   statLabel: {
@@ -190,7 +190,7 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     marginTop: Spacing.stackLg,
   },
   followButtonText: {
-    ...Typography.styles.labelMd,
+    ...Typography.styles.labelLg,
     color: colors.onPrimary,
   },
   followingButton: {

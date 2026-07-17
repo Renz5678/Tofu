@@ -396,7 +396,9 @@ function CommunityReviewCard({ review }: { review: CommunityReview }) {
         )}
       </TouchableOpacity>
 
-      <Text style={{ ...Typography.styles.bodyMd, color: colors.onSurface, fontStyle: 'italic' }}>"{review.review}"</Text>
+      {review.content ? (
+        <Text style={{ ...Typography.styles.bodyMd, color: colors.onSurface, fontStyle: 'italic' }}>"{review.content}"</Text>
+      ) : null}
 
       <TouchableOpacity 
         style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 12 }}

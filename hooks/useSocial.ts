@@ -55,7 +55,28 @@ export interface TimelineItem {
   contains_spoilers: boolean;
   created_at: string;
   profiles: Profile;
-  books: DatabaseBookRow;
+  books: any;
+}
+
+export type FeedItemType = 'review' | 'session';
+
+export interface FeedItem {
+  id: string;
+  type: FeedItemType;
+  created_at: string;
+  profiles: Profile;
+  books: any;
+  // review
+  rating?: number | null;
+  content?: string | null;
+  contains_spoilers?: boolean;
+  likes_count?: number;
+  is_liked_by_me?: boolean;
+  // session
+  duration_seconds?: number;
+  start_page?: number;
+  end_page?: number;
+  pages_read?: number;
 }
 
 // -----------------------------------------------------
@@ -369,6 +390,7 @@ export function useBookReviews(bookId: string) {
         `)
         .eq('book_id', targetId)
         .not('content', 'is', null)
+        .neq('content', '')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -518,6 +540,7 @@ export function useUpsertReview() {
       qc.invalidateQueries({ queryKey: ['bookReviews', bookId] });
       qc.invalidateQueries({ queryKey: ['bookStats', variables.book.open_library_id] });
       qc.invalidateQueries({ queryKey: ['bookStats', bookId] });
+      qc.invalidateQueries({ queryKey: ['bulkBookStats'] });
       qc.invalidateQueries({ queryKey: ['library'] });
     },
   });
@@ -571,6 +594,92 @@ export function useAddReviewComment() {
     },
     onSuccess: (_, { reviewId }) => {
       qc.invalidateQueries({ queryKey: ['reviewComments', reviewId] });
+    },
+  });
+}
+export function useFeed() {
+  return useQuery({
+    queryKey: ['feed'],
+    queryFn: async (): Promise<FeedItem[]> => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+
+      // 1. Get following IDs
+      const { data: following } = await supabase
+        .from('followers')
+        .select('following_id')
+        .eq('follower_id', user.id);
+      
+      if (!following || following.length === 0) return [];
+      const followingIds = following.map(f => f.following_id);
+
+      // 2. Fetch recent reviews
+      const { data: reviews } = await supabase
+        .from('reviews')
+        .select(`
+          *,
+          profiles:user_id (*),
+          books:book_id (*),
+          review_likes (id, user_id)
+        `)
+        .in('user_id', followingIds)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      // 3. Fetch recent reading sessions
+      const { data: sessions } = await supabase
+        .from('reading_sessions')
+        .select(`
+          *,
+          profiles:user_id (*),
+          user_book:user_books (
+            books (*)
+          )
+        `)
+        .in('user_id', followingIds)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      // 4. Merge and sort
+      const items: FeedItem[] = [];
+      
+      if (reviews) {
+        reviews.forEach((r: any) => {
+          items.push({
+            id: r.id,
+            type: 'review',
+            created_at: r.created_at,
+            profiles: r.profiles,
+            books: r.books,
+            rating: r.rating,
+            content: r.content,
+            contains_spoilers: r.contains_spoilers,
+            likes_count: r.review_likes?.length ?? 0,
+            is_liked_by_me: r.review_likes?.some((l: any) => l.user_id === user.id) ?? false,
+          });
+        });
+      }
+
+      if (sessions) {
+        sessions.forEach((s: any) => {
+          if (s.user_book && s.user_book.books) {
+            items.push({
+              id: s.id,
+              type: 'session',
+              created_at: s.created_at,
+              profiles: s.profiles,
+              books: s.user_book.books,
+              duration_seconds: s.duration_seconds,
+              start_page: s.start_page,
+              end_page: s.end_page,
+              pages_read: s.pages_read,
+            });
+          }
+        });
+      }
+
+      items.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      return items.slice(0, 30);
     },
   });
 }

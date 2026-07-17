@@ -97,7 +97,7 @@ export default function ReviewThreadScreen() {
             )}
           </TouchableOpacity>
 
-          <Text style={{ ...Typography.styles.bodyLg, color: colors.onSurface }}>{review.content}</Text>
+          <Text style={{ ...Typography.styles.bodyMd, color: colors.onSurface }}>{review.content}</Text>
         </View>
 
         {/* Divider */}
@@ -116,7 +116,7 @@ export default function ReviewThreadScreen() {
                   {comment.profiles.avatar_url ? (
                     <Image source={{ uri: comment.profiles.avatar_url }} style={{ width: 28, height: 28, borderRadius: 14 }} />
                   ) : (
-                    <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: colors.surfaceVariant, alignItems: 'center', justifyContent: 'center' }}>
+                    <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: colors.surfaceContainerHighest, alignItems: 'center', justifyContent: 'center' }}>
                       <Text style={{ color: colors.onSurfaceVariant, fontSize: 10, fontWeight: 'bold' }}>
                         {comment.profiles.username.charAt(0).toUpperCase()}
                       </Text>

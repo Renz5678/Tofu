@@ -10,6 +10,7 @@ export interface Playlist {
   cover_style: string | null;
   is_public: boolean;
   created_at: string;
+  items?: { book?: { cover_url?: string | null } }[];
 }
 
 export interface PlaylistItem {
@@ -29,7 +30,13 @@ export function usePlaylists() {
       if (!user) return [];
       const { data, error } = await supabase
         .from('reading_lists')
-        .select('*')
+        .select(`
+          *,
+          items:reading_list_items (
+            position,
+            book:books ( cover_url )
+          )
+        `)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
       if (error) throw error;

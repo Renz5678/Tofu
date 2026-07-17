@@ -17,6 +17,33 @@ import { EmptyState } from '@/components/EmptyState';
 import { useRouter } from 'expo-router';
 import { useLibrary, type BookStatus } from '@/hooks/useLibrary';
 import { useProfile } from '@/hooks/useProfile';
+import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, withSequence } from 'react-native-reanimated';
+
+function BookSkeleton() {
+  const { colors } = useTheme();
+  const opacity = useSharedValue(0.5);
+
+  React.useEffect(() => {
+    opacity.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 800 }),
+        withTiming(0.5, { duration: 800 })
+      ),
+      -1,
+      true
+    );
+  }, []);
+
+  const animatedStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
+
+  return (
+    <Animated.View style={[{ flex: 1, maxWidth: '31%', aspectRatio: 0.65 }, animatedStyle]}>
+      <View style={{ width: '100%', height: '80%', backgroundColor: colors.surfaceContainerHigh, borderRadius: Radius.sm }} />
+      <View style={{ width: '80%', height: 12, backgroundColor: colors.surfaceContainerHigh, borderRadius: 4, marginTop: 8 }} />
+      <View style={{ width: '60%', height: 12, backgroundColor: colors.surfaceContainerHigh, borderRadius: 4, marginTop: 4 }} />
+    </Animated.View>
+  );
+}
 
 const STATUS_TABS = [
   { label: 'Reading', value: 'reading' },
@@ -70,7 +97,16 @@ export default function LibraryScreen() {
 
       <StatusTabs tabs={STATUS_TABS} activeValue={activeStatus} onSelect={(v) => setActiveStatus(v as BookStatus)} />
 
-      {filtered.length === 0 ? (
+      {isLoading ? (
+        <View style={[styles.grid, { paddingBottom: insets.bottom + 80, paddingHorizontal: Spacing.containerPadding, paddingTop: Spacing.stackSm }]}>
+          <View style={styles.gridRow}>
+            <BookSkeleton /><BookSkeleton /><BookSkeleton />
+          </View>
+          <View style={[styles.gridRow, { marginTop: Spacing.stackMd }]}>
+            <BookSkeleton /><BookSkeleton /><BookSkeleton />
+          </View>
+        </View>
+      ) : filtered.length === 0 ? (
         <EmptyState
           icon="menu-book"
           title="No books here yet"

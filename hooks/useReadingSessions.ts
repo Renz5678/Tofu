@@ -33,7 +33,9 @@ export interface LogSessionInput {
 }
 
 async function fetchSessions(userBookId?: string): Promise<ReadingSession[]> {
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) return [];
 
   let query = supabase
@@ -69,7 +71,9 @@ export function useLogSession() {
     },
 
     mutationFn: async (input: LogSessionInput) => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
       const metrics = calculateSessionMetrics(
@@ -77,22 +81,22 @@ export function useLogSession() {
         input.endTime,
         input.startPage,
         input.endPage,
-        input.pausedSeconds ?? 0
+        input.pausedSeconds ?? 0,
       );
 
       // Single atomic RPC — inserts the session, updates current_page, and
       // recalculates the streak inside one Postgres transaction.
       const { error } = await supabase.rpc('log_reading_session', {
-        p_user_id:          user.id,
-        p_user_book_id:     input.userBookId,
-        p_start_time:       input.startTime.toISOString(),
-        p_end_time:         input.endTime.toISOString(),
+        p_user_id: user.id,
+        p_user_book_id: input.userBookId,
+        p_start_time: input.startTime.toISOString(),
+        p_end_time: input.endTime.toISOString(),
         p_duration_seconds: metrics.duration_seconds,
-        p_start_page:       input.startPage,
-        p_end_page:         input.endPage,
-        p_pages_per_hour:   metrics.pages_per_hour,
+        p_start_page: input.startPage,
+        p_end_page: input.endPage,
+        p_pages_per_hour: metrics.pages_per_hour,
         p_minutes_per_page: metrics.minutes_per_page,
-        p_notes:            input.notes ?? null,
+        p_notes: input.notes ?? null,
       });
 
       if (error) throw error;
@@ -112,4 +116,3 @@ export function useLogSession() {
     },
   });
 }
-

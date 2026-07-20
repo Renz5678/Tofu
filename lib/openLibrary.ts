@@ -43,7 +43,7 @@ export async function searchBooks(
   // Race a 5-second timeout against the caller's cancellation signal so that
   // a slow or unresponsive Open Library triggers the local cache fallback.
   const timeoutController = new AbortController();
-  const timeoutId = setTimeout(() => timeoutController.abort(), 5000);
+  const timeoutId = setTimeout(() => timeoutController.abort(), 15000);
 
   // Merge the caller's signal with our timeout signal
   const mergedSignal = signal

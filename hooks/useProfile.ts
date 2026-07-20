@@ -25,7 +25,9 @@ export interface ProfileWithStreak extends Profile {
 }
 
 async function fetchProfile(): Promise<ProfileWithStreak | null> {
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) return null;
 
   let { data: profile, error: profileError } = await supabase
@@ -63,8 +65,12 @@ export function useProfile() {
 export function useUpdateProfile() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (updates: Partial<Pick<Profile, 'display_name' | 'username' | 'avatar_url'>>) => {
-      const { data: { user } } = await supabase.auth.getUser();
+    mutationFn: async (
+      updates: Partial<Pick<Profile, 'display_name' | 'username' | 'avatar_url'>>,
+    ) => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
       // If changing username: validate format + check availability before saving
@@ -75,7 +81,7 @@ export function useUpdateProfile() {
         }
         const { data: available, error: rpcError } = await supabase.rpc(
           'check_username_available',
-          { p_username: newUsername }
+          { p_username: newUsername },
         );
         if (rpcError) throw rpcError;
         if (!available) throw new Error('Username is already taken. Please choose another.');

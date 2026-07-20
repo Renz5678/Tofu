@@ -1,12 +1,5 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-} from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
@@ -14,8 +7,6 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme, Typography, Spacing, Radius, Shadows } from '@/theme';
 import { EmptyState } from '@/components/EmptyState';
 import { useFavorites } from '@/hooks/useFavorites';
-
-
 
 export default function FavoritesScreen() {
   const { colors, isDark } = useTheme();
@@ -65,10 +56,16 @@ export default function FavoritesScreen() {
                   <Text style={styles.rankText}>#{rank}</Text>
                 </View>
                 <View style={styles.favCover}>
-                  <Image source={{ uri: fav.cover_url ?? undefined }} style={StyleSheet.absoluteFillObject} contentFit="cover" />
+                  <Image
+                    source={{ uri: fav.cover_url ?? undefined }}
+                    style={StyleSheet.absoluteFillObject}
+                    contentFit="cover"
+                  />
                 </View>
                 <View style={styles.favInfo}>
-                  <Text style={styles.favTitle} numberOfLines={2}>{fav.title}</Text>
+                  <Text style={styles.favTitle} numberOfLines={2}>
+                    {fav.title}
+                  </Text>
                   <Text style={styles.favAuthor}>{fav.author}</Text>
                   <View style={styles.favChips}>
                     {fav.genres?.slice(0, 2).map((g: string) => (
@@ -78,8 +75,21 @@ export default function FavoritesScreen() {
                     ))}
                   </View>
                 </View>
-                <TouchableOpacity hitSlop={12} onPress={() => Alert.alert('Coming Soon', 'Drag-and-drop reordering will be available in the next update!')}>
-                  <MaterialIcons name="drag-handle" size={20} color={colors.onSurfaceVariant} style={{ opacity: 0.4 }} />
+                <TouchableOpacity
+                  hitSlop={12}
+                  onPress={() =>
+                    Alert.alert(
+                      'Coming Soon',
+                      'Drag-and-drop reordering will be available in the next update!',
+                    )
+                  }
+                >
+                  <MaterialIcons
+                    name="drag-handle"
+                    size={20}
+                    color={colors.onSurfaceVariant}
+                    style={{ opacity: 0.4 }}
+                  />
                 </TouchableOpacity>
               </View>
             );
@@ -90,87 +100,87 @@ export default function FavoritesScreen() {
   );
 }
 
-const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: Spacing.containerPadding,
-    paddingBottom: Spacing.stackSm,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.outlineVariant,
-  },
-  headerTitle: {
-    ...Typography.styles.titleSm,
-    color: colors.onSurface,
-  },
-  scroll: {
-    paddingHorizontal: Spacing.containerPadding,
-    paddingTop: Spacing.stackMd,
-    gap: Spacing.stackSm,
-  },
-  sectionSub: {
-    ...Typography.styles.bodyMd,
-    color: colors.onSurfaceVariant,
-    opacity: 0.7,
-    marginBottom: Spacing.base,
-  },
-  favoriteCard: {
-    backgroundColor: colors.surfaceContainerLowest,
-    borderRadius: Radius.xl,
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: Spacing.stackSm,
-    gap: Spacing.stackSm,
-  },
-  rankBadge: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: colors.primaryContainer,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  rankText: {
-    ...Typography.styles.labelLg,
-    color: colors.onPrimaryContainer,
-    fontSize: 12,
-  },
-  favCover: {
-    width: 52,
-    height: 72,
-    borderRadius: Radius.sm,
-    overflow: 'hidden',
-  },
-  favInfo: {
-    flex: 1,
-    gap: 4,
-  },
-  favTitle: {
-    ...Typography.styles.titleSm,
-    fontSize: 15,
-    color: colors.onSurface,
-  },
-  favAuthor: {
-    ...Typography.styles.bodyMd,
-    fontSize: 13,
-    color: colors.onSurfaceVariant,
-  },
-  favChips: {
-    flexDirection: 'row',
-    gap: 4,
-    marginTop: 2,
-  },
-  chip: {
-    backgroundColor: colors.secondaryContainer,
-    borderRadius: Radius.full,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-  },
-  chipText: {
-    ...Typography.styles.labelSm,
-    color: colors.onSecondaryContainer,
-    fontSize: 10,
-  },
-
-});
+const createStyles = (colors: any, isDark: boolean) =>
+  StyleSheet.create({
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: Spacing.containerPadding,
+      paddingBottom: Spacing.stackSm,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.outlineVariant,
+    },
+    headerTitle: {
+      ...Typography.styles.titleSm,
+      color: colors.onSurface,
+    },
+    scroll: {
+      paddingHorizontal: Spacing.containerPadding,
+      paddingTop: Spacing.stackMd,
+      gap: Spacing.stackSm,
+    },
+    sectionSub: {
+      ...Typography.styles.bodyMd,
+      color: colors.onSurfaceVariant,
+      opacity: 0.7,
+      marginBottom: Spacing.base,
+    },
+    favoriteCard: {
+      backgroundColor: colors.surfaceContainerLowest,
+      borderRadius: Radius.xl,
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: Spacing.stackSm,
+      gap: Spacing.stackSm,
+    },
+    rankBadge: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: colors.primaryContainer,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    rankText: {
+      ...Typography.styles.labelLg,
+      color: colors.onPrimaryContainer,
+      fontSize: 12,
+    },
+    favCover: {
+      width: 52,
+      height: 72,
+      borderRadius: Radius.sm,
+      overflow: 'hidden',
+    },
+    favInfo: {
+      flex: 1,
+      gap: 4,
+    },
+    favTitle: {
+      ...Typography.styles.titleSm,
+      fontSize: 15,
+      color: colors.onSurface,
+    },
+    favAuthor: {
+      ...Typography.styles.bodyMd,
+      fontSize: 13,
+      color: colors.onSurfaceVariant,
+    },
+    favChips: {
+      flexDirection: 'row',
+      gap: 4,
+      marginTop: 2,
+    },
+    chip: {
+      backgroundColor: colors.secondaryContainer,
+      borderRadius: Radius.full,
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+    },
+    chipText: {
+      ...Typography.styles.labelSm,
+      color: colors.onSecondaryContainer,
+      fontSize: 10,
+    },
+  });

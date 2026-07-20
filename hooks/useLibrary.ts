@@ -28,15 +28,21 @@ export interface LibraryBook {
   language: string | null;
 }
 
-export type DatabaseBookRow = Omit<LibraryBook, 'id' | 'book_id' | 'status' | 'current_page' | 'started_at' | 'finished_at' | 'added_at'>;
+export type DatabaseBookRow = Omit<
+  LibraryBook,
+  'id' | 'book_id' | 'status' | 'current_page' | 'started_at' | 'finished_at' | 'added_at'
+>;
 
 async function fetchLibrary(status?: BookStatus): Promise<LibraryBook[]> {
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) return [];
 
   let query = supabase
     .from('user_books')
-    .select(`
+    .select(
+      `
       id,
       book_id,
       status,
@@ -54,7 +60,8 @@ async function fetchLibrary(status?: BookStatus): Promise<LibraryBook[]> {
         genres,
         language
       )
-    `)
+    `,
+    )
     .eq('user_id', user.id)
     .order('added_at', { ascending: false });
 
@@ -101,14 +108,10 @@ export function useLibrary(status?: BookStatus) {
 export function useAddBook() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({
-      book,
-      status = 'reading',
-    }: {
-      book: BookItem;
-      status?: BookStatus;
-    }) => {
-      const { data: { user } } = await supabase.auth.getUser();
+    mutationFn: async ({ book, status = 'reading' }: { book: BookItem; status?: BookStatus }) => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
       // 1. Upsert the shared book record
@@ -126,7 +129,7 @@ export function useAddBook() {
             language: book.language ?? null,
             country: null,
           },
-          { onConflict: 'open_library_id' }
+          { onConflict: 'open_library_id' },
         )
         .select('id')
         .single();
@@ -142,7 +145,7 @@ export function useAddBook() {
           current_page: 0,
           started_at: status === 'reading' ? new Date().toISOString() : null,
         },
-        { onConflict: 'user_id,book_id' }
+        { onConflict: 'user_id,book_id' },
       );
 
       if (userBookError) throw userBookError;

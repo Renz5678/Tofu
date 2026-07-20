@@ -19,13 +19,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useDebounce } from '@/hooks/useDebounce';
 
-export type UsernameStatus =
-  | 'idle'
-  | 'invalid'
-  | 'checking'
-  | 'available'
-  | 'taken'
-  | 'error';
+export type UsernameStatus = 'idle' | 'invalid' | 'checking' | 'available' | 'taken' | 'error';
 
 const USERNAME_REGEX = /^[a-z0-9][a-z0-9_]{1,28}[a-z0-9]$|^[a-z0-9]{3}$/;
 // Rejects consecutive underscores
@@ -33,12 +27,7 @@ const NO_DOUBLE_UNDERSCORE = /^(?!.*__)/;
 
 export function validateUsernameFormat(username: string): boolean {
   const u = username.toLowerCase();
-  return (
-    u.length >= 3 &&
-    u.length <= 30 &&
-    USERNAME_REGEX.test(u) &&
-    NO_DOUBLE_UNDERSCORE.test(u)
-  );
+  return u.length >= 3 && u.length <= 30 && USERNAME_REGEX.test(u) && NO_DOUBLE_UNDERSCORE.test(u);
 }
 
 export function useUsernameCheck(
@@ -52,9 +41,7 @@ export function useUsernameCheck(
 
   // Determine if we should run the RPC at all
   const isFormatValid = validateUsernameFormat(trimmed);
-  const isUnchanged =
-    !!skipIfEquals &&
-    trimmed.toLowerCase() === skipIfEquals.toLowerCase();
+  const isUnchanged = !!skipIfEquals && trimmed.toLowerCase() === skipIfEquals.toLowerCase();
 
   const shouldQuery =
     isFormatValid &&
@@ -111,7 +98,10 @@ export function getUsernameHint(status: UsernameStatus): {
     case 'idle':
       return { text: '3–30 chars. Letters, numbers and _ only.', color: 'neutral' };
     case 'invalid':
-      return { text: 'Letters, numbers and _ only. 3–30 chars, no leading/trailing _.', color: 'red' };
+      return {
+        text: 'Letters, numbers and _ only. 3–30 chars, no leading/trailing _.',
+        color: 'red',
+      };
     case 'checking':
       return { text: 'Checking availability…', color: 'neutral' };
     case 'available':

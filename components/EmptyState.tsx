@@ -37,44 +37,45 @@ export function EmptyState({
   );
 }
 
-const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: Spacing.containerPadding * 2,
-    paddingVertical: Spacing.stackLg,
-  },
-  iconWrapper: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
-    backgroundColor: colors.surfaceContainer,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: Spacing.stackMd,
-  },
-  title: {
-    ...Typography.styles.titleSm,
-    color: colors.onSurface,
-    textAlign: 'center',
-    marginBottom: Spacing.base,
-  },
-  description: {
-    ...Typography.styles.bodyMd,
-    color: colors.onSurfaceVariant,
-    textAlign: 'center',
-    opacity: 0.7,
-    marginBottom: Spacing.stackMd,
-  },
-  button: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: Spacing.stackMd,
-    paddingVertical: 14,
-    borderRadius: 12,
-  },
-  buttonText: {
-    ...Typography.styles.labelLg,
-    color: colors.onPrimary,
-  },
-});
+const createStyles = (colors: any, isDark: boolean) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: Spacing.containerPadding * 2,
+      paddingVertical: Spacing.stackLg,
+    },
+    iconWrapper: {
+      width: 88,
+      height: 88,
+      borderRadius: 44,
+      backgroundColor: colors.surfaceContainer,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: Spacing.stackMd,
+    },
+    title: {
+      ...Typography.styles.titleSm,
+      color: colors.onSurface,
+      textAlign: 'center',
+      marginBottom: Spacing.base,
+    },
+    description: {
+      ...Typography.styles.bodyMd,
+      color: colors.onSurfaceVariant,
+      textAlign: 'center',
+      opacity: 0.7,
+      marginBottom: Spacing.stackMd,
+    },
+    button: {
+      backgroundColor: colors.primary,
+      paddingHorizontal: Spacing.stackMd,
+      paddingVertical: 14,
+      borderRadius: 12,
+    },
+    buttonText: {
+      ...Typography.styles.labelLg,
+      color: colors.onPrimary,
+    },
+  });

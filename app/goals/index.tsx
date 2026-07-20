@@ -8,6 +8,8 @@ import {
   StyleSheet,
   Alert,
   Modal,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -20,7 +22,7 @@ import { useReadingSessions } from '@/hooks/useReadingSessions';
 const LABELS: Record<GoalType, string> = {
   pages_per_day: 'Pages per day',
   minutes_per_day: 'Minutes per day',
-  pages_per_week: 'Pages per week'
+  pages_per_week: 'Pages per week',
 };
 
 export default function GoalsScreen() {
@@ -29,7 +31,7 @@ export default function GoalsScreen() {
 
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  
+
   const { data: goals = [] } = useGoals();
   const { data: sessions = [] } = useReadingSessions();
   const { mutateAsync: upsertGoal } = useUpsertGoal();
@@ -41,7 +43,12 @@ export default function GoalsScreen() {
 
   const handleOpenModal = (type?: GoalType, initialValue?: number) => {
     setEditingType(type || 'pages_per_day');
-    if (type === 'minutes_per_day' && initialValue && initialValue >= 60 && initialValue % 60 === 0) {
+    if (
+      type === 'minutes_per_day' &&
+      initialValue &&
+      initialValue >= 60 &&
+      initialValue % 60 === 0
+    ) {
       setTimeUnit('hours');
       setTargetValue(String(initialValue / 60));
     } else {
@@ -71,28 +78,30 @@ export default function GoalsScreen() {
   };
 
   const todayStr = new Date().toISOString().split('T')[0];
-  const todaySessions = sessions.filter(s => s.start_time.startsWith(todayStr));
+  const todaySessions = sessions.filter((s) => s.start_time.startsWith(todayStr));
   const todayPages = todaySessions.reduce((acc, s) => acc + s.pages_read, 0);
-  const todayMinutes = Math.round(todaySessions.reduce((acc, s) => acc + s.duration_seconds, 0) / 60);
+  const todayMinutes = Math.round(
+    todaySessions.reduce((acc, s) => acc + s.duration_seconds, 0) / 60,
+  );
 
-  const thisWeekSessions = sessions.filter(s => {
+  const thisWeekSessions = sessions.filter((s) => {
     const d = new Date(s.start_time);
     const now = new Date();
     return Math.abs(now.getTime() - d.getTime()) <= 7 * 24 * 60 * 60 * 1000;
   });
   const weekPages = thisWeekSessions.reduce((acc, s) => acc + s.pages_read, 0);
 
-  const mergedGoals = goals.map(g => {
+  const mergedGoals = goals.map((g) => {
     let current = 0;
     if (g.goal_type === 'pages_per_day') current = todayPages;
     if (g.goal_type === 'minutes_per_day') current = todayMinutes;
     if (g.goal_type === 'pages_per_week') current = weekPages;
-    
+
     return {
       ...g,
       label: LABELS[g.goal_type] || g.goal_type,
       current,
-      target: g.target_value
+      target: g.target_value,
     };
   });
 
@@ -131,12 +140,25 @@ export default function GoalsScreen() {
                   {goal.current} / {goal.target}
                 </Text>
                 <View style={styles.goalStatusRow}>
-                  <View style={[styles.statusDot, { backgroundColor: goal.active ? colors.primary : colors.outline }]} />
+                  <View
+                    style={[
+                      styles.statusDot,
+                      { backgroundColor: goal.active ? colors.primary : colors.outline },
+                    ]}
+                  />
                   <Text style={styles.goalStatusText}>{goal.active ? 'Active' : 'Paused'}</Text>
                 </View>
               </View>
-              <TouchableOpacity hitSlop={12} onPress={() => handleOpenModal(goal.goal_type, goal.target)}>
-                <MaterialIcons name="edit" size={20} color={colors.onSurfaceVariant} style={{ opacity: 0.5 }} />
+              <TouchableOpacity
+                hitSlop={12}
+                onPress={() => handleOpenModal(goal.goal_type, goal.target)}
+              >
+                <MaterialIcons
+                  name="edit"
+                  size={20}
+                  color={colors.onSurfaceVariant}
+                  style={{ opacity: 0.5 }}
+                />
               </TouchableOpacity>
             </View>
           );
@@ -151,18 +173,26 @@ export default function GoalsScreen() {
 
       {/* Goal Modal */}
       <Modal visible={modalVisible} transparent animationType="fade">
-        <View style={styles.modalOverlay}>
+        <KeyboardAvoidingView
+          style={styles.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Set Reading Goal</Text>
-            
+
             <View style={styles.modalTypeRow}>
-              {(Object.keys(LABELS) as GoalType[]).map(key => (
+              {(Object.keys(LABELS) as GoalType[]).map((key) => (
                 <TouchableOpacity
                   key={key}
                   style={[styles.modalTypePill, editingType === key && styles.modalTypePillActive]}
                   onPress={() => setEditingType(key)}
                 >
-                  <Text style={[styles.modalTypeText, editingType === key && styles.modalTypeTextActive]}>
+                  <Text
+                    style={[
+                      styles.modalTypeText,
+                      editingType === key && styles.modalTypeTextActive,
+                    ]}
+                  >
                     {LABELS[key]}
                   </Text>
                 </TouchableOpacity>
@@ -172,27 +202,51 @@ export default function GoalsScreen() {
             <View>
               <TextInput
                 style={styles.modalInput}
-                keyboardType={editingType === 'minutes_per_day' && timeUnit === 'hours' ? 'decimal-pad' : 'number-pad'}
+                keyboardType={
+                  editingType === 'minutes_per_day' && timeUnit === 'hours'
+                    ? 'decimal-pad'
+                    : 'number-pad'
+                }
                 value={targetValue}
                 onChangeText={setTargetValue}
                 placeholder={`Target value (e.g. ${editingType === 'minutes_per_day' && timeUnit === 'hours' ? '1.5' : '30'})`}
                 placeholderTextColor={colors.onSurfaceVariant}
                 autoFocus
               />
-              
+
               {editingType === 'minutes_per_day' && (
                 <View style={styles.unitToggleRow}>
-                  <TouchableOpacity 
-                    style={[styles.unitToggleBtn, timeUnit === 'minutes' && styles.unitToggleBtnActive]}
+                  <TouchableOpacity
+                    style={[
+                      styles.unitToggleBtn,
+                      timeUnit === 'minutes' && styles.unitToggleBtnActive,
+                    ]}
                     onPress={() => setTimeUnit('minutes')}
                   >
-                    <Text style={[styles.unitToggleText, timeUnit === 'minutes' && styles.unitToggleTextActive]}>Minutes</Text>
+                    <Text
+                      style={[
+                        styles.unitToggleText,
+                        timeUnit === 'minutes' && styles.unitToggleTextActive,
+                      ]}
+                    >
+                      Minutes
+                    </Text>
                   </TouchableOpacity>
-                  <TouchableOpacity 
-                    style={[styles.unitToggleBtn, timeUnit === 'hours' && styles.unitToggleBtnActive]}
+                  <TouchableOpacity
+                    style={[
+                      styles.unitToggleBtn,
+                      timeUnit === 'hours' && styles.unitToggleBtnActive,
+                    ]}
                     onPress={() => setTimeUnit('hours')}
                   >
-                    <Text style={[styles.unitToggleText, timeUnit === 'hours' && styles.unitToggleTextActive]}>Hours</Text>
+                    <Text
+                      style={[
+                        styles.unitToggleText,
+                        timeUnit === 'hours' && styles.unitToggleTextActive,
+                      ]}
+                    >
+                      Hours
+                    </Text>
                   </TouchableOpacity>
                 </View>
               )}
@@ -207,123 +261,145 @@ export default function GoalsScreen() {
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );
 }
 
-const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: Spacing.containerPadding,
-    paddingBottom: Spacing.stackSm,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.outlineVariant,
-  },
-  headerTitle: { ...Typography.styles.titleSm, color: colors.onSurface },
-  addButton: {
-    width: 36, height: 36, borderRadius: 18,
-    backgroundColor: colors.primary,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  scroll: {
-    paddingHorizontal: Spacing.containerPadding,
-    paddingTop: Spacing.stackMd,
-    gap: Spacing.stackSm,
-  },
-  sectionSub: {
-    ...Typography.styles.bodyMd,
-    color: colors.onSurfaceVariant,
-    opacity: 0.7,
-    marginBottom: Spacing.base,
-  },
-  goalCard: {
-    backgroundColor: colors.surfaceContainerLowest,
-    borderRadius: Radius.xl,
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: Spacing.stackMd,
-    gap: Spacing.stackMd,
-  },
-  goalLabel: { ...Typography.styles.titleSm, fontSize: 15, color: colors.onSurface },
-  goalValues: { ...Typography.styles.bodyMd, color: colors.onSurfaceVariant },
-  goalStatusRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  statusDot: { width: 8, height: 8, borderRadius: 4 },
-  goalStatusText: { ...Typography.styles.labelSm, color: colors.onSurfaceVariant },
-  addGoalCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.base,
-    backgroundColor: colors.surfaceContainerLow,
-    borderRadius: Radius.xl,
-    borderWidth: 1.5,
-    borderColor: colors.outlineVariant,
-    borderStyle: 'dashed',
-    paddingVertical: Spacing.stackMd,
-  },
-  addGoalText: { ...Typography.styles.labelLg, color: colors.primary },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    paddingHorizontal: Spacing.containerPadding,
-  },
-  modalContent: {
-    backgroundColor: colors.surfaceContainerLowest,
-    borderRadius: Radius.xl,
-    padding: Spacing.containerPadding,
-    gap: Spacing.stackMd,
-  },
-  modalTitle: { ...Typography.styles.headlineMd, color: colors.onSurface, marginBottom: Spacing.stackSm },
-  modalTypeRow: { gap: Spacing.stackSm },
-  modalTypePill: {
-    paddingVertical: 12, paddingHorizontal: 16,
-    borderRadius: Radius.full,
-    borderWidth: 1, borderColor: colors.outlineVariant,
-    alignItems: 'center',
-  },
-  modalTypePillActive: { backgroundColor: colors.primary, borderColor: colors.primary },
-  modalTypeText: { ...Typography.styles.labelLg, color: colors.onSurfaceVariant },
-  modalTypeTextActive: { color: colors.onPrimary, fontWeight: 'bold' },
-  modalInput: {
-    ...Typography.styles.bodyMd,
-    borderWidth: 1, borderColor: colors.outlineVariant,
-    borderRadius: Radius.md,
-    padding: 16, marginTop: Spacing.stackSm,
-    color: colors.onSurface,
-  },
-  unitToggleRow: {
-    flexDirection: 'row',
-    marginTop: Spacing.stackSm,
-    gap: Spacing.stackSm,
-  },
-  unitToggleBtn: {
-    flex: 1,
-    paddingVertical: 8,
-    alignItems: 'center',
-    borderRadius: Radius.full,
-    borderWidth: 1,
-    borderColor: colors.outlineVariant,
-  },
-  unitToggleBtnActive: {
-    backgroundColor: colors.secondaryContainer,
-    borderColor: colors.secondaryContainer,
-  },
-  unitToggleText: {
-    ...Typography.styles.labelSm,
-    color: colors.onSurfaceVariant,
-  },
-  unitToggleTextActive: {
-    color: colors.onSecondaryContainer,
-    fontWeight: 'bold',
-  },
-  modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: Spacing.stackSm, marginTop: Spacing.base },
-  modalCancel: { paddingHorizontal: 20, paddingVertical: 12 },
-  modalCancelText: { ...Typography.styles.labelLg, color: colors.onSurfaceVariant },
-  modalSave: { paddingHorizontal: 24, paddingVertical: 12, backgroundColor: colors.primary, borderRadius: Radius.full },
-  modalSaveText: { ...Typography.styles.labelLg, color: colors.onPrimary },
-});
+const createStyles = (colors: any, isDark: boolean) =>
+  StyleSheet.create({
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: Spacing.containerPadding,
+      paddingBottom: Spacing.stackSm,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.outlineVariant,
+    },
+    headerTitle: { ...Typography.styles.titleSm, color: colors.onSurface },
+    addButton: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    scroll: {
+      paddingHorizontal: Spacing.containerPadding,
+      paddingTop: Spacing.stackMd,
+      gap: Spacing.stackSm,
+    },
+    sectionSub: {
+      ...Typography.styles.bodyMd,
+      color: colors.onSurfaceVariant,
+      opacity: 0.7,
+      marginBottom: Spacing.base,
+    },
+    goalCard: {
+      backgroundColor: colors.surfaceContainerLowest,
+      borderRadius: Radius.xl,
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: Spacing.stackMd,
+      gap: Spacing.stackMd,
+    },
+    goalLabel: { ...Typography.styles.titleSm, fontSize: 15, color: colors.onSurface },
+    goalValues: { ...Typography.styles.bodyMd, color: colors.onSurfaceVariant },
+    goalStatusRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+    statusDot: { width: 8, height: 8, borderRadius: 4 },
+    goalStatusText: { ...Typography.styles.labelSm, color: colors.onSurfaceVariant },
+    addGoalCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: Spacing.base,
+      backgroundColor: colors.surfaceContainerLow,
+      borderRadius: Radius.xl,
+      borderWidth: 1.5,
+      borderColor: colors.outlineVariant,
+      borderStyle: 'dashed',
+      paddingVertical: Spacing.stackMd,
+    },
+    addGoalText: { ...Typography.styles.labelLg, color: colors.primary },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.5)',
+      justifyContent: 'center',
+      paddingHorizontal: Spacing.containerPadding,
+    },
+    modalContent: {
+      backgroundColor: colors.surfaceContainerLowest,
+      borderRadius: Radius.xl,
+      padding: Spacing.containerPadding,
+      gap: Spacing.stackMd,
+    },
+    modalTitle: {
+      ...Typography.styles.headlineMd,
+      color: colors.onSurface,
+      marginBottom: Spacing.stackSm,
+    },
+    modalTypeRow: { gap: Spacing.stackSm },
+    modalTypePill: {
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      borderRadius: Radius.full,
+      borderWidth: 1,
+      borderColor: colors.outlineVariant,
+      alignItems: 'center',
+    },
+    modalTypePillActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+    modalTypeText: { ...Typography.styles.labelLg, color: colors.onSurfaceVariant },
+    modalTypeTextActive: { color: colors.onPrimary, fontWeight: 'bold' },
+    modalInput: {
+      ...Typography.styles.bodyMd,
+      borderWidth: 1,
+      borderColor: colors.outlineVariant,
+      borderRadius: Radius.md,
+      padding: 16,
+      marginTop: Spacing.stackSm,
+      color: colors.onSurface,
+    },
+    unitToggleRow: {
+      flexDirection: 'row',
+      marginTop: Spacing.stackSm,
+      gap: Spacing.stackSm,
+    },
+    unitToggleBtn: {
+      flex: 1,
+      paddingVertical: 8,
+      alignItems: 'center',
+      borderRadius: Radius.full,
+      borderWidth: 1,
+      borderColor: colors.outlineVariant,
+    },
+    unitToggleBtnActive: {
+      backgroundColor: colors.secondaryContainer,
+      borderColor: colors.secondaryContainer,
+    },
+    unitToggleText: {
+      ...Typography.styles.labelSm,
+      color: colors.onSurfaceVariant,
+    },
+    unitToggleTextActive: {
+      color: colors.onSecondaryContainer,
+      fontWeight: 'bold',
+    },
+    modalActions: {
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+      gap: Spacing.stackSm,
+      marginTop: Spacing.base,
+    },
+    modalCancel: { paddingHorizontal: 20, paddingVertical: 12 },
+    modalCancelText: { ...Typography.styles.labelLg, color: colors.onSurfaceVariant },
+    modalSave: {
+      paddingHorizontal: 24,
+      paddingVertical: 12,
+      backgroundColor: colors.primary,
+      borderRadius: Radius.full,
+    },
+    modalSaveText: { ...Typography.styles.labelLg, color: colors.onPrimary },
+  });

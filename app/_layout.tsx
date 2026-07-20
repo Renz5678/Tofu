@@ -8,6 +8,7 @@ import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { ThemeProvider } from '@/theme';
 import { useSessionStore } from '@/store/sessionStore';
+import { AppState, AppStateStatus } from 'react-native';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -47,6 +48,20 @@ export default function RootLayout() {
   }, [hydrateFromStorage]);
 
   useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextAppState: AppStateStatus) => {
+      if (nextAppState === 'background' || nextAppState === 'inactive') {
+        useSessionStore.getState().pauseSession();
+      } else if (nextAppState === 'active') {
+        useSessionStore.getState().resumeSession();
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+
+  useEffect(() => {
     if (fontsLoaded || fontError) {
       SplashScreen.hideAsync();
     }
@@ -69,11 +84,19 @@ export default function RootLayout() {
             />
             <Stack.Screen
               name="session/active"
-              options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom', gestureEnabled: false }}
+              options={{
+                presentation: 'fullScreenModal',
+                animation: 'slide_from_bottom',
+                gestureEnabled: false,
+              }}
             />
             <Stack.Screen
               name="session/finish"
-              options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom', gestureEnabled: false }}
+              options={{
+                presentation: 'fullScreenModal',
+                animation: 'slide_from_bottom',
+                gestureEnabled: false,
+              }}
             />
             <Stack.Screen name="favorites/index" />
             <Stack.Screen name="tier-lists/index" />

@@ -17,9 +17,9 @@ export default function AuthCallback() {
 
       try {
         const paramStr = urlStr.split('#')[1] || urlStr.split('?')[1] || '';
-        
+
         const queryParams: Record<string, string> = {};
-        paramStr.split('&').forEach(pair => {
+        paramStr.split('&').forEach((pair) => {
           const [key, val] = pair.split('=');
           if (key && val) queryParams[key] = decodeURIComponent(val);
         });
@@ -59,7 +59,9 @@ export default function AuthCallback() {
       ) : (
         <>
           <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={[styles.text, { color: colors.onSurfaceVariant }]}>Verifying your email...</Text>
+          <Text style={[styles.text, { color: colors.onSurfaceVariant }]}>
+            Verifying your email...
+          </Text>
         </>
       )}
     </View>
@@ -80,5 +82,5 @@ const styles = StyleSheet.create({
   errorText: {
     ...Typography.styles.bodyMd,
     textAlign: 'center',
-  }
+  },
 });

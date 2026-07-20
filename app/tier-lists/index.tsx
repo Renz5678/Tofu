@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-} from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -67,16 +61,28 @@ export default function TierListsIndexScreen() {
               {/* Tier badges preview */}
               <View style={styles.tierPreview}>
                 {tl.tiers.slice(0, 5).map((tier) => (
-                  <View key={tier} style={[styles.tierBadge, { backgroundColor: getTierColor(tier, colors) }]}>
-                    <Text style={styles.tierBadgeText} numberOfLines={1}>{tier.substring(0, 2)}</Text>
+                  <View
+                    key={tier}
+                    style={[styles.tierBadge, { backgroundColor: getTierColor(tier, colors) }]}
+                  >
+                    <Text style={styles.tierBadgeText} numberOfLines={1}>
+                      {tier.substring(0, 2)}
+                    </Text>
                   </View>
                 ))}
               </View>
               <View style={{ flex: 1, gap: 4 }}>
                 <Text style={styles.cardTitle}>{tl.title}</Text>
-                <Text style={styles.cardMeta}>{format(new Date(tl.created_at), 'MMM d, yyyy')}</Text>
+                <Text style={styles.cardMeta}>
+                  {format(new Date(tl.created_at), 'MMM d, yyyy')}
+                </Text>
               </View>
-              <MaterialIcons name="chevron-right" size={20} color={colors.onSurfaceVariant} style={{ opacity: 0.4 }} />
+              <MaterialIcons
+                name="chevron-right"
+                size={20}
+                color={colors.onSurfaceVariant}
+                style={{ opacity: 0.4 }}
+              />
             </TouchableOpacity>
           ))}
         </ScrollView>
@@ -95,55 +101,56 @@ function getTierColor(tier: string, colors: any): string {
   };
   return map[t] ?? colors.surfaceContainer;
 }
-const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: Spacing.containerPadding,
-    paddingBottom: Spacing.stackSm,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.outlineVariant,
-  },
-  headerTitle: { ...Typography.styles.titleSm, color: colors.onSurface },
-  addButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  scroll: {
-    paddingHorizontal: Spacing.containerPadding,
-    paddingTop: Spacing.stackMd,
-    gap: Spacing.stackSm,
-  },
-  card: {
-    backgroundColor: colors.surfaceContainerLowest,
-    borderRadius: Radius.xl,
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: Spacing.stackMd,
-    gap: Spacing.stackSm,
-  },
-  tierPreview: {
-    flexDirection: 'column',
-    gap: 2,
-  },
-  tierBadge: {
-    width: 24,
-    height: 14,
-    borderRadius: 4,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tierBadgeText: {
-    ...Typography.styles.labelSm,
-    fontSize: 9,
-    color: colors.onPrimary,
-    fontWeight: '700',
-  },
-  cardTitle: { ...Typography.styles.titleSm, fontSize: 15, color: colors.onSurface },
-  cardMeta: { ...Typography.styles.labelSm, color: colors.onSurfaceVariant, opacity: 0.6 },
-});
+const createStyles = (colors: any, isDark: boolean) =>
+  StyleSheet.create({
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: Spacing.containerPadding,
+      paddingBottom: Spacing.stackSm,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.outlineVariant,
+    },
+    headerTitle: { ...Typography.styles.titleSm, color: colors.onSurface },
+    addButton: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    scroll: {
+      paddingHorizontal: Spacing.containerPadding,
+      paddingTop: Spacing.stackMd,
+      gap: Spacing.stackSm,
+    },
+    card: {
+      backgroundColor: colors.surfaceContainerLowest,
+      borderRadius: Radius.xl,
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: Spacing.stackMd,
+      gap: Spacing.stackSm,
+    },
+    tierPreview: {
+      flexDirection: 'column',
+      gap: 2,
+    },
+    tierBadge: {
+      width: 24,
+      height: 14,
+      borderRadius: 4,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    tierBadgeText: {
+      ...Typography.styles.labelSm,
+      fontSize: 9,
+      color: colors.onPrimary,
+      fontWeight: '700',
+    },
+    cardTitle: { ...Typography.styles.titleSm, fontSize: 15, color: colors.onSurface },
+    cardMeta: { ...Typography.styles.labelSm, color: colors.onSurfaceVariant, opacity: 0.6 },
+  });

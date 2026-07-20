@@ -23,7 +23,9 @@ export function useTierLists() {
   return useQuery({
     queryKey: ['tierLists'],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return [];
       const { data, error } = await supabase
         .from('tier_lists')
@@ -43,10 +45,12 @@ export function useTierListItems(tierListId: string) {
       if (!tierListId) return [];
       const { data, error } = await supabase
         .from('tier_list_items')
-        .select(`
+        .select(
+          `
           *,
           book:books (*)
-        `)
+        `,
+        )
         .eq('tier_list_id', tierListId)
         .order('position', { ascending: true });
       if (error) throw error;
@@ -60,7 +64,9 @@ export function useCreateTierList() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (title: string) => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
       const { data, error } = await supabase
         .from('tier_lists')
@@ -77,7 +83,15 @@ export function useCreateTierList() {
 export function useAddTierListItem() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ listId, bookId, tier }: { listId: string; bookId: string; tier: string }) => {
+    mutationFn: async ({
+      listId,
+      bookId,
+      tier,
+    }: {
+      listId: string;
+      bookId: string;
+      tier: string;
+    }) => {
       const { error } = await supabase
         .from('tier_list_items')
         .insert({ tier_list_id: listId, book_id: bookId, tier });
@@ -90,7 +104,15 @@ export function useAddTierListItem() {
 export function useUpdateTierListItem() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ itemId, tier, position }: { itemId: string; tier: string; position: number }) => {
+    mutationFn: async ({
+      itemId,
+      tier,
+      position,
+    }: {
+      itemId: string;
+      tier: string;
+      position: number;
+    }) => {
       const { error } = await supabase
         .from('tier_list_items')
         .update({ tier, position })
@@ -105,15 +127,21 @@ export function useUpdateTierListItem() {
 export function useUpdateTierListPositions() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ listId, items }: { listId: string; items: { id: string; tier: string; position: number; book_id: string }[] }) => {
+    mutationFn: async ({
+      listId,
+      items,
+    }: {
+      listId: string;
+      items: { id: string; tier: string; position: number; book_id: string }[];
+    }) => {
       const { error } = await supabase.from('tier_list_items').upsert(
-        items.map(item => ({
+        items.map((item) => ({
           id: item.id,
           tier_list_id: listId,
           book_id: item.book_id,
           tier: item.tier,
-          position: item.position
-        }))
+          position: item.position,
+        })),
       );
       if (error) throw error;
     },

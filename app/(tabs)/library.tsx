@@ -6,6 +6,8 @@ import {
   StyleSheet,
   TouchableOpacity,
   TextInput,
+  Modal,
+  Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -17,7 +19,15 @@ import { EmptyState } from '@/components/EmptyState';
 import { useRouter } from 'expo-router';
 import { useLibrary, type BookStatus } from '@/hooks/useLibrary';
 import { useProfile } from '@/hooks/useProfile';
-import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, withSequence } from 'react-native-reanimated';
+import { useFavorites, useToggleFavorite } from '@/hooks/useFavorites';
+import { AddToPlaylistSheet } from '@/components/AddToPlaylistSheet';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withTiming,
+  withSequence,
+} from 'react-native-reanimated';
 
 function BookSkeleton() {
   const { colors } = useTheme();
@@ -25,12 +35,9 @@ function BookSkeleton() {
 
   React.useEffect(() => {
     opacity.value = withRepeat(
-      withSequence(
-        withTiming(1, { duration: 800 }),
-        withTiming(0.5, { duration: 800 })
-      ),
+      withSequence(withTiming(1, { duration: 800 }), withTiming(0.5, { duration: 800 })),
       -1,
-      true
+      true,
     );
   }, []);
 
@@ -38,9 +45,32 @@ function BookSkeleton() {
 
   return (
     <Animated.View style={[{ flex: 1, maxWidth: '31%', aspectRatio: 0.65 }, animatedStyle]}>
-      <View style={{ width: '100%', height: '80%', backgroundColor: colors.surfaceContainerHigh, borderRadius: Radius.sm }} />
-      <View style={{ width: '80%', height: 12, backgroundColor: colors.surfaceContainerHigh, borderRadius: 4, marginTop: 8 }} />
-      <View style={{ width: '60%', height: 12, backgroundColor: colors.surfaceContainerHigh, borderRadius: 4, marginTop: 4 }} />
+      <View
+        style={{
+          width: '100%',
+          height: '80%',
+          backgroundColor: colors.surfaceContainerHigh,
+          borderRadius: Radius.sm,
+        }}
+      />
+      <View
+        style={{
+          width: '80%',
+          height: 12,
+          backgroundColor: colors.surfaceContainerHigh,
+          borderRadius: 4,
+          marginTop: 8,
+        }}
+      />
+      <View
+        style={{
+          width: '60%',
+          height: 12,
+          backgroundColor: colors.surfaceContainerHigh,
+          borderRadius: 4,
+          marginTop: 4,
+        }}
+      />
     </Animated.View>
   );
 }
@@ -61,6 +91,11 @@ export default function LibraryScreen() {
 
   const { data: profile } = useProfile();
   const { data: libraryBooks = [], isLoading } = useLibrary(activeStatus);
+  const { data: favorites } = useFavorites();
+  const { mutateAsync: toggleFavorite } = useToggleFavorite();
+
+  const [selectedLongPressBook, setSelectedLongPressBook] = useState<string | null>(null);
+  const [showPlaylistSheet, setShowPlaylistSheet] = useState(false);
 
   const filtered = libraryBooks.filter((b) => {
     if (!searchQuery.trim()) return true;
@@ -68,9 +103,28 @@ export default function LibraryScreen() {
     return b.title.toLowerCase().includes(q) || (b.author && b.author.toLowerCase().includes(q));
   });
 
+  const handleToggleFavorite = async () => {
+    if (!selectedLongPressBook) return;
+    try {
+      await toggleFavorite(selectedLongPressBook);
+      setSelectedLongPressBook(null);
+    } catch (error: any) {
+      if (error.message?.includes('10 books')) {
+        Alert.alert('Limit Reached', error.message);
+      } else {
+        Alert.alert('Error', error.message);
+      }
+    }
+  };
+
+  const isLiked = favorites?.some((f) => f.book_id === selectedLongPressBook);
+
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <TopBar avatarUrl={profile?.avatar_url ?? undefined} onAvatarPress={() => router.push('/(tabs)/profile')} />
+      <TopBar
+        avatarUrl={profile?.avatar_url ?? undefined}
+        onAvatarPress={() => router.push('/(tabs)/profile')}
+      />
 
       <View style={styles.searchRow}>
         <View style={styles.searchContainer}>
@@ -86,24 +140,38 @@ export default function LibraryScreen() {
       </View>
 
       <View style={styles.actionRow}>
-        <TouchableOpacity 
-          style={styles.actionButton}
-          onPress={() => router.push('/favorites')}
-        >
+        <TouchableOpacity style={styles.actionButton} onPress={() => router.push('/favorites')}>
           <MaterialIcons name="favorite" size={20} color={colors.error} />
           <Text style={styles.actionButtonText}>Liked Books</Text>
         </TouchableOpacity>
       </View>
 
-      <StatusTabs tabs={STATUS_TABS} activeValue={activeStatus} onSelect={(v) => setActiveStatus(v as BookStatus)} />
+      <StatusTabs
+        tabs={STATUS_TABS}
+        activeValue={activeStatus}
+        onSelect={(v) => setActiveStatus(v as BookStatus)}
+      />
 
       {isLoading ? (
-        <View style={[styles.grid, { paddingBottom: insets.bottom + 80, paddingHorizontal: Spacing.containerPadding, paddingTop: Spacing.stackSm }]}>
+        <View
+          style={[
+            styles.grid,
+            {
+              paddingBottom: insets.bottom + 80,
+              paddingHorizontal: Spacing.containerPadding,
+              paddingTop: Spacing.stackSm,
+            },
+          ]}
+        >
           <View style={styles.gridRow}>
-            <BookSkeleton /><BookSkeleton /><BookSkeleton />
+            <BookSkeleton />
+            <BookSkeleton />
+            <BookSkeleton />
           </View>
           <View style={[styles.gridRow, { marginTop: Spacing.stackMd }]}>
-            <BookSkeleton /><BookSkeleton /><BookSkeleton />
+            <BookSkeleton />
+            <BookSkeleton />
+            <BookSkeleton />
           </View>
         </View>
       ) : filtered.length === 0 ? (
@@ -120,10 +188,7 @@ export default function LibraryScreen() {
           data={filtered}
           keyExtractor={(item) => item.id}
           numColumns={3}
-          contentContainerStyle={[
-            styles.grid,
-            { paddingBottom: insets.bottom + 80 },
-          ]}
+          contentContainerStyle={[styles.grid, { paddingBottom: insets.bottom + 80 }]}
           columnWrapperStyle={styles.gridRow}
           renderItem={({ item }) => (
             <View style={{ flex: 1, maxWidth: '31%' }}>
@@ -134,66 +199,146 @@ export default function LibraryScreen() {
                 coverUrl={item.cover_url ?? undefined}
                 currentPage={item.current_page}
                 totalPages={item.total_pages ?? undefined}
+                isLiked={favorites?.some((f) => f.book_id === item.book_id)}
+                onLongPress={() => setSelectedLongPressBook(item.book_id)}
               />
             </View>
           )}
         />
       )}
+
+      {/* Long Press Action Sheet */}
+      <Modal
+        visible={!!selectedLongPressBook && !showPlaylistSheet}
+        transparent
+        animationType="fade"
+      >
+        <View style={styles.modalOverlay}>
+          <TouchableOpacity
+            style={StyleSheet.absoluteFill}
+            activeOpacity={1}
+            onPress={() => setSelectedLongPressBook(null)}
+          />
+          <View
+            style={[
+              styles.actionSheet,
+              { paddingBottom: Math.max(insets.bottom, Spacing.stackLg) },
+            ]}
+          >
+            <Text style={styles.sheetTitle}>Book Actions</Text>
+
+            <TouchableOpacity style={styles.sheetAction} onPress={handleToggleFavorite}>
+              <MaterialIcons
+                name={isLiked ? 'favorite' : 'favorite-border'}
+                size={24}
+                color={isLiked ? colors.error : colors.onSurface}
+              />
+              <Text style={styles.sheetActionText}>
+                {isLiked ? 'Remove from Liked Books' : 'Add to Liked Books'}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.sheetAction} onPress={() => setShowPlaylistSheet(true)}>
+              <MaterialIcons name="playlist-add" size={24} color={colors.onSurface} />
+              <Text style={styles.sheetActionText}>Add to Reading List</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      <AddToPlaylistSheet
+        visible={showPlaylistSheet}
+        bookId={selectedLongPressBook!}
+        onClose={() => {
+          setShowPlaylistSheet(false);
+          setSelectedLongPressBook(null);
+        }}
+      />
     </View>
   );
 }
 
-const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
-  searchRow: {
-    paddingHorizontal: Spacing.containerPadding,
-    paddingVertical: Spacing.base,
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surfaceContainerLow,
-    borderRadius: Radius.xl,
-    height: 48,
-    paddingHorizontal: Spacing.gutter,
-  },
-  searchIcon: {
-    marginRight: 8,
-  },
-  searchInput: {
-    flex: 1,
-    ...Typography.styles.bodyMd,
-    color: colors.onSurface,
-  },
-  actionRow: {
-    paddingHorizontal: Spacing.containerPadding,
-    paddingBottom: Spacing.base,
-    flexDirection: 'row',
-  },
-  actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surfaceContainerLowest,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: Radius.full,
-    borderWidth: 1,
-    borderColor: colors.outlineVariant,
-    gap: 8,
-    shadowColor: isDark ? '#000' : '#2d3a47',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: isDark ? 0.3 : 0.05,
-    shadowRadius: 12,
-    elevation: 2,
-  },
-  actionButtonText: {
-    ...Typography.styles.labelLg,
-    color: colors.onSurface,
-  },
-  grid: {
-    padding: Spacing.containerPadding,
-    gap: Spacing.stackMd,
-  },
-  gridRow: {
-    gap: Spacing.gutter,
-  },
-});
+const createStyles = (colors: any, isDark: boolean) =>
+  StyleSheet.create({
+    searchRow: {
+      paddingHorizontal: Spacing.containerPadding,
+      paddingVertical: Spacing.base,
+    },
+    searchContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.surfaceContainerLow,
+      borderRadius: Radius.xl,
+      height: 48,
+      paddingHorizontal: Spacing.gutter,
+    },
+    searchIcon: {
+      marginRight: 8,
+    },
+    searchInput: {
+      flex: 1,
+      ...Typography.styles.bodyMd,
+      color: colors.onSurface,
+    },
+    actionRow: {
+      paddingHorizontal: Spacing.containerPadding,
+      paddingBottom: Spacing.base,
+      flexDirection: 'row',
+    },
+    actionButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.surfaceContainerLowest,
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      borderRadius: Radius.full,
+      borderWidth: 1,
+      borderColor: colors.outlineVariant,
+      gap: 8,
+      shadowColor: isDark ? '#000' : '#2d3a47',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: isDark ? 0.3 : 0.05,
+      shadowRadius: 12,
+      elevation: 2,
+    },
+    actionButtonText: {
+      ...Typography.styles.labelLg,
+      color: colors.onSurface,
+    },
+    grid: {
+      padding: Spacing.containerPadding,
+      gap: Spacing.stackMd,
+    },
+    gridRow: {
+      gap: Spacing.gutter,
+    },
+
+    // Sheet Styles
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.4)',
+      justifyContent: 'flex-end',
+    },
+    actionSheet: {
+      backgroundColor: colors.surfaceContainer,
+      borderTopLeftRadius: Radius.xl,
+      borderTopRightRadius: Radius.xl,
+      padding: Spacing.containerPadding,
+      gap: Spacing.stackSm,
+    },
+    sheetTitle: {
+      ...Typography.styles.titleSm,
+      color: colors.onSurfaceVariant,
+      marginBottom: Spacing.stackSm,
+    },
+    sheetAction: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: Spacing.stackMd,
+      gap: Spacing.base,
+    },
+    sheetActionText: {
+      ...Typography.styles.labelLg,
+      color: colors.onSurface,
+    },
+  });

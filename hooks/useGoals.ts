@@ -13,7 +13,9 @@ export interface ReadingGoal {
 }
 
 async function fetchGoals(): Promise<ReadingGoal[]> {
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) return [];
 
   const { data, error } = await supabase
@@ -37,8 +39,16 @@ export function useGoals() {
 export function useUpsertGoal() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ goal_type, target_value }: { goal_type: GoalType; target_value: number }) => {
-      const { data: { user } } = await supabase.auth.getUser();
+    mutationFn: async ({
+      goal_type,
+      target_value,
+    }: {
+      goal_type: GoalType;
+      target_value: number;
+    }) => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
       // First try to find existing active goal of this type
@@ -59,14 +69,12 @@ export function useUpsertGoal() {
         if (error) throw error;
       } else {
         // Insert
-        const { error } = await supabase
-          .from('reading_goals')
-          .insert({
-            user_id: user.id,
-            goal_type,
-            target_value,
-            active: true,
-          });
+        const { error } = await supabase.from('reading_goals').insert({
+          user_id: user.id,
+          goal_type,
+          target_value,
+          active: true,
+        });
         if (error) throw error;
       }
     },

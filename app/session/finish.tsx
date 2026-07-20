@@ -11,6 +11,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
+import { useQueryClient } from '@tanstack/react-query';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme, Typography, Spacing, Radius, Shadows } from '@/theme';
 import { useLibrary, useUpdateBook } from '@/hooks/useLibrary';
@@ -23,6 +24,7 @@ export default function SessionFinishScreen() {
   const styles = createStyles(colors, isDark);
 
   const router = useRouter();
+  const qc = useQueryClient();
   const insets = useSafeAreaInsets();
   const { activeSession, clearSession, pauseSession } = useSessionStore();
   const { data: libraryBooks = [] } = useLibrary();
@@ -43,20 +45,31 @@ export default function SessionFinishScreen() {
 
   if (!activeSession || !book) {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' }}>
-         <Text style={{ color: colors.onSurface }}>No active session to finish.</Text>
-         <TouchableOpacity onPress={() => router.back()} style={{ marginTop: 16 }}>
-            <Text style={{ color: colors.primary }}>Go Back</Text>
-         </TouchableOpacity>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: colors.background,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Text style={{ color: colors.onSurface }}>No active session to finish.</Text>
+        <TouchableOpacity onPress={() => router.back()} style={{ marginTop: 16 }}>
+          <Text style={{ color: colors.primary }}>Go Back</Text>
+        </TouchableOpacity>
       </View>
     );
   }
 
-  const durationSeconds = Math.max(0, Math.floor((endTime.getTime() - new Date(activeSession.startTime).getTime()) / 1000) - (activeSession.totalPausedSeconds || 0));
+  const durationSeconds = Math.max(
+    0,
+    Math.floor((endTime.getTime() - new Date(activeSession.startTime).getTime()) / 1000) -
+      (activeSession.totalPausedSeconds || 0),
+  );
   const durationMinutes = Math.max(1, Math.round(durationSeconds / 60));
   const parsedEnd = parseInt(endPage, 10);
   const isValidNumber = !isNaN(parsedEnd);
-  
+
   // Real-time validation state
   let errorMessage: string | null = null;
   if (isValidNumber) {
@@ -69,10 +82,13 @@ export default function SessionFinishScreen() {
 
   const isSaveDisabled = isPending || (isValidNumber && errorMessage !== null);
 
-  const pagesRead = Math.max(0, (isNaN(parsedEnd) ? book.current_page : parsedEnd) - activeSession.startPage);
+  const pagesRead = Math.max(
+    0,
+    (isNaN(parsedEnd) ? book.current_page : parsedEnd) - activeSession.startPage,
+  );
   const pace = durationMinutes > 0 ? Math.round(pagesRead / (durationMinutes / 60)) : 0;
 
-  const handleSave = async () => {
+  const handleSave = async (shouldShare: boolean = false) => {
     if (errorMessage) {
       Alert.alert('Invalid Page', errorMessage);
       return;
@@ -98,11 +114,14 @@ export default function SessionFinishScreen() {
 
       await clearSession();
 
-      if (isFinished) {
+      if (shouldShare) {
+        await qc.refetchQueries({ queryKey: ['sessions'] });
+        router.replace('/share/session/latest');
+      } else if (isFinished) {
         Alert.alert(
           'Congratulations! 🎉',
           "You've finished this book! It has been moved to your 'Finished' tab.",
-          [{ text: 'Awesome', onPress: () => router.replace('/(tabs)/dashboard') }]
+          [{ text: 'Awesome', onPress: () => router.replace('/(tabs)/dashboard') }],
         );
       } else {
         router.replace('/(tabs)/dashboard');
@@ -132,7 +151,9 @@ export default function SessionFinishScreen() {
         <View style={styles.celebrationCard}>
           <MaterialIcons name="emoji-events" size={48} color={colors.onPrimaryContainer} />
           <Text style={styles.celebrationText}>Great reading session!</Text>
-          <Text style={styles.celebrationSub}>{durationMinutes} minutes · {pagesRead} pages</Text>
+          <Text style={styles.celebrationSub}>
+            {durationMinutes} minutes · {pagesRead} pages
+          </Text>
         </View>
 
         {/* Session recap */}
@@ -140,10 +161,16 @@ export default function SessionFinishScreen() {
           {/* Book */}
           <View style={styles.bookRow}>
             <View style={styles.cover}>
-              <Image source={{ uri: book.cover_url ?? undefined }} style={StyleSheet.absoluteFillObject} contentFit="cover" />
+              <Image
+                source={{ uri: book.cover_url ?? undefined }}
+                style={StyleSheet.absoluteFillObject}
+                contentFit="cover"
+              />
             </View>
             <View style={{ flex: 1, gap: 4 }}>
-              <Text style={styles.bookTitle} numberOfLines={2}>{book.title}</Text>
+              <Text style={styles.bookTitle} numberOfLines={2}>
+                {book.title}
+              </Text>
               <Text style={styles.bookAuthor}>{book.author ?? 'Unknown'}</Text>
             </View>
           </View>
@@ -160,7 +187,10 @@ export default function SessionFinishScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>CURRENT PAGE</Text>
           <TextInput
-            style={[styles.pageInput, errorMessage ? { borderColor: colors.error, borderWidth: 1 } : null]}
+            style={[
+              styles.pageInput,
+              errorMessage ? { borderColor: colors.error, borderWidth: 1 } : null,
+            ]}
             value={endPage}
             onChangeText={setEndPage}
             keyboardType="numeric"
@@ -190,7 +220,7 @@ export default function SessionFinishScreen() {
         {/* Actions */}
         <TouchableOpacity
           style={[styles.primaryButton, isSaveDisabled && { opacity: 0.5 }]}
-          onPress={handleSave}
+          onPress={() => handleSave(false)}
           disabled={isSaveDisabled}
           activeOpacity={0.85}
         >
@@ -202,12 +232,19 @@ export default function SessionFinishScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.secondaryButton}
-          onPress={() => router.push('/share/session/latest')}
+          style={[styles.secondaryButton, isSaveDisabled && { opacity: 0.5 }]}
+          onPress={() => handleSave(true)}
+          disabled={isSaveDisabled}
           activeOpacity={0.85}
         >
-          <MaterialIcons name="share" size={18} color={colors.primary} />
-          <Text style={styles.secondaryButtonText}>Share Reading Recap</Text>
+          {isPending ? (
+            <ActivityIndicator size="small" color={colors.primary} />
+          ) : (
+            <>
+              <MaterialIcons name="share" size={18} color={colors.primary} />
+              <Text style={styles.secondaryButtonText}>Save & Share Recap</Text>
+            </>
+          )}
         </TouchableOpacity>
       </ScrollView>
     </View>
@@ -225,150 +262,151 @@ function StatItem({ label, value }: { label: string; value: string }) {
   );
 }
 
-const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: Spacing.containerPadding,
-    paddingBottom: Spacing.stackSm,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.outlineVariant,
-  },
-  headerTitle: {
-    ...Typography.styles.titleSm,
-    color: colors.onSurface,
-  },
-  scroll: {
-    paddingHorizontal: Spacing.containerPadding,
-    paddingTop: Spacing.stackMd,
-    gap: Spacing.stackMd,
-  },
-  celebrationCard: {
-    backgroundColor: colors.primaryContainer,
-    borderRadius: Radius.xl,
-    padding: Spacing.stackMd,
-    alignItems: 'center',
-    gap: Spacing.base,
-  },
-  trophyEmoji: {
-    fontSize: 48,
-  },
-  celebrationText: {
-    ...Typography.styles.titleSm,
-    color: colors.onPrimaryContainer,
-  },
-  celebrationSub: {
-    ...Typography.styles.bodyMd,
-    color: colors.onPrimaryContainer,
-    opacity: 0.8,
-  },
-  recapCard: {
-    backgroundColor: colors.surfaceContainerLowest,
-    borderRadius: Radius.xl,
-    borderWidth: 1,
-    borderColor: colors.outlineVariant,
-    padding: Spacing.stackMd,
-    gap: Spacing.stackMd,
-    ...Shadows.card,
-  },
-  bookRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.stackSm,
-  },
-  cover: {
-    width: 56,
-    height: 80,
-    borderRadius: Radius.md,
-    overflow: 'hidden',
-  },
-  bookTitle: {
-    ...Typography.styles.titleSm,
-    color: colors.onSurface,
-  },
-  bookAuthor: {
-    ...Typography.styles.bodyMd,
-    color: colors.onSurfaceVariant,
-    fontSize: 14,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingTop: Spacing.stackSm,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.outlineVariant,
-  },
-  statItem: {
-    alignItems: 'center',
-    gap: 4,
-  },
-  statValue: {
-    ...Typography.styles.numericXl,
-    fontSize: 22,
-    color: colors.primary,
-  },
-  statLabel: {
-    ...Typography.styles.labelSm,
-    color: colors.onSurfaceVariant,
-  },
-  section: {
-    gap: 6,
-  },
-  sectionLabel: {
-    ...Typography.styles.labelSm,
-    color: colors.primary,
-    marginLeft: 4,
-  },
-  pageInput: {
-    backgroundColor: colors.surfaceContainerLow,
-    borderWidth: 1,
-    borderColor: colors.outlineVariant,
-    borderRadius: Radius.md,
-    paddingHorizontal: Spacing.gutter,
-    paddingVertical: 14,
-    ...Typography.styles.bodyMd,
-    color: colors.onSurface,
-  },
-  pageHint: {
-    ...Typography.styles.labelSm,
-    color: colors.onSurfaceVariant,
-    opacity: 0.6,
-    marginLeft: 4,
-  },
-  notesInput: {
-    backgroundColor: colors.surfaceContainerLow,
-    borderWidth: 1,
-    borderColor: colors.outlineVariant,
-    borderRadius: Radius.md,
-    paddingHorizontal: Spacing.gutter,
-    paddingVertical: 14,
-    ...Typography.styles.bodyMd,
-    color: colors.onSurface,
-    minHeight: 100,
-  },
-  primaryButton: {
-    backgroundColor: colors.primary,
-    borderRadius: Radius.xl,
-    paddingVertical: 16,
-    alignItems: 'center',
-    ...Shadows.button,
-  },
-  primaryButtonText: {
-    ...Typography.styles.labelLg,
-    color: colors.onPrimary,
-  },
-  secondaryButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    backgroundColor: colors.secondaryContainer,
-    borderRadius: Radius.xl,
-    paddingVertical: 16,
-  },
-  secondaryButtonText: {
-    ...Typography.styles.labelLg,
-    color: colors.primary,
-  },
-});
+const createStyles = (colors: any, isDark: boolean) =>
+  StyleSheet.create({
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: Spacing.containerPadding,
+      paddingBottom: Spacing.stackSm,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.outlineVariant,
+    },
+    headerTitle: {
+      ...Typography.styles.titleSm,
+      color: colors.onSurface,
+    },
+    scroll: {
+      paddingHorizontal: Spacing.containerPadding,
+      paddingTop: Spacing.stackMd,
+      gap: Spacing.stackMd,
+    },
+    celebrationCard: {
+      backgroundColor: colors.primaryContainer,
+      borderRadius: Radius.xl,
+      padding: Spacing.stackMd,
+      alignItems: 'center',
+      gap: Spacing.base,
+    },
+    trophyEmoji: {
+      fontSize: 48,
+    },
+    celebrationText: {
+      ...Typography.styles.titleSm,
+      color: colors.onPrimaryContainer,
+    },
+    celebrationSub: {
+      ...Typography.styles.bodyMd,
+      color: colors.onPrimaryContainer,
+      opacity: 0.8,
+    },
+    recapCard: {
+      backgroundColor: colors.surfaceContainerLowest,
+      borderRadius: Radius.xl,
+      borderWidth: 1,
+      borderColor: colors.outlineVariant,
+      padding: Spacing.stackMd,
+      gap: Spacing.stackMd,
+      ...Shadows.card,
+    },
+    bookRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Spacing.stackSm,
+    },
+    cover: {
+      width: 56,
+      height: 80,
+      borderRadius: Radius.md,
+      overflow: 'hidden',
+    },
+    bookTitle: {
+      ...Typography.styles.titleSm,
+      color: colors.onSurface,
+    },
+    bookAuthor: {
+      ...Typography.styles.bodyMd,
+      color: colors.onSurfaceVariant,
+      fontSize: 14,
+    },
+    statsRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      paddingTop: Spacing.stackSm,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.outlineVariant,
+    },
+    statItem: {
+      alignItems: 'center',
+      gap: 4,
+    },
+    statValue: {
+      ...Typography.styles.numericXl,
+      fontSize: 22,
+      color: colors.primary,
+    },
+    statLabel: {
+      ...Typography.styles.labelSm,
+      color: colors.onSurfaceVariant,
+    },
+    section: {
+      gap: 6,
+    },
+    sectionLabel: {
+      ...Typography.styles.labelSm,
+      color: colors.primary,
+      marginLeft: 4,
+    },
+    pageInput: {
+      backgroundColor: colors.surfaceContainerLow,
+      borderWidth: 1,
+      borderColor: colors.outlineVariant,
+      borderRadius: Radius.md,
+      paddingHorizontal: Spacing.gutter,
+      paddingVertical: 14,
+      ...Typography.styles.bodyMd,
+      color: colors.onSurface,
+    },
+    pageHint: {
+      ...Typography.styles.labelSm,
+      color: colors.onSurfaceVariant,
+      opacity: 0.6,
+      marginLeft: 4,
+    },
+    notesInput: {
+      backgroundColor: colors.surfaceContainerLow,
+      borderWidth: 1,
+      borderColor: colors.outlineVariant,
+      borderRadius: Radius.md,
+      paddingHorizontal: Spacing.gutter,
+      paddingVertical: 14,
+      ...Typography.styles.bodyMd,
+      color: colors.onSurface,
+      minHeight: 100,
+    },
+    primaryButton: {
+      backgroundColor: colors.primary,
+      borderRadius: Radius.xl,
+      paddingVertical: 16,
+      alignItems: 'center',
+      ...Shadows.button,
+    },
+    primaryButtonText: {
+      ...Typography.styles.labelLg,
+      color: colors.onPrimary,
+    },
+    secondaryButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+      backgroundColor: colors.secondaryContainer,
+      borderRadius: Radius.xl,
+      paddingVertical: 16,
+    },
+    secondaryButtonText: {
+      ...Typography.styles.labelLg,
+      color: colors.primary,
+    },
+  });

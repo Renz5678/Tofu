@@ -16,12 +16,7 @@ import { Link, useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { supabase } from '@/lib/supabase';
 import { useTheme, Typography, Spacing, Radius } from '@/theme';
-import {
-  useUsernameCheck,
-  getUsernameHint,
-  type UsernameStatus,
-} from '@/hooks/useUsernameCheck';
-import { useGoogleAuth } from '@/hooks/useGoogleAuth';
+import { useUsernameCheck, getUsernameHint, type UsernameStatus } from '@/hooks/useUsernameCheck';
 import { makeRedirectUri } from 'expo-auth-session';
 
 // ── Username status indicator ─────────────────────────────────────────────────
@@ -30,16 +25,22 @@ function UsernameStatusRow({ status }: { status: UsernameStatus }) {
   const hint = getUsernameHint(status);
 
   const iconName =
-    status === 'available' ? 'check-circle' :
-    status === 'taken' || status === 'invalid' ? 'cancel' :
-    status === 'checking' ? 'hourglass-empty' :
-    'info-outline';
+    status === 'available'
+      ? 'check-circle'
+      : status === 'taken' || status === 'invalid'
+        ? 'cancel'
+        : status === 'checking'
+          ? 'hourglass-empty'
+          : 'info-outline';
 
   const color =
-    hint.color === 'green' ? '#22c55e' :
-    hint.color === 'red'   ? (colors.error ?? '#ef4444') :
-    hint.color === 'amber' ? '#f59e0b' :
-    colors.onSurfaceVariant;
+    hint.color === 'green'
+      ? '#22c55e'
+      : hint.color === 'red'
+        ? (colors.error ?? '#ef4444')
+        : hint.color === 'amber'
+          ? '#f59e0b'
+          : colors.onSurfaceVariant;
 
   if (status === 'idle') {
     return (
@@ -73,8 +74,6 @@ export default function SignUpScreen() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { signInWithGoogle, loading: googleLoading } = useGoogleAuth();
-
   // Real-time username availability
   const { status: usernameStatus } = useUsernameCheck(username);
   const canSubmit =
@@ -132,7 +131,7 @@ export default function SignUpScreen() {
           username: cleanUsername,
           display_name: displayName.trim(),
         },
-        { onConflict: 'id' }
+        { onConflict: 'id' },
       );
     }
 
@@ -144,7 +143,7 @@ export default function SignUpScreen() {
       Alert.alert(
         'Check your email',
         'We sent a confirmation link. Click it, then come back to log in.',
-        [{ text: 'OK', onPress: () => router.push('/(auth)/sign-in') }]
+        [{ text: 'OK', onPress: () => router.push('/(auth)/sign-in') }],
       );
     }
   }
@@ -152,7 +151,8 @@ export default function SignUpScreen() {
   const borderColor = (field: 'username') => {
     if (field === 'username') {
       if (usernameStatus === 'available') return '#22c55e';
-      if (usernameStatus === 'taken' || usernameStatus === 'invalid') return colors.error ?? '#ef4444';
+      if (usernameStatus === 'taken' || usernameStatus === 'invalid')
+        return colors.error ?? '#ef4444';
     }
     return colors.outlineVariant;
   };
@@ -181,40 +181,18 @@ export default function SignUpScreen() {
         <Text style={[styles.subheading, { color: colors.onSurfaceVariant }]}>
           Start tracking your reading journey
         </Text>
-
-        {/* Google Sign In */}
-        <TouchableOpacity
-          style={[
-            styles.googleButton,
-            { borderColor: colors.outlineVariant, backgroundColor: colors.surfaceContainerLow },
-            googleLoading && styles.primaryButtonDisabled
-          ]}
-          onPress={signInWithGoogle}
-          activeOpacity={0.85}
-          disabled={googleLoading}
-        >
-          {googleLoading ? (
-            <ActivityIndicator color={colors.onSurface} />
-          ) : (
-            <>
-              <MaterialIcons name="g-translate" size={20} color={colors.onSurface} style={{ position: 'absolute', left: 20 }} />
-              <Text style={[styles.googleButtonText, { color: colors.onSurface }]}>Continue with Google</Text>
-            </>
-          )}
-        </TouchableOpacity>
-
-        {/* Divider */}
-        <View style={styles.dividerRow}>
-          <View style={[styles.dividerLine, { backgroundColor: colors.outlineVariant }]} />
-          <Text style={[styles.dividerText, { color: `${colors.onSurfaceVariant}99` }]}>OR SIGN UP WITH EMAIL</Text>
-          <View style={[styles.dividerLine, { backgroundColor: colors.outlineVariant }]} />
-        </View>
-
         {/* Full Name */}
         <View style={styles.fieldGroup}>
           <Text style={[styles.label, { color: colors.primary }]}>Display Name</Text>
           <TextInput
-            style={[styles.input, { backgroundColor: colors.surfaceContainerLow, borderColor: colors.outlineVariant, color: colors.onSurface }]}
+            style={[
+              styles.input,
+              {
+                backgroundColor: colors.surfaceContainerLow,
+                borderColor: colors.outlineVariant,
+                color: colors.onSurface,
+              },
+            ]}
             placeholder="BaggyPants123"
             placeholderTextColor={`${colors.onSurfaceVariant}66`}
             value={displayName}
@@ -227,7 +205,12 @@ export default function SignUpScreen() {
         <View style={styles.fieldGroup}>
           <Text style={[styles.label, { color: colors.primary }]}>Username</Text>
           {/* Input row with @ prefix */}
-          <View style={[styles.usernameRow, { backgroundColor: colors.surfaceContainerLow, borderColor: borderColor('username') }]}>
+          <View
+            style={[
+              styles.usernameRow,
+              { backgroundColor: colors.surfaceContainerLow, borderColor: borderColor('username') },
+            ]}
+          >
             <Text style={[styles.atPrefix, { color: colors.onSurfaceVariant }]}>@</Text>
             <TextInput
               style={[styles.usernameInput, { color: colors.onSurface }]}
@@ -241,13 +224,27 @@ export default function SignUpScreen() {
             />
             {/* Status icon on the right */}
             {usernameStatus === 'checking' && (
-              <ActivityIndicator size={16} color={colors.onSurfaceVariant} style={{ marginRight: 12 }} />
+              <ActivityIndicator
+                size={16}
+                color={colors.onSurfaceVariant}
+                style={{ marginRight: 12 }}
+              />
             )}
             {usernameStatus === 'available' && (
-              <MaterialIcons name="check-circle" size={18} color="#22c55e" style={{ marginRight: 12 }} />
+              <MaterialIcons
+                name="check-circle"
+                size={18}
+                color="#22c55e"
+                style={{ marginRight: 12 }}
+              />
             )}
             {(usernameStatus === 'taken' || usernameStatus === 'invalid') && (
-              <MaterialIcons name="cancel" size={18} color={colors.error ?? '#ef4444'} style={{ marginRight: 12 }} />
+              <MaterialIcons
+                name="cancel"
+                size={18}
+                color={colors.error ?? '#ef4444'}
+                style={{ marginRight: 12 }}
+              />
             )}
           </View>
           <UsernameStatusRow status={usernameStatus} />
@@ -257,7 +254,14 @@ export default function SignUpScreen() {
         <View style={styles.fieldGroup}>
           <Text style={[styles.label, { color: colors.primary }]}>Email Address</Text>
           <TextInput
-            style={[styles.input, { backgroundColor: colors.surfaceContainerLow, borderColor: colors.outlineVariant, color: colors.onSurface }]}
+            style={[
+              styles.input,
+              {
+                backgroundColor: colors.surfaceContainerLow,
+                borderColor: colors.outlineVariant,
+                color: colors.onSurface,
+              },
+            ]}
             placeholder="elias@books.com"
             placeholderTextColor={`${colors.onSurfaceVariant}66`}
             value={email}
@@ -273,7 +277,14 @@ export default function SignUpScreen() {
           <Text style={[styles.label, { color: colors.primary }]}>Password</Text>
           <View>
             <TextInput
-              style={[styles.input, { backgroundColor: colors.surfaceContainerLow, borderColor: colors.outlineVariant, color: colors.onSurface }]}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.surfaceContainerLow,
+                  borderColor: colors.outlineVariant,
+                  color: colors.onSurface,
+                },
+              ]}
               placeholder="Create a strong password"
               placeholderTextColor={`${colors.onSurfaceVariant}66`}
               value={password}
@@ -281,10 +292,7 @@ export default function SignUpScreen() {
               secureTextEntry={!showPassword}
               autoComplete="new-password"
             />
-            <TouchableOpacity
-              style={styles.eyeButton}
-              onPress={() => setShowPassword(v => !v)}
-            >
+            <TouchableOpacity style={styles.eyeButton} onPress={() => setShowPassword((v) => !v)}>
               <MaterialIcons
                 name={showPassword ? 'visibility' : 'visibility-off'}
                 size={20}

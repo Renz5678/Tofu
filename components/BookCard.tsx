@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
+import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme, Typography, Spacing, Radius, Shadows } from '@/theme';
 import { ProgressRing } from './ProgressRing';
 import { readingProgress } from '@/lib/metrics';
@@ -14,7 +15,10 @@ export interface BookCardProps {
   currentPage?: number;
   totalPages?: number;
   showProgress?: boolean;
+  isLiked?: boolean;
   style?: object;
+  onLongPress?: () => void;
+  onPress?: () => void;
 }
 
 export function BookCard({
@@ -25,7 +29,10 @@ export function BookCard({
   currentPage = 0,
   totalPages = 0,
   showProgress = true,
+  isLiked = false,
   style,
+  onLongPress,
+  onPress,
 }: BookCardProps) {
   const router = useRouter();
   const { colors, isDark } = useTheme();
@@ -37,7 +44,9 @@ export function BookCard({
   return (
     <TouchableOpacity
       activeOpacity={0.85}
-      onPress={() => router.push(`/book/${id}` as any)}
+      onPress={onPress ? onPress : () => router.push(`/book/${id}` as any)}
+      onLongPress={onLongPress}
+      delayLongPress={400}
       style={[styles.container, style]}
     >
       {/* Cover image */}
@@ -45,9 +54,15 @@ export function BookCard({
         <Image
           source={coverUrl ? { uri: coverUrl } : require('@/assets/placeholder-cover.png')}
           style={styles.cover}
-          contentFit="cover"
+          contentFit="contain"
           transition={300}
         />
+        {/* Heart overlay */}
+        {isLiked && (
+          <View style={styles.heartOverlay}>
+            <MaterialIcons name="favorite" size={16} color={colors.error} />
+          </View>
+        )}
         {/* Progress ring overlay */}
         {showProgress && totalPages > 0 && progress < 1 && (
           <View style={styles.progressOverlay}>
@@ -63,50 +78,63 @@ export function BookCard({
       </View>
 
       {/* Metadata */}
-      <Text style={styles.title} numberOfLines={2}>{title}</Text>
-      <Text style={styles.author} numberOfLines={1}>{author}</Text>
+      <Text style={styles.title} numberOfLines={2}>
+        {title}
+      </Text>
+      <Text style={styles.author} numberOfLines={1}>
+        {author}
+      </Text>
     </TouchableOpacity>
   );
 }
 
-const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  coverWrapper: {
-    aspectRatio: 2 / 3,
-    borderRadius: Radius.xl,
-    borderWidth: 1,
-    borderColor: colors.outlineVariant,
-    overflow: 'hidden',
-    backgroundColor: colors.surfaceContainerHigh,
-    marginBottom: Spacing.stackSm,
-    shadowColor: isDark ? '#000' : '#2d3a47',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: isDark ? 0.3 : 0.08,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  cover: {
-    width: '100%',
-    height: '100%',
-  },
-  progressOverlay: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    backgroundColor: isDark ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.92)',
-    borderRadius: Radius.full,
-    padding: 2,
-  },
-  title: {
-    ...Typography.styles.titleSm,
-    color: colors.onSurface,
-    marginBottom: 2,
-  },
-  author: {
-    ...Typography.styles.labelSm,
-    color: colors.onSurfaceVariant,
-    opacity: 0.6,
-  },
-});
+const createStyles = (colors: any, isDark: boolean) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    coverWrapper: {
+      aspectRatio: 2 / 3,
+      borderRadius: Radius.xl,
+      borderWidth: 1,
+      borderColor: colors.outlineVariant,
+      overflow: 'hidden',
+      backgroundColor: colors.surfaceContainerHigh,
+      marginBottom: Spacing.stackSm,
+      shadowColor: isDark ? '#000' : '#2d3a47',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: isDark ? 0.3 : 0.08,
+      shadowRadius: 12,
+      elevation: 4,
+    },
+    cover: {
+      width: '100%',
+      height: '100%',
+    },
+    progressOverlay: {
+      position: 'absolute',
+      top: 8,
+      right: 8,
+      backgroundColor: isDark ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.92)',
+      borderRadius: Radius.full,
+      padding: 2,
+    },
+    heartOverlay: {
+      position: 'absolute',
+      top: 8,
+      left: 8,
+      backgroundColor: isDark ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.92)',
+      borderRadius: Radius.full,
+      padding: 6,
+    },
+    title: {
+      ...Typography.styles.titleSm,
+      color: colors.onSurface,
+      marginBottom: 2,
+    },
+    author: {
+      ...Typography.styles.labelSm,
+      color: colors.onSurfaceVariant,
+      opacity: 0.6,
+    },
+  });

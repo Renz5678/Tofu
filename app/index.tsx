@@ -15,7 +15,5 @@ export default function Index() {
 
   if (checking) return null;
 
-  return hasSession
-    ? <Redirect href="/(tabs)/dashboard" />
-    : <Redirect href="/(auth)/sign-in" />;
+  return hasSession ? <Redirect href="/(tabs)/dashboard" /> : <Redirect href="/(auth)/sign-in" />;
 }

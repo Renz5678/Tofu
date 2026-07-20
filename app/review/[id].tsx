@@ -1,5 +1,15 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
+  ActivityIndicator,
+} from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -22,14 +32,24 @@ export default function ReviewThreadScreen() {
 
   const handlePost = () => {
     if (!commentText.trim()) return;
-    addComment({ reviewId: id, content: commentText.trim() }, {
-      onSuccess: () => setCommentText(''),
-    });
+    addComment(
+      { reviewId: id, content: commentText.trim() },
+      {
+        onSuccess: () => setCommentText(''),
+      },
+    );
   };
 
   if (isReviewLoading) {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }}>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: colors.background,
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
         <ActivityIndicator color={colors.primary} />
       </View>
     );
@@ -37,7 +57,14 @@ export default function ReviewThreadScreen() {
 
   if (!review) {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }}>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: colors.background,
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
         <Text style={{ color: colors.onSurface }}>Review not found.</Text>
         <TouchableOpacity onPress={() => router.back()} style={{ marginTop: 16 }}>
           <Text style={{ color: colors.primary }}>Go Back</Text>
@@ -47,7 +74,7 @@ export default function ReviewThreadScreen() {
   }
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: colors.background }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
@@ -67,28 +94,48 @@ export default function ReviewThreadScreen() {
             onPress={() => router.push(`/profile/${review.profiles.id}` as any)}
           >
             {review.profiles.avatar_url ? (
-              <Image source={{ uri: review.profiles.avatar_url }} style={{ width: 32, height: 32, borderRadius: 16 }} />
+              <Image
+                source={{ uri: review.profiles.avatar_url }}
+                style={{ width: 32, height: 32, borderRadius: 16 }}
+              />
             ) : (
-              <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: colors.primaryContainer, alignItems: 'center', justifyContent: 'center' }}>
-                <Text style={{ color: colors.onPrimaryContainer, fontSize: 12, fontWeight: 'bold' }}>
+              <View
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 16,
+                  backgroundColor: colors.primaryContainer,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Text
+                  style={{ color: colors.onPrimaryContainer, fontSize: 12, fontWeight: 'bold' }}
+                >
                   {review.profiles.username.charAt(0).toUpperCase()}
                 </Text>
               </View>
             )}
             <View style={{ flex: 1 }}>
-              <Text style={{ ...Typography.styles.labelLg, color: colors.onSurface }}>{review.profiles.display_name || review.profiles.username}</Text>
+              <Text style={{ ...Typography.styles.labelLg, color: colors.onSurface }}>
+                {review.profiles.display_name || review.profiles.username}
+              </Text>
             </View>
 
-            {review.liked && (
-              <MaterialIcons name="favorite" size={14} color="#E91E63" />
-            )}
+            {review.liked && <MaterialIcons name="favorite" size={14} color="#E91E63" />}
 
             {review.rating && (
               <View style={{ flexDirection: 'row', marginLeft: 4 }}>
                 {[1, 2, 3, 4, 5].map((star) => (
                   <MaterialIcons
                     key={star}
-                    name={review.rating! >= star ? 'star' : review.rating! >= star - 0.5 ? 'star-half' : 'star-outline'}
+                    name={
+                      review.rating! >= star
+                        ? 'star'
+                        : review.rating! >= star - 0.5
+                          ? 'star-half'
+                          : 'star-outline'
+                    }
                     size={16}
                     color="#FFC107"
                   />
@@ -97,7 +144,9 @@ export default function ReviewThreadScreen() {
             )}
           </TouchableOpacity>
 
-          <Text style={{ ...Typography.styles.bodyMd, color: colors.onSurface }}>{review.content}</Text>
+          <Text style={{ ...Typography.styles.bodyMd, color: colors.onSurface }}>
+            {review.content}
+          </Text>
         </View>
 
         {/* Divider */}
@@ -105,26 +154,44 @@ export default function ReviewThreadScreen() {
 
         {/* Comments Section */}
         <Text style={styles.sectionTitle}>Comments</Text>
-        
+
         {isCommentsLoading ? (
           <ActivityIndicator color={colors.primary} style={{ marginTop: 24 }} />
         ) : comments.length > 0 ? (
           <View style={{ gap: Spacing.stackMd, marginTop: Spacing.stackSm }}>
             {comments.map((comment) => (
               <View key={comment.id} style={styles.commentRow}>
-                <TouchableOpacity onPress={() => router.push(`/profile/${comment.profiles.id}` as any)}>
+                <TouchableOpacity
+                  onPress={() => router.push(`/profile/${comment.profiles.id}` as any)}
+                >
                   {comment.profiles.avatar_url ? (
-                    <Image source={{ uri: comment.profiles.avatar_url }} style={{ width: 28, height: 28, borderRadius: 14 }} />
+                    <Image
+                      source={{ uri: comment.profiles.avatar_url }}
+                      style={{ width: 28, height: 28, borderRadius: 14 }}
+                    />
                   ) : (
-                    <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: colors.surfaceContainerHighest, alignItems: 'center', justifyContent: 'center' }}>
-                      <Text style={{ color: colors.onSurfaceVariant, fontSize: 10, fontWeight: 'bold' }}>
+                    <View
+                      style={{
+                        width: 28,
+                        height: 28,
+                        borderRadius: 14,
+                        backgroundColor: colors.surfaceContainerHighest,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Text
+                        style={{ color: colors.onSurfaceVariant, fontSize: 10, fontWeight: 'bold' }}
+                      >
                         {comment.profiles.username.charAt(0).toUpperCase()}
                       </Text>
                     </View>
                   )}
                 </TouchableOpacity>
                 <View style={styles.commentBubble}>
-                  <Text style={styles.commentUser}>{comment.profiles.display_name || comment.profiles.username}</Text>
+                  <Text style={styles.commentUser}>
+                    {comment.profiles.display_name || comment.profiles.username}
+                  </Text>
                   <Text style={styles.commentText}>{comment.content}</Text>
                 </View>
               </View>
@@ -133,7 +200,6 @@ export default function ReviewThreadScreen() {
         ) : (
           <Text style={styles.emptyText}>No comments yet. Be the first to comment!</Text>
         )}
-
       </ScrollView>
 
       {/* Input Box */}
@@ -147,8 +213,8 @@ export default function ReviewThreadScreen() {
           multiline
           maxLength={500}
         />
-        <TouchableOpacity 
-          style={[styles.postButton, !commentText.trim() && { opacity: 0.5 }]} 
+        <TouchableOpacity
+          style={[styles.postButton, !commentText.trim() && { opacity: 0.5 }]}
           onPress={handlePost}
           disabled={!commentText.trim() || isPending}
         >
@@ -163,97 +229,98 @@ export default function ReviewThreadScreen() {
   );
 }
 
-const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: Spacing.containerPadding,
-    paddingBottom: Spacing.stackSm,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.outlineVariant,
-  },
-  headerTitle: {
-    ...Typography.styles.titleSm,
-    color: colors.onSurface,
-  },
-  scroll: {
-    padding: Spacing.containerPadding,
-    paddingBottom: Spacing.stackLg * 2,
-  },
-  reviewCard: {
-    backgroundColor: colors.surfaceContainerLowest,
-    borderRadius: Radius.xl,
-    padding: Spacing.stackLg,
-    shadowColor: isDark ? '#000' : '#2d3a47',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: isDark ? 0.3 : 0.05,
-    shadowRadius: 12,
-    elevation: 2,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: colors.outlineVariant,
-    marginVertical: Spacing.stackLg,
-  },
-  sectionTitle: {
-    ...Typography.styles.titleSm,
-    color: colors.onSurface,
-    marginBottom: Spacing.stackSm,
-  },
-  commentRow: {
-    flexDirection: 'row',
-    gap: Spacing.stackSm,
-    alignItems: 'flex-start',
-  },
-  commentBubble: {
-    flex: 1,
-    backgroundColor: colors.surfaceContainer,
-    padding: Spacing.stackSm,
-    borderRadius: Radius.lg,
-    borderTopLeftRadius: 4,
-  },
-  commentUser: {
-    ...Typography.styles.labelSm,
-    color: colors.onSurface,
-    marginBottom: 2,
-  },
-  commentText: {
-    ...Typography.styles.bodyMd,
-    color: colors.onSurface,
-  },
-  emptyText: {
-    ...Typography.styles.bodyMd,
-    color: colors.onSurfaceVariant,
-    fontStyle: 'italic',
-    marginTop: Spacing.stackMd,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    padding: Spacing.containerPadding,
-    backgroundColor: colors.surfaceContainerLowest,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.outlineVariant,
-    gap: Spacing.stackSm,
-  },
-  input: {
-    flex: 1,
-    backgroundColor: colors.surfaceVariant,
-    color: colors.onSurface,
-    borderRadius: Radius.lg,
-    paddingHorizontal: Spacing.stackMd,
-    paddingVertical: 12,
-    minHeight: 44,
-    maxHeight: 120,
-    ...Typography.styles.bodyMd,
-  },
-  postButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+const createStyles = (colors: any, isDark: boolean) =>
+  StyleSheet.create({
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: Spacing.containerPadding,
+      paddingBottom: Spacing.stackSm,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.outlineVariant,
+    },
+    headerTitle: {
+      ...Typography.styles.titleSm,
+      color: colors.onSurface,
+    },
+    scroll: {
+      padding: Spacing.containerPadding,
+      paddingBottom: Spacing.stackLg * 2,
+    },
+    reviewCard: {
+      backgroundColor: colors.surfaceContainerLowest,
+      borderRadius: Radius.xl,
+      padding: Spacing.stackLg,
+      shadowColor: isDark ? '#000' : '#2d3a47',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: isDark ? 0.3 : 0.05,
+      shadowRadius: 12,
+      elevation: 2,
+    },
+    divider: {
+      height: 1,
+      backgroundColor: colors.outlineVariant,
+      marginVertical: Spacing.stackLg,
+    },
+    sectionTitle: {
+      ...Typography.styles.titleSm,
+      color: colors.onSurface,
+      marginBottom: Spacing.stackSm,
+    },
+    commentRow: {
+      flexDirection: 'row',
+      gap: Spacing.stackSm,
+      alignItems: 'flex-start',
+    },
+    commentBubble: {
+      flex: 1,
+      backgroundColor: colors.surfaceContainer,
+      padding: Spacing.stackSm,
+      borderRadius: Radius.lg,
+      borderTopLeftRadius: 4,
+    },
+    commentUser: {
+      ...Typography.styles.labelSm,
+      color: colors.onSurface,
+      marginBottom: 2,
+    },
+    commentText: {
+      ...Typography.styles.bodyMd,
+      color: colors.onSurface,
+    },
+    emptyText: {
+      ...Typography.styles.bodyMd,
+      color: colors.onSurfaceVariant,
+      fontStyle: 'italic',
+      marginTop: Spacing.stackMd,
+    },
+    inputContainer: {
+      flexDirection: 'row',
+      alignItems: 'flex-end',
+      padding: Spacing.containerPadding,
+      backgroundColor: colors.surfaceContainerLowest,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.outlineVariant,
+      gap: Spacing.stackSm,
+    },
+    input: {
+      flex: 1,
+      backgroundColor: colors.surfaceVariant,
+      color: colors.onSurface,
+      borderRadius: Radius.lg,
+      paddingHorizontal: Spacing.stackMd,
+      paddingVertical: 12,
+      minHeight: 44,
+      maxHeight: 120,
+      ...Typography.styles.bodyMd,
+    },
+    postButton: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+  });

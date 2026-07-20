@@ -24,7 +24,13 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { Profile, useBulkBookStats, BookStats } from '@/hooks/useSocial';
-import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, withSequence } from 'react-native-reanimated';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withTiming,
+  withSequence,
+} from 'react-native-reanimated';
 
 const GENRE_CHIPS = [
   { label: 'Fiction', value: 'fiction' },
@@ -61,7 +67,8 @@ export default function SearchScreen() {
     isError: isOLError,
   } = useQuery({
     queryKey: ['bookSearch', debouncedQuery, activeGenre],
-    queryFn: ({ signal }) => searchBooks(debouncedQuery, activeGenre ?? undefined, undefined, signal),
+    queryFn: ({ signal }) =>
+      searchBooks(debouncedQuery, activeGenre ?? undefined, undefined, signal),
     enabled: hasBookSearchInput,
     staleTime: 1000 * 30,
     gcTime: 1000 * 60 * 5,
@@ -69,10 +76,7 @@ export default function SearchScreen() {
   });
 
   // ── Local cache fallback — fires only when Open Library is unreachable ───
-  const {
-    data: cacheResults = [],
-    isFetching: cacheLoading,
-  } = useQuery({
+  const { data: cacheResults = [], isFetching: cacheLoading } = useQuery({
     queryKey: ['bookSearchCache', debouncedQuery],
     queryFn: () => searchLocalBooks(debouncedQuery),
     enabled: isOLError && !!debouncedQuery.trim(),
@@ -82,42 +86,44 @@ export default function SearchScreen() {
 
   const isFromCache = isOLError && !olLoading;
   const results: (BookItem | LocalSearchResult)[] = isFromCache ? cacheResults : olResults;
-  
+
   // ── User Search ──────────────────────────────────────────────────────────
-  const {
-    data: userResults = [],
-    isFetching: userLoading,
-  } = useQuery({
+  const { data: userResults = [], isFetching: userLoading } = useQuery({
     queryKey: ['userSearch', debouncedQuery],
     queryFn: async () => {
       if (!debouncedQuery.trim()) return [];
       const term = `%${debouncedQuery.trim()}%`;
-        let query = supabase
-          .from('profiles')
-          .select('*')
-          .or(`username.ilike.${term},display_name.ilike.${term}`)
-          .limit(20);
-          
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user?.id) {
-          query = query.neq('id', session.user.id);
-        }
-        
-        const { data, error } = await query;
-        if (error) throw error;
+      let query = supabase
+        .from('profiles')
+        .select('*')
+        .or(`username.ilike.${term},display_name.ilike.${term}`)
+        .limit(20);
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (session?.user?.id) {
+        query = query.neq('id', session.user.id);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
       return data as Profile[];
     },
     enabled: searchMode === 'users' && !!debouncedQuery.trim(),
     staleTime: 1000 * 60,
   });
 
-  const loading = searchMode === 'books' 
-    ? (olLoading || (isFromCache && cacheLoading))
-    : userLoading;
+  const loading = searchMode === 'books' ? olLoading || (isFromCache && cacheLoading) : userLoading;
 
-  const isSearchError = searchMode === 'books' && isOLError && !cacheLoading && cacheResults.length === 0 && !!debouncedQuery.trim();
+  const isSearchError =
+    searchMode === 'books' &&
+    isOLError &&
+    !cacheLoading &&
+    cacheResults.length === 0 &&
+    !!debouncedQuery.trim();
 
-  const bookIds = React.useMemo(() => results.map(b => b.open_library_id), [results]);
+  const bookIds = React.useMemo(() => results.map((b) => b.open_library_id), [results]);
   const { data: bulkStats } = useBulkBookStats(bookIds);
 
   const handleQueryChange = (text: string) => {
@@ -127,8 +133,6 @@ export default function SearchScreen() {
   const handleGenreSelect = (genre: string | null) => {
     setActiveGenre(genre);
   };
-
-
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -155,17 +159,25 @@ export default function SearchScreen() {
 
       {/* Search Type Toggle */}
       <View style={styles.toggleRow}>
-        <TouchableOpacity 
-          style={[styles.toggleBtn, searchMode === 'books' && styles.toggleBtnActive]} 
+        <TouchableOpacity
+          style={[styles.toggleBtn, searchMode === 'books' && styles.toggleBtnActive]}
           onPress={() => setSearchMode('books')}
         >
-          <Text style={[styles.toggleBtnText, searchMode === 'books' && styles.toggleBtnTextActive]}>Books</Text>
+          <Text
+            style={[styles.toggleBtnText, searchMode === 'books' && styles.toggleBtnTextActive]}
+          >
+            Books
+          </Text>
         </TouchableOpacity>
-        <TouchableOpacity 
-          style={[styles.toggleBtn, searchMode === 'users' && styles.toggleBtnActive]} 
+        <TouchableOpacity
+          style={[styles.toggleBtn, searchMode === 'users' && styles.toggleBtnActive]}
           onPress={() => setSearchMode('users')}
         >
-          <Text style={[styles.toggleBtnText, searchMode === 'users' && styles.toggleBtnTextActive]}>Readers</Text>
+          <Text
+            style={[styles.toggleBtnText, searchMode === 'users' && styles.toggleBtnTextActive]}
+          >
+            Readers
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -182,11 +194,18 @@ export default function SearchScreen() {
       {/* Results */}
       {loading ? (
         <View style={[styles.list, { paddingBottom: insets.bottom + 80 }]}>
-          {Array.from({ length: 5 }).map((_, i) => <SearchSkeleton key={i} />)}
+          {Array.from({ length: 5 }).map((_, i) => (
+            <SearchSkeleton key={i} />
+          ))}
         </View>
       ) : isSearchError ? (
         <View style={styles.emptyState}>
-          <MaterialIcons name="wifi-off" size={56} color={colors.error ?? '#B00020'} style={{ opacity: 0.5 }} />
+          <MaterialIcons
+            name="wifi-off"
+            size={56}
+            color={colors.error ?? '#B00020'}
+            style={{ opacity: 0.5 }}
+          />
           <Text style={styles.emptyTitle}>Open Library is unreachable</Text>
           <Text style={styles.emptyDescription}>
             No cached results found for this search. Try again when you're back online.
@@ -194,7 +213,12 @@ export default function SearchScreen() {
         </View>
       ) : searchMode === 'books' && results.length === 0 ? (
         <View style={styles.emptyState}>
-          <MaterialIcons name="auto-stories" size={56} color={colors.primary} style={{ opacity: 0.3 }} />
+          <MaterialIcons
+            name="auto-stories"
+            size={56}
+            color={colors.primary}
+            style={{ opacity: 0.3 }}
+          />
           <Text style={styles.emptyTitle}>Find your next read</Text>
           <Text style={styles.emptyDescription}>
             Search any title, author, or pick a genre above
@@ -215,7 +239,8 @@ export default function SearchScreen() {
             <View style={styles.cacheBanner}>
               <MaterialIcons name="cloud-off" size={14} color="#92400e" />
               <Text style={styles.cacheBannerText}>
-                Open Library offline — showing {results.length} cached result{results.length !== 1 ? 's' : ''}
+                Open Library offline — showing {results.length} cached result
+                {results.length !== 1 ? 's' : ''}
               </Text>
             </View>
           )}
@@ -226,9 +251,14 @@ export default function SearchScreen() {
             renderItem={({ item }) => (
               <SearchResultCard
                 book={item}
-                isAdded={libraryBooks.some(b => b.open_library_id === item.open_library_id)}
+                isAdded={libraryBooks.some((b) => b.open_library_id === item.open_library_id)}
                 stats={bulkStats?.[item.open_library_id]}
-                onPress={() => router.push({ pathname: `/discover/${encodeURIComponent(item.open_library_id)}` as any, params: { bookData: JSON.stringify(item) } })}
+                onPress={() =>
+                  router.push({
+                    pathname: `/discover/${encodeURIComponent(item.open_library_id)}` as any,
+                    params: { bookData: JSON.stringify(item) },
+                  })
+                }
               />
             )}
           />
@@ -239,17 +269,29 @@ export default function SearchScreen() {
           keyExtractor={(item) => item.id}
           contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 80 }]}
           renderItem={({ item }) => (
-            <TouchableOpacity 
-              style={[styles.resultCard, Shadows.card]} 
-              activeOpacity={0.85} 
+            <TouchableOpacity
+              style={[styles.resultCard, Shadows.card]}
+              activeOpacity={0.85}
               onPress={() => router.push(`/profile/${item.id}` as any)}
             >
               <View style={[styles.resultCover, { width: 48, height: 48, borderRadius: 24 }]}>
                 {item.avatar_url ? (
-                  <Image source={{ uri: item.avatar_url }} style={StyleSheet.absoluteFillObject} contentFit="cover" />
+                  <Image
+                    source={{ uri: item.avatar_url }}
+                    style={StyleSheet.absoluteFillObject}
+                    contentFit="cover"
+                  />
                 ) : (
-                  <View style={[StyleSheet.absoluteFillObject, styles.noCover, { backgroundColor: colors.primaryContainer }]}>
-                    <Text style={{ color: colors.onPrimaryContainer, fontWeight: 'bold' }}>{item.username.charAt(0).toUpperCase()}</Text>
+                  <View
+                    style={[
+                      StyleSheet.absoluteFillObject,
+                      styles.noCover,
+                      { backgroundColor: colors.primaryContainer },
+                    ]}
+                  >
+                    <Text style={{ color: colors.onPrimaryContainer, fontWeight: 'bold' }}>
+                      {item.username.charAt(0).toUpperCase()}
+                    </Text>
                   </View>
                 )}
               </View>
@@ -265,7 +307,17 @@ export default function SearchScreen() {
   );
 }
 
-function SearchResultCard({ book, isAdded, stats, onPress }: { book: BookItem; isAdded: boolean; stats?: BookStats; onPress: () => void }) {
+function SearchResultCard({
+  book,
+  isAdded,
+  stats,
+  onPress,
+}: {
+  book: BookItem;
+  isAdded: boolean;
+  stats?: BookStats;
+  onPress: () => void;
+}) {
   const { colors, isDark } = useTheme();
   const styles = createStyles(colors, isDark);
   const { mutateAsync: addBook, isPending } = useAddBook();
@@ -280,77 +332,127 @@ function SearchResultCard({ book, isAdded, stats, onPress }: { book: BookItem; i
   };
 
   return (
-    <TouchableOpacity style={[styles.resultCard, Shadows.card]} activeOpacity={0.85} onPress={onPress}>
+    <TouchableOpacity
+      style={[styles.resultCard, Shadows.card]}
+      activeOpacity={0.85}
+      onPress={onPress}
+    >
       {/* Cover */}
       <View style={styles.resultCover}>
         {book.cover_url ? (
-          <Image source={{ uri: book.cover_url }} style={StyleSheet.absoluteFillObject} contentFit="cover" />
+          <Image
+            source={{ uri: book.cover_url }}
+            style={StyleSheet.absoluteFillObject}
+            contentFit="cover"
+          />
         ) : (
           <View style={[StyleSheet.absoluteFillObject, styles.noCover]}>
-            <MaterialIcons name="menu-book" size={32} color={colors.onSurfaceVariant} style={{ opacity: 0.3 }} />
+            <MaterialIcons
+              name="menu-book"
+              size={32}
+              color={colors.onSurfaceVariant}
+              style={{ opacity: 0.3 }}
+            />
           </View>
         )}
       </View>
 
       {/* Info */}
       <View style={styles.resultInfo}>
-        <Text style={styles.resultTitle} numberOfLines={2}>{book.title}</Text>
+        <Text style={styles.resultTitle} numberOfLines={2}>
+          {book.title}
+        </Text>
         {book.author && (
-          <Text style={styles.resultAuthor} numberOfLines={1}>{book.author}</Text>
+          <Text style={styles.resultAuthor} numberOfLines={1}>
+            {book.author}
+          </Text>
         )}
         {book.genres.length > 0 && (
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 2 }}>
-            {Array.from(new Set(book.genres.flatMap(g => g.split(',').map(s => s.trim())))).slice(0, 2).map((g, i) => {
-              const formatted = g.replace(/series:/i, '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-              return (
-                <View key={i} style={styles.genreChip}>
-                  <Text style={styles.genreChipText} numberOfLines={1}>{formatted}</Text>
-                </View>
-              );
-            })}
+            {Array.from(new Set(book.genres.flatMap((g) => g.split(',').map((s) => s.trim()))))
+              .slice(0, 2)
+              .map((g, i) => {
+                const formatted = g
+                  .replace(/series:/i, '')
+                  .replace(/_/g, ' ')
+                  .replace(/\b\w/g, (c) => c.toUpperCase());
+                return (
+                  <View key={i} style={styles.genreChip}>
+                    <Text style={styles.genreChipText} numberOfLines={1}>
+                      {formatted}
+                    </Text>
+                  </View>
+                );
+              })}
           </View>
         )}
-        {book.total_pages && (
-          <Text style={styles.pageCount}>{book.total_pages} pages</Text>
-        )}
-        
+        {book.total_pages && <Text style={styles.pageCount}>{book.total_pages} pages</Text>}
+
         {/* Ratings & Reviews inline */}
         {stats && (stats.ratings_count > 0 || stats.reviews_count > 0) ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 }}>
             {stats.average_rating && (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
                 <MaterialIcons name="star" size={14} color="#FFC107" />
-                <Text style={{ ...Typography.styles.labelSm, color: colors.onSurface, fontWeight: 'bold' }}>{stats.average_rating}</Text>
+                <Text
+                  style={{
+                    ...Typography.styles.labelSm,
+                    color: colors.onSurface,
+                    fontWeight: 'bold',
+                  }}
+                >
+                  {stats.average_rating}
+                </Text>
               </View>
             )}
             {stats.ratings_count > 0 && (
-              <Text style={{ ...Typography.styles.labelSm, color: colors.onSurfaceVariant, fontSize: 11 }}>
+              <Text
+                style={{
+                  ...Typography.styles.labelSm,
+                  color: colors.onSurfaceVariant,
+                  fontSize: 11,
+                }}
+              >
                 ({stats.ratings_count})
               </Text>
             )}
             {stats.reviews_count > 0 && (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2, marginLeft: 4 }}>
                 <MaterialIcons name="chat-bubble" size={12} color={colors.onSurfaceVariant} />
-                <Text style={{ ...Typography.styles.labelSm, color: colors.onSurfaceVariant, fontSize: 11 }}>
+                <Text
+                  style={{
+                    ...Typography.styles.labelSm,
+                    color: colors.onSurfaceVariant,
+                    fontSize: 11,
+                  }}
+                >
                   {stats.reviews_count}
                 </Text>
               </View>
             )}
           </View>
         ) : (
-          <Text style={{ ...Typography.styles.labelSm, color: colors.onSurfaceVariant, fontSize: 11, marginTop: 4, fontStyle: 'italic' }}>
+          <Text
+            style={{
+              ...Typography.styles.labelSm,
+              color: colors.onSurfaceVariant,
+              fontSize: 11,
+              marginTop: 4,
+              fontStyle: 'italic',
+            }}
+          >
             No ratings yet
           </Text>
         )}
       </View>
 
       {/* Add button */}
-      <TouchableOpacity 
+      <TouchableOpacity
         style={[
-          styles.addButton, 
+          styles.addButton,
           (isPending || isAdded) && { opacity: 0.5 },
-          isAdded && { backgroundColor: colors.primaryContainer }
-        ]} 
+          isAdded && { backgroundColor: colors.primaryContainer },
+        ]}
         onPress={handleAdd}
         disabled={isPending || isAdded}
       >
@@ -374,7 +476,7 @@ function SearchSkeleton() {
     pulseOpacity.value = withRepeat(
       withSequence(withTiming(0.7, { duration: 800 }), withTiming(0.3, { duration: 800 })),
       -1,
-      true
+      true,
     );
   }, []);
 
@@ -386,11 +488,41 @@ function SearchSkeleton() {
     <Animated.View style={[styles.resultCard, Shadows.card, animatedStyle]}>
       <View style={[styles.resultCover, { backgroundColor: colors.surfaceContainerHigh }]} />
       <View style={styles.resultInfo}>
-        <View style={{ height: 16, width: '80%', backgroundColor: colors.surfaceContainerHigh, borderRadius: 4, marginBottom: 4 }} />
-        <View style={{ height: 12, width: '50%', backgroundColor: colors.surfaceContainerHigh, borderRadius: 4, marginBottom: 8 }} />
+        <View
+          style={{
+            height: 16,
+            width: '80%',
+            backgroundColor: colors.surfaceContainerHigh,
+            borderRadius: 4,
+            marginBottom: 4,
+          }}
+        />
+        <View
+          style={{
+            height: 12,
+            width: '50%',
+            backgroundColor: colors.surfaceContainerHigh,
+            borderRadius: 4,
+            marginBottom: 8,
+          }}
+        />
         <View style={{ flexDirection: 'row', gap: 6 }}>
-          <View style={{ height: 16, width: 60, backgroundColor: colors.surfaceContainerHigh, borderRadius: 8 }} />
-          <View style={{ height: 16, width: 40, backgroundColor: colors.surfaceContainerHigh, borderRadius: 8 }} />
+          <View
+            style={{
+              height: 16,
+              width: 60,
+              backgroundColor: colors.surfaceContainerHigh,
+              borderRadius: 8,
+            }}
+          />
+          <View
+            style={{
+              height: 16,
+              width: 40,
+              backgroundColor: colors.surfaceContainerHigh,
+              borderRadius: 8,
+            }}
+          />
         </View>
       </View>
       <View style={[styles.addButton, { backgroundColor: colors.surfaceContainerHigh }]} />
@@ -398,154 +530,155 @@ function SearchSkeleton() {
   );
 }
 
-const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
-  header: {
-    paddingHorizontal: Spacing.containerPadding,
-    paddingBottom: Spacing.stackSm,
-  },
-  headerTitle: {
-    ...Typography.styles.headlineMd,
-    color: colors.onSurface,
-  },
-  searchRow: {
-    paddingHorizontal: Spacing.containerPadding,
-    paddingBottom: Spacing.base,
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surfaceContainerLow,
-    borderRadius: Radius.xl,
-    height: 48,
-    paddingHorizontal: Spacing.gutter,
-    gap: 8,
-  },
-  searchIcon: {},
-  searchInput: {
-    flex: 1,
-    ...Typography.styles.bodyMd,
-    color: colors.onSurface,
-  },
-  toggleRow: {
-    flexDirection: 'row',
-    paddingHorizontal: Spacing.containerPadding,
-    marginBottom: Spacing.stackSm,
-    gap: Spacing.stackSm,
-  },
-  toggleBtn: {
-    paddingVertical: 6,
-    paddingHorizontal: 16,
-    borderRadius: Radius.full,
-    borderWidth: 1,
-    borderColor: colors.outlineVariant,
-  },
-  toggleBtnActive: {
-    backgroundColor: colors.primaryContainer,
-    borderColor: colors.primaryContainer,
-  },
-  toggleBtnText: {
-    ...Typography.styles.labelSm,
-    color: colors.onSurfaceVariant,
-  },
-  toggleBtnTextActive: {
-    color: colors.onPrimaryContainer,
-    fontWeight: 'bold',
-  },
-  emptyState: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.stackSm,
-    paddingHorizontal: Spacing.containerPadding * 2,
-  },
-  emptyTitle: {
-    ...Typography.styles.titleSm,
-    color: colors.onSurface,
-  },
-  emptyDescription: {
-    ...Typography.styles.bodyMd,
-    color: colors.onSurfaceVariant,
-    textAlign: 'center',
-    opacity: 0.7,
-  },
-  cacheBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginHorizontal: Spacing.containerPadding,
-    marginBottom: 4,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    backgroundColor: '#fef3c7',
-    borderRadius: Radius.md,
-  },
-  cacheBannerText: {
-    ...Typography.styles.labelSm,
-    color: '#92400e',
-    flex: 1,
-  },
-  list: {
-    paddingHorizontal: Spacing.containerPadding,
-    paddingTop: Spacing.stackSm,
-    gap: Spacing.stackSm,
-  },
-  resultCard: {
-    backgroundColor: colors.surfaceContainerLowest,
-    borderRadius: Radius.xl,
-    flexDirection: 'row',
-    padding: Spacing.stackSm,
-    alignItems: 'center',
-    gap: Spacing.stackSm,
-  },
-  resultCover: {
-    width: 64,
-    height: 96,
-    borderRadius: Radius.md,
-    backgroundColor: colors.surfaceContainerHigh,
-    overflow: 'hidden',
-  },
-  noCover: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  resultInfo: {
-    flex: 1,
-    gap: 4,
-  },
-  resultTitle: {
-    ...Typography.styles.titleSm,
-    fontSize: 15,
-    color: colors.onSurface,
-  },
-  resultAuthor: {
-    ...Typography.styles.bodyMd,
-    fontSize: 13,
-    color: colors.onSurfaceVariant,
-  },
-  genreChip: {
-    backgroundColor: colors.secondaryContainer,
-    borderRadius: Radius.full,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    alignSelf: 'flex-start',
-    marginTop: 2,
-  },
-  genreChipText: {
-    ...Typography.styles.labelSm,
-    color: colors.onSecondaryContainer,
-    fontSize: 10,
-  },
-  pageCount: {
-    ...Typography.styles.labelSm,
-    color: colors.onSurfaceVariant,
-    opacity: 0.6,
-  },
-  addButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+const createStyles = (colors: any, isDark: boolean) =>
+  StyleSheet.create({
+    header: {
+      paddingHorizontal: Spacing.containerPadding,
+      paddingBottom: Spacing.stackSm,
+    },
+    headerTitle: {
+      ...Typography.styles.headlineMd,
+      color: colors.onSurface,
+    },
+    searchRow: {
+      paddingHorizontal: Spacing.containerPadding,
+      paddingBottom: Spacing.base,
+    },
+    searchContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.surfaceContainerLow,
+      borderRadius: Radius.xl,
+      height: 48,
+      paddingHorizontal: Spacing.gutter,
+      gap: 8,
+    },
+    searchIcon: {},
+    searchInput: {
+      flex: 1,
+      ...Typography.styles.bodyMd,
+      color: colors.onSurface,
+    },
+    toggleRow: {
+      flexDirection: 'row',
+      paddingHorizontal: Spacing.containerPadding,
+      marginBottom: Spacing.stackSm,
+      gap: Spacing.stackSm,
+    },
+    toggleBtn: {
+      paddingVertical: 6,
+      paddingHorizontal: 16,
+      borderRadius: Radius.full,
+      borderWidth: 1,
+      borderColor: colors.outlineVariant,
+    },
+    toggleBtnActive: {
+      backgroundColor: colors.primaryContainer,
+      borderColor: colors.primaryContainer,
+    },
+    toggleBtnText: {
+      ...Typography.styles.labelSm,
+      color: colors.onSurfaceVariant,
+    },
+    toggleBtnTextActive: {
+      color: colors.onPrimaryContainer,
+      fontWeight: 'bold',
+    },
+    emptyState: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: Spacing.stackSm,
+      paddingHorizontal: Spacing.containerPadding * 2,
+    },
+    emptyTitle: {
+      ...Typography.styles.titleSm,
+      color: colors.onSurface,
+    },
+    emptyDescription: {
+      ...Typography.styles.bodyMd,
+      color: colors.onSurfaceVariant,
+      textAlign: 'center',
+      opacity: 0.7,
+    },
+    cacheBanner: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      marginHorizontal: Spacing.containerPadding,
+      marginBottom: 4,
+      paddingVertical: 6,
+      paddingHorizontal: 12,
+      backgroundColor: '#fef3c7',
+      borderRadius: Radius.md,
+    },
+    cacheBannerText: {
+      ...Typography.styles.labelSm,
+      color: '#92400e',
+      flex: 1,
+    },
+    list: {
+      paddingHorizontal: Spacing.containerPadding,
+      paddingTop: Spacing.stackSm,
+      gap: Spacing.stackSm,
+    },
+    resultCard: {
+      backgroundColor: colors.surfaceContainerLowest,
+      borderRadius: Radius.xl,
+      flexDirection: 'row',
+      padding: Spacing.stackSm,
+      alignItems: 'center',
+      gap: Spacing.stackSm,
+    },
+    resultCover: {
+      width: 64,
+      height: 96,
+      borderRadius: Radius.md,
+      backgroundColor: colors.surfaceContainerHigh,
+      overflow: 'hidden',
+    },
+    noCover: {
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    resultInfo: {
+      flex: 1,
+      gap: 4,
+    },
+    resultTitle: {
+      ...Typography.styles.titleSm,
+      fontSize: 15,
+      color: colors.onSurface,
+    },
+    resultAuthor: {
+      ...Typography.styles.bodyMd,
+      fontSize: 13,
+      color: colors.onSurfaceVariant,
+    },
+    genreChip: {
+      backgroundColor: colors.secondaryContainer,
+      borderRadius: Radius.full,
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      alignSelf: 'flex-start',
+      marginTop: 2,
+    },
+    genreChipText: {
+      ...Typography.styles.labelSm,
+      color: colors.onSecondaryContainer,
+      fontSize: 10,
+    },
+    pageCount: {
+      ...Typography.styles.labelSm,
+      color: colors.onSurfaceVariant,
+      opacity: 0.6,
+    },
+    addButton: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+  });

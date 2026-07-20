@@ -36,7 +36,7 @@ import { useUpsertReview, UpsertReviewInput } from '@/hooks/useSocial';
 import { BookItem } from '@/lib/openLibrary';
 
 export interface LogBookSheetValues {
-  rating: number;     // 0 = not set; 0.5 – 5.0 in 0.5 steps
+  rating: number; // 0 = not set; 0.5 – 5.0 in 0.5 steps
   liked: boolean;
   content: string;
   contains_spoilers: boolean;
@@ -94,7 +94,7 @@ export function LogBookSheet({ visible, book, onClose, onSaveSuccess, initialVal
   const setRating = (star: number, half: boolean) => {
     const newRating = half ? star - 0.5 : star;
     // Tapping the same rating again resets it
-    setValues(v => ({ ...v, rating: v.rating === newRating ? 0 : newRating }));
+    setValues((v) => ({ ...v, rating: v.rating === newRating ? 0 : newRating }));
   };
 
   return (
@@ -104,7 +104,11 @@ export function LogBookSheet({ visible, book, onClose, onSaveSuccess, initialVal
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         {/* Backdrop tap to dismiss */}
-        <TouchableOpacity style={StyleSheet.absoluteFillObject} activeOpacity={1} onPress={onClose} />
+        <TouchableOpacity
+          style={StyleSheet.absoluteFillObject}
+          activeOpacity={1}
+          onPress={onClose}
+        />
 
         <View style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, 24) }]}>
           {/* Drag handle */}
@@ -114,7 +118,9 @@ export function LogBookSheet({ visible, book, onClose, onSaveSuccess, initialVal
           <View style={styles.headerRow}>
             <View>
               <Text style={styles.headerTitle}>Log Book</Text>
-              <Text style={styles.headerSubtitle} numberOfLines={1}>{book.title}</Text>
+              <Text style={styles.headerSubtitle} numberOfLines={1}>
+                {book.title}
+              </Text>
             </View>
             <TouchableOpacity onPress={onClose} hitSlop={12}>
               <MaterialIcons name="close" size={22} color={colors.onSurface} />
@@ -152,9 +158,7 @@ export function LogBookSheet({ visible, book, onClose, onSaveSuccess, initialVal
                 );
               })}
             </View>
-            {values.rating > 0 && (
-              <Text style={styles.ratingLabel}>{values.rating} / 5</Text>
-            )}
+            {values.rating > 0 && <Text style={styles.ratingLabel}>{values.rating} / 5</Text>}
 
             {/* ── Heart (Liked) ── */}
             <View style={styles.toggleRow}>
@@ -163,7 +167,7 @@ export function LogBookSheet({ visible, book, onClose, onSaveSuccess, initialVal
                 <Text style={styles.fieldHint}>Mark this as one of your favourites</Text>
               </View>
               <TouchableOpacity
-                onPress={() => setValues(v => ({ ...v, liked: !v.liked }))}
+                onPress={() => setValues((v) => ({ ...v, liked: !v.liked }))}
                 hitSlop={12}
               >
                 <MaterialIcons
@@ -182,7 +186,7 @@ export function LogBookSheet({ visible, book, onClose, onSaveSuccess, initialVal
               placeholder="What did you think? (optional)"
               placeholderTextColor={colors.onSurfaceVariant}
               value={values.content}
-              onChangeText={(t) => setValues(v => ({ ...v, content: t }))}
+              onChangeText={(t) => setValues((v) => ({ ...v, content: t }))}
               maxLength={2000}
               textAlignVertical="top"
             />
@@ -195,17 +199,21 @@ export function LogBookSheet({ visible, book, onClose, onSaveSuccess, initialVal
                 <Text style={styles.fieldHint}>Blurs your review until readers tap to reveal</Text>
               </View>
               <TouchableOpacity
-                onPress={() => setValues(v => ({ ...v, contains_spoilers: !v.contains_spoilers }))}
+                onPress={() =>
+                  setValues((v) => ({ ...v, contains_spoilers: !v.contains_spoilers }))
+                }
                 hitSlop={12}
                 style={[
                   styles.toggle,
                   values.contains_spoilers && { backgroundColor: colors.primary },
                 ]}
               >
-                <View style={[
-                  styles.toggleThumb,
-                  values.contains_spoilers && { transform: [{ translateX: 20 }] },
-                ]} />
+                <View
+                  style={[
+                    styles.toggleThumb,
+                    values.contains_spoilers && { transform: [{ translateX: 20 }] },
+                  ]}
+                />
               </TouchableOpacity>
             </View>
 
@@ -232,129 +240,130 @@ export function LogBookSheet({ visible, book, onClose, onSaveSuccess, initialVal
   );
 }
 
-const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
-  overlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.55)',
-  },
-  sheet: {
-    backgroundColor: colors.surfaceContainerLowest,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    paddingHorizontal: Spacing.containerPadding,
-    paddingTop: 12,
-    maxHeight: '90%',
-    ...Shadows.overlay,
-  },
-  handle: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: colors.outlineVariant,
-    alignSelf: 'center',
-    marginBottom: Spacing.stackMd,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: Spacing.stackMd,
-  },
-  headerTitle: {
-    ...Typography.styles.titleSm,
-    color: colors.onSurface,
-  },
-  headerSubtitle: {
-    ...Typography.styles.bodyMd,
-    color: colors.onSurfaceVariant,
-    marginTop: 2,
-    maxWidth: 240,
-  },
-  fieldLabel: {
-    ...Typography.styles.labelLg,
-    color: colors.onSurface,
-    marginBottom: 6,
-  },
-  fieldHint: {
-    ...Typography.styles.labelSm,
-    color: colors.onSurfaceVariant,
-    marginTop: 2,
-  },
-  starRow: {
-    flexDirection: 'row',
-    gap: 4,
-    marginBottom: 4,
-  },
-  starWrapper: {
-    position: 'relative',
-  },
-  starTapOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    flexDirection: 'row',
-  },
-  ratingLabel: {
-    ...Typography.styles.labelSm,
-    color: colors.onSurfaceVariant,
-    marginBottom: Spacing.stackMd,
-  },
-  toggleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: Spacing.stackSm,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.outlineVariant,
-    marginTop: Spacing.stackSm,
-  },
-  toggle: {
-    width: 44,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: colors.outlineVariant,
-    justifyContent: 'center',
-    paddingHorizontal: 2,
-  },
-  toggleThumb: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: colors.surface,
-  },
-  textArea: {
-    backgroundColor: colors.surfaceContainer,
-    borderRadius: Radius.md,
-    padding: Spacing.stackMd,
-    minHeight: 120,
-    ...Typography.styles.bodyMd,
-    color: colors.onSurface,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.outlineVariant,
-  },
-  charCount: {
-    ...Typography.styles.labelSm,
-    color: colors.onSurfaceVariant,
-    textAlign: 'right',
-    marginTop: 4,
-    marginBottom: Spacing.stackSm,
-  },
-  saveButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: colors.primary,
-    borderRadius: Radius.xl,
-    paddingVertical: 16,
-    marginTop: Spacing.stackLg,
-    ...Shadows.button,
-  },
-  saveButtonText: {
-    ...Typography.styles.labelLg,
-    color: colors.onPrimary,
-  },
-});
+const createStyles = (colors: any, isDark: boolean) =>
+  StyleSheet.create({
+    overlay: {
+      flex: 1,
+      justifyContent: 'flex-end',
+      backgroundColor: 'rgba(0,0,0,0.55)',
+    },
+    sheet: {
+      backgroundColor: colors.surfaceContainerLowest,
+      borderTopLeftRadius: 28,
+      borderTopRightRadius: 28,
+      paddingHorizontal: Spacing.containerPadding,
+      paddingTop: 12,
+      maxHeight: '90%',
+      ...Shadows.overlay,
+    },
+    handle: {
+      width: 36,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: colors.outlineVariant,
+      alignSelf: 'center',
+      marginBottom: Spacing.stackMd,
+    },
+    headerRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      marginBottom: Spacing.stackMd,
+    },
+    headerTitle: {
+      ...Typography.styles.titleSm,
+      color: colors.onSurface,
+    },
+    headerSubtitle: {
+      ...Typography.styles.bodyMd,
+      color: colors.onSurfaceVariant,
+      marginTop: 2,
+      maxWidth: 240,
+    },
+    fieldLabel: {
+      ...Typography.styles.labelLg,
+      color: colors.onSurface,
+      marginBottom: 6,
+    },
+    fieldHint: {
+      ...Typography.styles.labelSm,
+      color: colors.onSurfaceVariant,
+      marginTop: 2,
+    },
+    starRow: {
+      flexDirection: 'row',
+      gap: 4,
+      marginBottom: 4,
+    },
+    starWrapper: {
+      position: 'relative',
+    },
+    starTapOverlay: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      flexDirection: 'row',
+    },
+    ratingLabel: {
+      ...Typography.styles.labelSm,
+      color: colors.onSurfaceVariant,
+      marginBottom: Spacing.stackMd,
+    },
+    toggleRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingVertical: Spacing.stackSm,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.outlineVariant,
+      marginTop: Spacing.stackSm,
+    },
+    toggle: {
+      width: 44,
+      height: 24,
+      borderRadius: 12,
+      backgroundColor: colors.outlineVariant,
+      justifyContent: 'center',
+      paddingHorizontal: 2,
+    },
+    toggleThumb: {
+      width: 20,
+      height: 20,
+      borderRadius: 10,
+      backgroundColor: colors.surface,
+    },
+    textArea: {
+      backgroundColor: colors.surfaceContainer,
+      borderRadius: Radius.md,
+      padding: Spacing.stackMd,
+      minHeight: 120,
+      ...Typography.styles.bodyMd,
+      color: colors.onSurface,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.outlineVariant,
+    },
+    charCount: {
+      ...Typography.styles.labelSm,
+      color: colors.onSurfaceVariant,
+      textAlign: 'right',
+      marginTop: 4,
+      marginBottom: Spacing.stackSm,
+    },
+    saveButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      backgroundColor: colors.primary,
+      borderRadius: Radius.xl,
+      paddingVertical: 16,
+      marginTop: Spacing.stackLg,
+      ...Shadows.button,
+    },
+    saveButtonText: {
+      ...Typography.styles.labelLg,
+      color: colors.onPrimary,
+    },
+  });

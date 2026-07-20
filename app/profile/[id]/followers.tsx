@@ -1,5 +1,12 @@
 import React from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+} from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -32,7 +39,12 @@ export default function FollowersScreen() {
         </View>
       ) : followers?.length === 0 ? (
         <View style={styles.center}>
-          <MaterialIcons name="people-outline" size={48} color={colors.onSurfaceVariant} style={{ opacity: 0.5, marginBottom: 16 }} />
+          <MaterialIcons
+            name="people-outline"
+            size={48}
+            color={colors.onSurfaceVariant}
+            style={{ opacity: 0.5, marginBottom: 16 }}
+          />
           <Text style={styles.emptyText}>No followers yet.</Text>
         </View>
       ) : (
@@ -41,17 +53,29 @@ export default function FollowersScreen() {
           keyExtractor={(item) => item.id}
           contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 80 }]}
           renderItem={({ item }) => (
-            <TouchableOpacity 
-              style={[styles.resultCard, Shadows.card]} 
-              activeOpacity={0.85} 
+            <TouchableOpacity
+              style={[styles.resultCard, Shadows.card]}
+              activeOpacity={0.85}
               onPress={() => router.push(`/profile/${item.id}` as any)}
             >
               <View style={[styles.resultCover, { width: 48, height: 48, borderRadius: 24 }]}>
                 {item.avatar_url ? (
-                  <Image source={{ uri: item.avatar_url }} style={StyleSheet.absoluteFillObject} contentFit="cover" />
+                  <Image
+                    source={{ uri: item.avatar_url }}
+                    style={StyleSheet.absoluteFillObject}
+                    contentFit="cover"
+                  />
                 ) : (
-                  <View style={[StyleSheet.absoluteFillObject, styles.noCover, { backgroundColor: colors.primaryContainer }]}>
-                    <Text style={{ color: colors.onPrimaryContainer, fontWeight: 'bold' }}>{item.username.charAt(0).toUpperCase()}</Text>
+                  <View
+                    style={[
+                      StyleSheet.absoluteFillObject,
+                      styles.noCover,
+                      { backgroundColor: colors.primaryContainer },
+                    ]}
+                  >
+                    <Text style={{ color: colors.onPrimaryContainer, fontWeight: 'bold' }}>
+                      {item.username.charAt(0).toUpperCase()}
+                    </Text>
                   </View>
                 )}
               </View>
@@ -67,63 +91,64 @@ export default function FollowersScreen() {
   );
 }
 
-const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: Spacing.containerPadding,
-    paddingBottom: Spacing.stackSm,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.outlineVariant,
-  },
-  headerTitle: {
-    ...Typography.styles.titleSm,
-    color: colors.onSurface,
-  },
-  center: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  emptyText: {
-    ...Typography.styles.bodyMd,
-    color: colors.onSurfaceVariant,
-    fontStyle: 'italic',
-  },
-  list: {
-    paddingHorizontal: Spacing.containerPadding,
-    paddingTop: Spacing.stackSm,
-    gap: Spacing.stackSm,
-  },
-  resultCard: {
-    backgroundColor: colors.surfaceContainerLowest,
-    borderRadius: Radius.xl,
-    flexDirection: 'row',
-    padding: Spacing.stackSm,
-    alignItems: 'center',
-    gap: Spacing.stackSm,
-  },
-  resultCover: {
-    backgroundColor: colors.surfaceContainerHigh,
-    overflow: 'hidden',
-  },
-  noCover: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  resultInfo: {
-    flex: 1,
-    gap: 4,
-  },
-  resultTitle: {
-    ...Typography.styles.titleSm,
-    fontSize: 15,
-    color: colors.onSurface,
-  },
-  resultAuthor: {
-    ...Typography.styles.bodyMd,
-    fontSize: 13,
-    color: colors.onSurfaceVariant,
-  },
-});
+const createStyles = (colors: any, isDark: boolean) =>
+  StyleSheet.create({
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: Spacing.containerPadding,
+      paddingBottom: Spacing.stackSm,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.outlineVariant,
+    },
+    headerTitle: {
+      ...Typography.styles.titleSm,
+      color: colors.onSurface,
+    },
+    center: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    emptyText: {
+      ...Typography.styles.bodyMd,
+      color: colors.onSurfaceVariant,
+      fontStyle: 'italic',
+    },
+    list: {
+      paddingHorizontal: Spacing.containerPadding,
+      paddingTop: Spacing.stackSm,
+      gap: Spacing.stackSm,
+    },
+    resultCard: {
+      backgroundColor: colors.surfaceContainerLowest,
+      borderRadius: Radius.xl,
+      flexDirection: 'row',
+      padding: Spacing.stackSm,
+      alignItems: 'center',
+      gap: Spacing.stackSm,
+    },
+    resultCover: {
+      backgroundColor: colors.surfaceContainerHigh,
+      overflow: 'hidden',
+    },
+    noCover: {
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    resultInfo: {
+      flex: 1,
+      gap: 4,
+    },
+    resultTitle: {
+      ...Typography.styles.titleSm,
+      fontSize: 15,
+      color: colors.onSurface,
+    },
+    resultAuthor: {
+      ...Typography.styles.bodyMd,
+      fontSize: 13,
+      color: colors.onSurfaceVariant,
+    },
+  });

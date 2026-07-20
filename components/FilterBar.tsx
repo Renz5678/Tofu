@@ -1,11 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-} from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTheme, Typography, Spacing, Radius } from '@/theme';
 
 export type FilterChip = {
@@ -46,12 +40,11 @@ export function FilterBar({ chips, activeValue, onSelect, style }: FilterBarProp
               key={chip.value}
               onPress={() => handlePress(chip.value)}
               activeOpacity={0.75}
-              style={[
-                styles.chip,
-                active ? styles.chipActive : styles.chipInactive,
-              ]}
+              style={[styles.chip, active ? styles.chipActive : styles.chipInactive]}
             >
-              <Text style={[styles.chipText, active ? styles.chipTextActive : styles.chipTextInactive]}>
+              <Text
+                style={[styles.chipText, active ? styles.chipTextActive : styles.chipTextInactive]}
+              >
                 {chip.label}
               </Text>
             </TouchableOpacity>
@@ -92,62 +85,63 @@ export function StatusTabs({ tabs, activeValue, onSelect }: StatusTabsProps) {
   );
 }
 
-const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.base,
-    paddingVertical: 4,
-  },
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.gutter,
-    paddingVertical: Spacing.base,
-    borderRadius: Radius.full,
-    borderWidth: 1,
-  },
-  chipActive: {
-    backgroundColor: colors.chipActive,
-    borderColor: colors.chipActive,
-  },
-  chipInactive: {
-    backgroundColor: colors.chipInactive,
-    borderColor: colors.outlineVariant,
-  },
-  chipText: {
-    ...Typography.styles.labelLg,
-  },
-  chipTextActive: {
-    color: colors.chipActiveText,
-  },
-  chipTextInactive: {
-    color: colors.chipInactiveText,
-  },
-  tabRow: {
-    flexDirection: 'row',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.outlineVariant,
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: 12,
-    alignItems: 'center',
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
-  },
-  tabActive: {
-    borderBottomColor: colors.primary,
-  },
-  tabText: {
-    ...Typography.styles.labelLg,
-  },
-  tabTextActive: {
-    color: colors.primary,
-    fontWeight: '700',
-  },
-  tabTextInactive: {
-    color: colors.onSurfaceVariant,
-    opacity: 0.6,
-  },
-});
+const createStyles = (colors: any, isDark: boolean) =>
+  StyleSheet.create({
+    container: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Spacing.base,
+      paddingVertical: 4,
+    },
+    chip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: Spacing.gutter,
+      paddingVertical: Spacing.base,
+      borderRadius: Radius.full,
+      borderWidth: 1,
+    },
+    chipActive: {
+      backgroundColor: colors.chipActive,
+      borderColor: colors.chipActive,
+    },
+    chipInactive: {
+      backgroundColor: colors.chipInactive,
+      borderColor: colors.outlineVariant,
+    },
+    chipText: {
+      ...Typography.styles.labelLg,
+    },
+    chipTextActive: {
+      color: colors.chipActiveText,
+    },
+    chipTextInactive: {
+      color: colors.chipInactiveText,
+    },
+    tabRow: {
+      flexDirection: 'row',
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.outlineVariant,
+    },
+    tab: {
+      flex: 1,
+      paddingVertical: 12,
+      alignItems: 'center',
+      borderBottomWidth: 2,
+      borderBottomColor: 'transparent',
+    },
+    tabActive: {
+      borderBottomColor: colors.primary,
+    },
+    tabText: {
+      ...Typography.styles.labelLg,
+    },
+    tabTextActive: {
+      color: colors.primary,
+      fontWeight: '700',
+    },
+    tabTextInactive: {
+      color: colors.onSurfaceVariant,
+      opacity: 0.6,
+    },
+  });

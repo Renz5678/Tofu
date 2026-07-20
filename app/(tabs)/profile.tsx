@@ -23,6 +23,7 @@ import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
 import { useReadingSessions } from '@/hooks/useReadingSessions';
 import { useLibrary } from '@/hooks/useLibrary';
 import { useUsernameCheck, getUsernameHint, type UsernameStatus } from '@/hooks/useUsernameCheck';
+import { useFollowCounts } from '@/hooks/useSocial';
 
 const MENU_ITEMS = [
   { icon: 'favorite' as const, label: 'My Favorites', route: '/favorites' },
@@ -209,6 +210,7 @@ export default function ProfileScreen() {
   const queryClient = useQueryClient();
 
   const { data: profile } = useProfile();
+  const { data: followCounts } = useFollowCounts(profile?.id as string);
   const { data: sessions = [] } = useReadingSessions();
   const { data: library = [] } = useLibrary();
 
@@ -282,6 +284,24 @@ export default function ProfileScreen() {
           </View>
           <Text style={styles.displayName}>{displayName}</Text>
           <Text style={styles.username}>@{username}</Text>
+
+          {/* Follow Stats */}
+          <View style={styles.statsRow}>
+            <TouchableOpacity
+              style={styles.statBox}
+              onPress={() => router.push(`/profile/${profile?.id}/followers` as any)}
+            >
+              <Text style={styles.statNumber}>{followCounts?.followers || 0}</Text>
+              <Text style={styles.statLabel}>Followers</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.statBox}
+              onPress={() => router.push(`/profile/${profile?.id}/following` as any)}
+            >
+              <Text style={styles.statNumber}>{followCounts?.following || 0}</Text>
+              <Text style={styles.statLabel}>Following</Text>
+            </TouchableOpacity>
+          </View>
 
           {/* Edit Profile button */}
           <TouchableOpacity
@@ -429,6 +449,23 @@ const createStyles = (colors: any, isDark: boolean) =>
       ...Typography.styles.bodyMd,
       color: colors.onSurfaceVariant,
       opacity: 0.7,
+    },
+    statsRow: {
+      flexDirection: 'row',
+      gap: Spacing.stackLg,
+      marginTop: Spacing.stackSm,
+      marginBottom: Spacing.stackSm,
+    },
+    statBox: {
+      alignItems: 'center',
+    },
+    statNumber: {
+      ...Typography.styles.titleSm,
+      color: colors.primary,
+    },
+    statLabel: {
+      ...Typography.styles.labelSm,
+      color: colors.onSurfaceVariant,
     },
     editButton: {
       flexDirection: 'row',

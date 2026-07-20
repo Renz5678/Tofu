@@ -201,6 +201,27 @@ export default function StatsScreen() {
           </View>
         </Animated.View>
 
+        {/* Reading Speed */}
+        <Animated.View
+          entering={FadeInDown.duration(400).delay(250)}
+          style={[styles.ringCard, Shadows.card, { marginTop: Spacing.stackSm }]}
+        >
+          <View style={styles.chartHeader}>
+            <Text style={styles.cardTitle}>Reading Speed</Text>
+          </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: Spacing.stackMd, gap: 16 }}>
+            <MaterialIcons name="speed" size={48} color={colors.primary} />
+            <View>
+              <Text style={{ ...Typography.styles.displayLg, color: colors.onSurface }}>
+                {avgPagesPerHour}
+              </Text>
+              <Text style={{ ...Typography.styles.labelLg, color: colors.onSurfaceVariant }}>
+                Pages per Hour
+              </Text>
+            </View>
+          </View>
+        </Animated.View>
+
         {/* Bar chart */}
         <Animated.View
           entering={FadeInDown.duration(400).delay(300)}

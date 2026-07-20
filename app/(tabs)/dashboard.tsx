@@ -118,8 +118,8 @@ export default function DashboardScreen() {
           </View>
 
           {currentBook ? (
-            <AnimatedPressable onPress={handleContinueReading}>
-              <View style={[styles.currentReadCard, Shadows.card]}>
+            <AnimatedPressable onPress={handleContinueReading} style={{ width: '100%' }}>
+              <View style={[styles.currentReadCard, Shadows.card, { width: '100%' }]}>
                 {/* Cover */}
                 <View style={styles.currentReadCover}>
                   {currentBook.cover_url && (
@@ -170,7 +170,7 @@ export default function DashboardScreen() {
 
                   <View style={styles.continueButton}>
                     <MaterialIcons name="play-circle" size={20} color={colors.onPrimary} />
-                    <Text style={styles.continueButtonText}>Continue Reading</Text>
+                    <Text style={styles.continueButtonText}>Continue</Text>
                   </View>
                 </View>
               </View>
@@ -228,15 +228,17 @@ export default function DashboardScreen() {
               style={{ flex: 1 }}
               onPress={() => router.push('/playlists')}
             >
-              <View style={[styles.currentReadCard, { padding: 16, alignItems: 'center', flexDirection: 'row', gap: 12 }]}>
-                <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: `${colors.primary}20`, alignItems: 'center', justifyContent: 'center' }}>
-                  <MaterialIcons name="queue-music" size={24} color={colors.primary} />
+              <View style={[styles.currentReadCard, { width: '100%', padding: 16, alignItems: 'flex-start', flexDirection: 'column', gap: 12 }]}>
+                <View style={{ flexDirection: 'row', width: '100%', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: `${colors.primary}20`, alignItems: 'center', justifyContent: 'center' }}>
+                    <MaterialIcons name="queue-music" size={24} color={colors.primary} />
+                  </View>
+                  <MaterialIcons name="chevron-right" size={20} color={colors.onSurfaceVariant} />
                 </View>
-                <View style={{ flex: 1 }}>
+                <View>
                   <Text style={{ ...Typography.styles.labelLg, color: colors.onSurface }}>Reading Lists</Text>
-                  <Text style={{ ...Typography.styles.bodySm, color: colors.onSurfaceVariant }}>View & Create</Text>
+                  <Text style={{ ...Typography.styles.bodyMd, color: colors.onSurfaceVariant }}>View & Create</Text>
                 </View>
-                <MaterialIcons name="chevron-right" size={20} color={colors.onSurfaceVariant} />
               </View>
             </AnimatedPressable>
 
@@ -244,15 +246,17 @@ export default function DashboardScreen() {
               style={{ flex: 1 }}
               onPress={() => router.push('/(tabs)/search')}
             >
-              <View style={[styles.currentReadCard, { padding: 16, alignItems: 'center', flexDirection: 'row', gap: 12 }]}>
-                <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: `${colors.secondary}20`, alignItems: 'center', justifyContent: 'center' }}>
-                  <MaterialIcons name="search" size={24} color={colors.secondary} />
+              <View style={[styles.currentReadCard, { width: '100%', padding: 16, alignItems: 'flex-start', flexDirection: 'column', gap: 12 }]}>
+                <View style={{ flexDirection: 'row', width: '100%', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: `${colors.secondary}20`, alignItems: 'center', justifyContent: 'center' }}>
+                    <MaterialIcons name="search" size={24} color={colors.secondary} />
+                  </View>
+                  <MaterialIcons name="chevron-right" size={20} color={colors.onSurfaceVariant} />
                 </View>
-                <View style={{ flex: 1 }}>
+                <View>
                   <Text style={{ ...Typography.styles.labelLg, color: colors.onSurface }}>Discover</Text>
-                  <Text style={{ ...Typography.styles.bodySm, color: colors.onSurfaceVariant }}>Find Books</Text>
+                  <Text style={{ ...Typography.styles.bodyMd, color: colors.onSurfaceVariant }}>Find Books</Text>
                 </View>
-                <MaterialIcons name="chevron-right" size={20} color={colors.onSurfaceVariant} />
               </View>
             </AnimatedPressable>
           </View>
@@ -337,7 +341,7 @@ function AnimatedPressable({ onPress, children, style }: any) {
       onPress={onPress}
       style={style}
     >
-      <Animated.View style={[style, animatedStyle]}>{children}</Animated.View>
+      <Animated.View style={[style, animatedStyle, { width: '100%' }]}>{children}</Animated.View>
     </Pressable>
   );
 }
@@ -606,7 +610,8 @@ const createStyles = (colors: any, isDark: boolean) =>
       gap: 6,
       backgroundColor: colors.primary,
       borderRadius: Radius.xl,
-      paddingVertical: 14,
+      paddingVertical: 12,
+      paddingHorizontal: 16,
     },
     continueButtonText: {
       ...Typography.styles.labelLg,

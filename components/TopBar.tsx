@@ -69,9 +69,7 @@ export function TopBar({
         >
           <MaterialIcons name="notifications-none" size={24} color={colors.onSurfaceVariant} />
           {unreadCount > 0 && (
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
-            </View>
+            <View style={styles.badge} />
           )}
         </TouchableOpacity>
         <TouchableOpacity onPress={onAvatarPress} hitSlop={8}>
@@ -188,20 +186,12 @@ const createStyles = (colors: any, isDark: boolean) =>
     },
     badge: {
       position: 'absolute',
-      top: -4,
-      right: -4,
+      top: 2,
+      right: 2,
       backgroundColor: colors.error,
-      borderRadius: 10,
-      minWidth: 16,
-      height: 16,
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingHorizontal: 4,
-    },
-    badgeText: {
-      color: colors.onError,
-      fontSize: 10,
-      fontWeight: 'bold',
+      borderRadius: 4,
+      width: 8,
+      height: 8,
     },
     modalOverlay: {
       flex: 1,

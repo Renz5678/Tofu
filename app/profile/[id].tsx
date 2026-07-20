@@ -358,6 +358,7 @@ const createStyles = (colors: any, isDark: boolean) =>
       flexDirection: 'row',
       flexWrap: 'wrap',
       gap: Spacing.stackSm,
+      justifyContent: 'center',
     },
     favoriteCard: {
       width: 80,

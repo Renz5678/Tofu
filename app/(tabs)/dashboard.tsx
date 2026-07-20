@@ -122,11 +122,22 @@ export default function DashboardScreen() {
               <View style={[styles.currentReadCard, Shadows.card]}>
                 {/* Cover */}
                 <View style={styles.currentReadCover}>
+                  {currentBook.cover_url && (
+                    <Image
+                      source={{ uri: currentBook.cover_url }}
+                      style={[StyleSheet.absoluteFill, { opacity: 0.4 }]}
+                      contentFit="cover"
+                      blurRadius={8}
+                    />
+                  )}
                   <Image
-                    source={{ uri: currentBook.cover_url ?? undefined }}
-                    style={StyleSheet.absoluteFillObject}
-                    contentFit="cover"
-                    transition={200}
+                    source={
+                      currentBook.cover_url
+                        ? { uri: currentBook.cover_url }
+                        : require('@/assets/placeholder-cover.png')
+                    }
+                    style={{ width: '100%', height: '100%' }}
+                    contentFit="contain"
                   />
                   {bookProgress < 1 && (
                     <View style={styles.readBadge}>
@@ -326,7 +337,7 @@ function AnimatedPressable({ onPress, children, style }: any) {
       onPress={onPress}
       style={style}
     >
-      <Animated.View style={animatedStyle}>{children}</Animated.View>
+      <Animated.View style={[style, animatedStyle]}>{children}</Animated.View>
     </Pressable>
   );
 }
@@ -534,6 +545,10 @@ const createStyles = (colors: any, isDark: boolean) =>
       width: 120,
       aspectRatio: 2 / 3,
       position: 'relative',
+      alignSelf: 'center',
+      margin: Spacing.stackSm,
+      borderRadius: Radius.md,
+      overflow: 'hidden',
     },
     readBadge: {
       position: 'absolute',

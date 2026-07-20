@@ -142,7 +142,7 @@ export default function PublicProfileScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Top 5 Books</Text>
+          <Text style={styles.sectionTitle}>Top Books</Text>
           {favorites && favorites.length > 0 ? (
             <View style={styles.favoritesGrid}>
               {favorites.map((fav) => (
@@ -360,12 +360,13 @@ const createStyles = (colors: any, isDark: boolean) =>
       gap: Spacing.stackSm,
     },
     favoriteCard: {
-      width: 64,
+      width: 80,
       gap: 4,
+      marginBottom: 16,
     },
     favoriteCover: {
-      width: 64,
-      height: 96,
+      width: 80,
+      height: 120,
       borderRadius: Radius.sm,
       backgroundColor: colors.surfaceVariant,
     },

@@ -10,6 +10,7 @@ import {
   Alert,
   ActivityIndicator,
   StyleSheet,
+  Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Link, useRouter } from 'expo-router';
@@ -70,9 +71,11 @@ export default function SignInScreen() {
       >
         {/* Logo */}
         <View style={styles.logoRow}>
-          <View style={styles.logoIcon}>
-            <MaterialIcons name="menu-book" size={28} color={colors.onPrimary} />
-          </View>
+          <Image 
+            source={isDark ? require('@/assets/app-icon/iconWithoutBGDarkMode.png') : require('@/assets/app-icon/iconWithoutBG.png')} 
+            style={{ width: 48, height: 48 }}
+            resizeMode="contain"
+          />
           <Text style={styles.logoText}>Tofu</Text>
         </View>
 

@@ -208,15 +208,6 @@ export function useTogglePlaylistLike() {
           .from('reading_list_likes')
           .insert({ user_id: user.id, reading_list_id: listId });
         if (error) throw error;
-
-        if (ownerId !== user.id) {
-          await supabase.from('notifications').insert({
-            user_id: ownerId,
-            actor_id: user.id,
-            type: 'like_playlist',
-            target_id: listId,
-          });
-        }
       }
     },
     onSuccess: (_, { ownerId }) => qc.invalidateQueries({ queryKey: ['publicPlaylists', ownerId] }),

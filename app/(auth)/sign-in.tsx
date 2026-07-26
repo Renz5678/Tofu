@@ -17,6 +17,7 @@ import { Link, useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { supabase } from '@/lib/supabase';
 import { useTheme, Typography, Spacing, Radius } from '@/theme';
+import { makeRedirectUri } from 'expo-auth-session';
 export default function SignInScreen() {
   const { colors, isDark } = useTheme();
   const styles = createStyles(colors, isDark);
@@ -54,6 +55,62 @@ export default function SignInScreen() {
       Alert.alert('Sign In Failed', error.message);
     } else {
       router.replace('/(tabs)/dashboard');
+    }
+  }
+
+  async function handleGoogleSignIn() {
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: makeRedirectUri({
+          scheme: 'tofu',
+          path: 'auth/callback',
+        }),
+      },
+    });
+    setLoading(false);
+    if (error) {
+      Alert.alert('Google Sign In Failed', error.message);
+    }
+  }
+
+  async function handleMagicLink() {
+    let loginEmail = email.trim();
+    if (!loginEmail) {
+      Alert.alert('Missing Email', 'Please enter your email or username to receive a magic link.');
+      return;
+    }
+
+    setLoading(true);
+    
+    // Check if it's a username and resolve email
+    if (!loginEmail.includes('@')) {
+      const { data, error: rpcError } = await supabase.rpc('get_email_for_username', {
+        p_username: loginEmail,
+      });
+      if (rpcError || !data) {
+        setLoading(false);
+        Alert.alert('Sign In Failed', 'Username not found.');
+        return;
+      }
+      loginEmail = data;
+    }
+
+    const { error } = await supabase.auth.signInWithOtp({
+      email: loginEmail,
+      options: {
+        emailRedirectTo: makeRedirectUri({
+          scheme: 'tofu',
+          path: 'auth/callback',
+        }),
+      },
+    });
+    setLoading(false);
+    if (error) {
+      Alert.alert('Magic Link Failed', error.message);
+    } else {
+      Alert.alert('Check your email', 'We sent you a magic link to sign in.');
     }
   }
 
@@ -139,6 +196,33 @@ export default function SignInScreen() {
           ) : (
             <Text style={styles.primaryButtonText}>Start Reading</Text>
           )}
+        </TouchableOpacity>
+
+        {/* OR Divider */}
+        <View style={styles.dividerRow}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>OR</Text>
+          <View style={styles.dividerLine} />
+        </View>
+
+        {/* Google Button */}
+        <TouchableOpacity
+          style={styles.googleButton}
+          onPress={handleGoogleSignIn}
+          disabled={loading}
+        >
+          <MaterialIcons name="g-translate" size={24} color={colors.primary} style={{ marginRight: 8 }} />
+          <Text style={styles.googleButtonText}>Sign in with Google</Text>
+        </TouchableOpacity>
+
+        {/* Magic Link Button */}
+        <TouchableOpacity
+          style={styles.googleButton}
+          onPress={handleMagicLink}
+          disabled={loading}
+        >
+          <MaterialIcons name="mark-email-unread" size={24} color={colors.primary} style={{ marginRight: 8 }} />
+          <Text style={styles.googleButtonText}>Send Magic Link</Text>
         </TouchableOpacity>
 
         {/* Sign up link */}

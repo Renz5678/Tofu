@@ -152,15 +152,6 @@ export function useToggleFavoriteLike() {
           .from('favorite_book_likes')
           .insert({ user_id: user.id, favorite_book_id: favoriteBookId });
         if (error) throw error;
-
-        if (ownerId !== user.id) {
-          await supabase.from('notifications').insert({
-            user_id: ownerId,
-            actor_id: user.id,
-            type: 'like_favorite',
-            target_id: favoriteBookId,
-          });
-        }
       }
     },
     onSuccess: (_, { ownerId }) => qc.invalidateQueries({ queryKey: ['favorites', ownerId] }),

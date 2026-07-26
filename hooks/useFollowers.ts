@@ -19,12 +19,6 @@ export function useFollowUser() {
         following_id: followingId,
       });
       if (error) throw error;
-
-      await supabase.from('notifications').insert({
-        user_id: followingId,
-        actor_id: user.id,
-        type: 'follow',
-      });
     },
     onSuccess: (_, followingId) => {
       qc.invalidateQueries({ queryKey: ['followers'] });

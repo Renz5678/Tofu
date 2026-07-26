@@ -82,7 +82,7 @@ export default function SignUpScreen() {
     displayName.trim().length > 0 &&
     usernameStatus === 'available' &&
     email.trim().length > 0 &&
-    password.length >= 6;
+    password.length >= 8;
 
   // Sanitise: lowercase + remove anything that's not a-z 0-9 _
   function handleUsernameChange(text: string) {
@@ -146,6 +146,46 @@ export default function SignUpScreen() {
         'We sent a confirmation link. Click it, then come back to log in.',
         [{ text: 'OK', onPress: () => router.push('/(auth)/sign-in') }],
       );
+    }
+  }
+
+  async function handleGoogleSignUp() {
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: makeRedirectUri({
+          scheme: 'tofu',
+          path: 'auth/callback',
+        }),
+      },
+    });
+    setLoading(false);
+    if (error) {
+      Alert.alert('Google Sign Up Failed', error.message);
+    }
+  }
+
+  async function handleMagicLink() {
+    if (!email.trim()) {
+      Alert.alert('Missing Email', 'Please enter your email in the field above to receive a magic link.');
+      return;
+    }
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithOtp({
+      email: email.trim(),
+      options: {
+        emailRedirectTo: makeRedirectUri({
+          scheme: 'tofu',
+          path: 'auth/callback',
+        }),
+      },
+    });
+    setLoading(false);
+    if (error) {
+      Alert.alert('Magic Link Failed', error.message);
+    } else {
+      Alert.alert('Check your email', 'We sent you a magic link to sign in.');
     }
   }
 
@@ -303,9 +343,9 @@ export default function SignUpScreen() {
               />
             </TouchableOpacity>
           </View>
-          {password.length > 0 && password.length < 6 && (
+          {password.length > 0 && password.length < 8 && (
             <Text style={[styles.hintText, { color: colors.error ?? '#ef4444' }]}>
-              Password must be at least 6 characters.
+              Password must be at least 8 characters.
             </Text>
           )}
         </View>
@@ -328,6 +368,33 @@ export default function SignUpScreen() {
               Create Account
             </Text>
           )}
+        </TouchableOpacity>
+
+        {/* OR Divider */}
+        <View style={styles.dividerRow}>
+          <View style={[styles.dividerLine, { backgroundColor: colors.outlineVariant }]} />
+          <Text style={[styles.dividerText, { color: colors.onSurfaceVariant }]}>OR</Text>
+          <View style={[styles.dividerLine, { backgroundColor: colors.outlineVariant }]} />
+        </View>
+
+        {/* Google Button */}
+        <TouchableOpacity
+          style={[styles.googleButton, { backgroundColor: colors.surfaceContainerLow, borderColor: colors.outlineVariant }]}
+          onPress={handleGoogleSignUp}
+          disabled={loading}
+        >
+          <MaterialIcons name="g-translate" size={24} color={colors.primary} style={{ marginRight: 8 }} />
+          <Text style={[styles.googleButtonText, { color: colors.onSurface }]}>Sign up with Google</Text>
+        </TouchableOpacity>
+
+        {/* Magic Link Button */}
+        <TouchableOpacity
+          style={[styles.googleButton, { backgroundColor: colors.surfaceContainerLow, borderColor: colors.outlineVariant }]}
+          onPress={handleMagicLink}
+          disabled={loading}
+        >
+          <MaterialIcons name="mark-email-unread" size={24} color={colors.primary} style={{ marginRight: 8 }} />
+          <Text style={[styles.googleButtonText, { color: colors.onSurface }]}>Send Magic Link</Text>
         </TouchableOpacity>
 
         {/* Sign in link */}

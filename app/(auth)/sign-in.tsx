@@ -94,6 +94,13 @@ export default function SignInScreen() {
           });
           if (sessionError) {
             Alert.alert('Google Sign In Failed', sessionError.message);
+          } else {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user && !user.user_metadata?.has_set_profile) {
+              router.replace('/(auth)/pick-username');
+            } else {
+              router.replace('/(tabs)/dashboard');
+            }
           }
         }
       }

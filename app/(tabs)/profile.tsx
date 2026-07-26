@@ -55,7 +55,14 @@ function EditProfileModal({
   const { status: usernameStatus } = useUsernameCheck(username, currentUsername);
   const hint = getUsernameHint(usernameStatus);
 
-  const canSave = !isPending && displayName.trim().length > 0 && usernameStatus === 'available';
+  const hasChanges =
+    displayName.trim() !== currentDisplayName ||
+    username.trim().toLowerCase() !== currentUsername;
+  const canSave =
+    !isPending &&
+    displayName.trim().length > 0 &&
+    usernameStatus === 'available' &&
+    hasChanges;
 
   function handleUsernameChange(text: string) {
     setUsername(text.toLowerCase().replace(/[^a-z0-9_]/g, ''));

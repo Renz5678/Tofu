@@ -46,14 +46,23 @@ export default function TabsLayout() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
-  // Guard: redirect to auth if no session
+  // Guard: redirect to auth if no session, or to profile-setup if needed
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) router.replace('/(auth)/sign-in');
+      if (!session) {
+        router.replace('/(auth)/sign-in');
+      } else if (!session.user.user_metadata?.has_set_profile) {
+        router.replace('/(auth)/pick-username');
+      }
     });
 
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT') router.replace('/(auth)/sign-in');
+      if (event === 'SIGNED_OUT' || !session) {
+        router.replace('/(auth)/sign-in');
+      } else if (session && !session.user.user_metadata?.has_set_profile) {
+        // Handle immediate login after Google auth
+        router.replace('/(auth)/pick-username');
+      }
     });
 
     return () => listener.subscription.unsubscribe();

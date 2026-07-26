@@ -66,10 +66,20 @@ export default function PickUsernameScreen() {
   const insets = useSafeAreaInsets();
 
   const [username, setUsername] = useState('');
+  const [displayName, setDisplayName] = useState('');
   const [loading, setLoading] = useState(false);
 
+  React.useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        const defaultName = user.user_metadata?.full_name || user.user_metadata?.name || '';
+        setDisplayName(defaultName);
+      }
+    });
+  }, []);
+
   const { status: usernameStatus } = useUsernameCheck(username);
-  const canSubmit = !loading && usernameStatus === 'available';
+  const canSubmit = !loading && usernameStatus === 'available' && displayName.trim().length > 0;
 
   function handleUsernameChange(text: string) {
     setUsername(text.toLowerCase().replace(/[^a-z0-9_]/g, ''));
@@ -88,15 +98,11 @@ export default function PickUsernameScreen() {
       const cleanUsername = username.trim().toLowerCase();
 
       // Upsert the profile (in case it doesn't exist at all, or just needs updating)
-      // We also set a default display name based on their email or Google name
-      const defaultName =
-        user.user_metadata?.full_name || user.user_metadata?.name || cleanUsername;
-
       const { error } = await supabase.from('profiles').upsert(
         {
           id: user.id,
           username: cleanUsername,
-          display_name: defaultName,
+          display_name: displayName.trim(),
           avatar_url: user.user_metadata?.avatar_url || null,
         },
         { onConflict: 'id' },
@@ -106,7 +112,7 @@ export default function PickUsernameScreen() {
 
       // Update the user_metadata so the JWT reflects it if needed later
       await supabase.auth.updateUser({
-        data: { username: cleanUsername },
+        data: { username: cleanUsername, display_name: displayName.trim(), has_set_profile: true },
       });
 
       router.replace('/(tabs)/dashboard');
@@ -136,10 +142,29 @@ export default function PickUsernameScreen() {
         ]}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={[styles.heading, { color: colors.onSurface }]}>Pick a username</Text>
+        <Text style={[styles.heading, { color: colors.onSurface }]}>Complete your profile</Text>
         <Text style={[styles.subheading, { color: colors.onSurfaceVariant }]}>
-          Your Google account doesn't have a valid username yet. Choose one to continue.
+          Please pick a username and confirm your display name to continue.
         </Text>
+
+        <View style={styles.fieldGroup}>
+          <Text style={[styles.label, { color: colors.primary }]}>DISPLAY NAME</Text>
+          <TextInput
+            style={[
+              styles.input,
+              {
+                backgroundColor: colors.surfaceContainerLow,
+                borderColor: colors.outlineVariant,
+                color: colors.onSurface,
+              },
+            ]}
+            placeholder="BaggyPants123"
+            placeholderTextColor={`${colors.onSurfaceVariant}66`}
+            value={displayName}
+            onChangeText={setDisplayName}
+            autoCapitalize="words"
+          />
+        </View>
 
         <View style={styles.fieldGroup}>
           <Text style={[styles.label, { color: colors.primary }]}>USERNAME</Text>
@@ -228,6 +253,13 @@ const styles = StyleSheet.create({
   label: {
     ...Typography.styles.labelSm,
     marginLeft: 4,
+  },
+  input: {
+    borderWidth: 1,
+    borderRadius: Radius.md,
+    paddingHorizontal: Spacing.gutter,
+    paddingVertical: 14,
+    ...Typography.styles.bodyMd,
   },
   usernameRow: {
     flexDirection: 'row',

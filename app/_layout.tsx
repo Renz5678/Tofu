@@ -9,8 +9,10 @@ import * as SplashScreen from 'expo-splash-screen';
 import { ThemeProvider } from '@/theme';
 import { useSessionStore } from '@/store/sessionStore';
 import { AppState, AppStateStatus } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
 
 SplashScreen.preventAutoHideAsync();
+WebBrowser.maybeCompleteAuthSession();
 
 const queryClient = new QueryClient({
   defaultOptions: {

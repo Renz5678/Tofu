@@ -19,6 +19,8 @@ import { supabase } from '@/lib/supabase';
 import { useTheme, Typography, Spacing, Radius } from '@/theme';
 import { useUsernameCheck, getUsernameHint, type UsernameStatus } from '@/hooks/useUsernameCheck';
 import { makeRedirectUri } from 'expo-auth-session';
+import * as QueryParams from 'expo-auth-session/build/QueryParams';
+import * as WebBrowser from 'expo-web-browser';
 
 // ── Username status indicator ─────────────────────────────────────────────────
 function UsernameStatusRow({ status }: { status: UsernameStatus }) {
@@ -108,6 +110,7 @@ export default function SignUpScreen() {
         data: {
           display_name: displayName.trim(),
           username: cleanUsername,
+          has_set_profile: true,
         },
       },
     });
@@ -151,42 +154,43 @@ export default function SignUpScreen() {
 
   async function handleGoogleSignUp() {
     setLoading(true);
-    const { error } = await supabase.auth.signInWithOAuth({
+    const redirectTo = makeRedirectUri({
+      scheme: 'tofu',
+      path: 'auth/callback',
+    });
+
+    const { error, data } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: makeRedirectUri({
-          scheme: 'tofu',
-          path: 'auth/callback',
-        }),
+        redirectTo,
+        skipBrowserRedirect: true,
       },
     });
-    setLoading(false);
-    if (error) {
-      Alert.alert('Google Sign Up Failed', error.message);
-    }
-  }
 
-  async function handleMagicLink() {
-    if (!email.trim()) {
-      Alert.alert('Missing Email', 'Please enter your email in the field above to receive a magic link.');
+    if (error) {
+      setLoading(false);
+      Alert.alert('Google Sign Up Failed', error.message);
       return;
     }
-    setLoading(true);
-    const { error } = await supabase.auth.signInWithOtp({
-      email: email.trim(),
-      options: {
-        emailRedirectTo: makeRedirectUri({
-          scheme: 'tofu',
-          path: 'auth/callback',
-        }),
-      },
-    });
-    setLoading(false);
-    if (error) {
-      Alert.alert('Magic Link Failed', error.message);
-    } else {
-      Alert.alert('Check your email', 'We sent you a magic link to sign in.');
+
+    if (data?.url) {
+      const res = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
+      if (res.type === 'success' && res.url) {
+        const { params, errorCode } = QueryParams.getQueryParams(res.url);
+        if (errorCode) {
+          Alert.alert('Google Sign Up Failed', errorCode);
+        } else if (params?.access_token && params?.refresh_token) {
+          const { error: sessionError } = await supabase.auth.setSession({
+            access_token: params.access_token,
+            refresh_token: params.refresh_token,
+          });
+          if (sessionError) {
+            Alert.alert('Google Sign Up Failed', sessionError.message);
+          }
+        }
+      }
     }
+    setLoading(false);
   }
 
   const borderColor = (field: 'username') => {
@@ -385,16 +389,6 @@ export default function SignUpScreen() {
         >
           <MaterialIcons name="g-translate" size={24} color={colors.primary} style={{ marginRight: 8 }} />
           <Text style={[styles.googleButtonText, { color: colors.onSurface }]}>Sign up with Google</Text>
-        </TouchableOpacity>
-
-        {/* Magic Link Button */}
-        <TouchableOpacity
-          style={[styles.googleButton, { backgroundColor: colors.surfaceContainerLow, borderColor: colors.outlineVariant }]}
-          onPress={handleMagicLink}
-          disabled={loading}
-        >
-          <MaterialIcons name="mark-email-unread" size={24} color={colors.primary} style={{ marginRight: 8 }} />
-          <Text style={[styles.googleButtonText, { color: colors.onSurface }]}>Send Magic Link</Text>
         </TouchableOpacity>
 
         {/* Sign in link */}

@@ -73,8 +73,21 @@ export function useUpdateProfile() {
       } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
+      const currentProfile = qc.getQueryData<ProfileWithStreak>(['profile']);
+      const finalUpdates: any = {};
+
+      // Only include display_name if it changed
+      if (updates.display_name !== undefined && updates.display_name !== currentProfile?.display_name) {
+        finalUpdates.display_name = updates.display_name;
+      }
+
+      // Only include avatar_url if it changed
+      if (updates.avatar_url !== undefined && updates.avatar_url !== currentProfile?.avatar_url) {
+        finalUpdates.avatar_url = updates.avatar_url;
+      }
+
       // If changing username: validate format + check availability before saving
-      if (updates.username !== undefined) {
+      if (updates.username !== undefined && updates.username !== currentProfile?.username) {
         const newUsername = updates.username.trim().toLowerCase();
         if (!validateUsernameFormat(newUsername)) {
           throw new Error('Invalid username format. Use letters, numbers and _ only (3–30 chars).');
@@ -85,11 +98,14 @@ export function useUpdateProfile() {
         );
         if (rpcError) throw rpcError;
         if (!available) throw new Error('Username is already taken. Please choose another.');
-        // Normalise before saving
-        updates = { ...updates, username: newUsername };
+        finalUpdates.username = newUsername;
       }
 
-      const { error } = await supabase.from('profiles').update(updates).eq('id', user.id);
+      if (Object.keys(finalUpdates).length === 0) {
+        return; // Nothing actually changed, do not run an empty update
+      }
+
+      const { error } = await supabase.from('profiles').update(finalUpdates).eq('id', user.id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['profile'] }),

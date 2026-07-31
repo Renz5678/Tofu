@@ -24,6 +24,8 @@ import { useReadingSessions } from '@/hooks/useReadingSessions';
 import { useLibrary } from '@/hooks/useLibrary';
 import { useUsernameCheck, getUsernameHint, type UsernameStatus } from '@/hooks/useUsernameCheck';
 import { useFollowCounts } from '@/hooks/useSocial';
+import * as ImagePicker from 'expo-image-picker';
+import { uploadToCloudinary } from '@/lib/uploadToCloudinary';
 
 const MENU_ITEMS = [
   { icon: 'favorite' as const, label: 'My Favorites', route: '/favorites' },
@@ -38,18 +40,23 @@ function EditProfileModal({
   visible,
   currentDisplayName,
   currentUsername,
+  currentAvatarUrl,
   onClose,
 }: {
   visible: boolean;
   currentDisplayName: string;
   currentUsername: string;
+  currentAvatarUrl: string | null;
   onClose: () => void;
 }) {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
+  const styles = createStyles(colors, isDark);
   const { mutateAsync: updateProfile, isPending } = useUpdateProfile();
 
   const [displayName, setDisplayName] = useState(currentDisplayName);
   const [username, setUsername] = useState(currentUsername);
+  const [avatarUri, setAvatarUri] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Real-time check — pass currentUsername so it reports 'available' for unchanged handle
   const { status: usernameStatus } = useUsernameCheck(username, currentUsername);
@@ -57,9 +64,11 @@ function EditProfileModal({
 
   const hasChanges =
     displayName.trim() !== currentDisplayName ||
-    username.trim().toLowerCase() !== currentUsername;
+    username.trim().toLowerCase() !== currentUsername ||
+    avatarUri !== null;
   const canSave =
     !isPending &&
+    !isUploading &&
     displayName.trim().length > 0 &&
     usernameStatus === 'available' &&
     hasChanges;
@@ -68,16 +77,39 @@ function EditProfileModal({
     setUsername(text.toLowerCase().replace(/[^a-z0-9_]/g, ''));
   }
 
+  async function handlePickImage() {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+    
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      setAvatarUri(result.assets[0].uri);
+    }
+  }
+
   async function handleSave() {
     if (!canSave) return;
     try {
+      setIsUploading(true);
+      let newAvatarUrl = currentAvatarUrl;
+      
+      if (avatarUri) {
+        newAvatarUrl = await uploadToCloudinary(avatarUri);
+      }
+      
       await updateProfile({
         display_name: displayName.trim(),
         username: username.trim().toLowerCase(),
+        avatar_url: newAvatarUrl,
       });
       onClose();
     } catch (e: any) {
       Alert.alert('Could not save', e?.message ?? 'Something went wrong.');
+    } finally {
+      setIsUploading(false);
     }
   }
 
@@ -110,12 +142,12 @@ function EditProfileModal({
       >
         {/* Header */}
         <View style={[modalStyles.header, { borderBottomColor: colors.outlineVariant }]}>
-          <TouchableOpacity onPress={onClose} hitSlop={12}>
+          <TouchableOpacity onPress={onClose} hitSlop={12} disabled={isUploading}>
             <Text style={[modalStyles.cancelText, { color: colors.onSurfaceVariant }]}>Cancel</Text>
           </TouchableOpacity>
           <Text style={[modalStyles.title, { color: colors.onSurface }]}>Edit Profile</Text>
           <TouchableOpacity onPress={handleSave} disabled={!canSave} hitSlop={12}>
-            {isPending ? (
+            {isPending || isUploading ? (
               <ActivityIndicator size={16} color={colors.primary} />
             ) : (
               <Text
@@ -134,6 +166,42 @@ function EditProfileModal({
         </View>
 
         <ScrollView contentContainerStyle={modalStyles.body} keyboardShouldPersistTaps="handled">
+          {/* Avatar Upload */}
+          <View style={{ alignItems: 'center', marginBottom: Spacing.stackSm }}>
+            <TouchableOpacity 
+              onPress={handlePickImage} 
+              activeOpacity={0.8}
+              style={[
+                styles.avatarLarge, 
+                { 
+                  width: 100, height: 100, borderRadius: 50,
+                  borderWidth: 0, // removed outer border for edit view
+                  backgroundColor: colors.surfaceContainerHigh 
+                }
+              ]}
+            >
+              {(avatarUri || currentAvatarUrl) ? (
+                <Image
+                  source={{ uri: avatarUri || currentAvatarUrl! }}
+                  style={StyleSheet.absoluteFillObject}
+                  contentFit="cover"
+                />
+              ) : (
+                <MaterialIcons name="person" size={48} color={colors.onSurfaceVariant} style={{ opacity: 0.5 }} />
+              )}
+              
+              <View style={{
+                position: 'absolute',
+                bottom: 0, left: 0, right: 0,
+                backgroundColor: 'rgba(0,0,0,0.5)',
+                paddingVertical: 4,
+                alignItems: 'center'
+              }}>
+                <Text style={{ ...Typography.styles.labelSm, color: '#fff', fontSize: 10 }}>EDIT</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+
           {/* Display Name */}
           <View style={modalStyles.fieldGroup}>
             <Text style={[modalStyles.label, { color: colors.primary }]}>DISPLAY NAME</Text>
@@ -418,6 +486,7 @@ export default function ProfileScreen() {
           visible={editVisible}
           currentDisplayName={profile.display_name ?? ''}
           currentUsername={profile.username}
+          currentAvatarUrl={profile.avatar_url ?? null}
           onClose={() => setEditVisible(false)}
         />
       )}

@@ -55,6 +55,7 @@ export default function DiscoverBookScreen() {
 
   const [isLogSheetOpen, setIsLogSheetOpen] = useState(false);
   const [isShareModalVisible, setIsShareModalVisible] = useState(false);
+  const [showPageModal, setShowPageModal] = useState(false);
   const shareViewRef = useRef<View>(null);
 
   const captureAndShare = async () => {
@@ -101,7 +102,7 @@ export default function DiscoverBookScreen() {
     );
   }
 
-  const [showPageModal, setShowPageModal] = useState(false);
+
 
   const handleAdd = async () => {
     if (isAdded) return;

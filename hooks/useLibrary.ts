@@ -14,6 +14,7 @@ export interface LibraryBook {
   book_id: string;
   status: BookStatus;
   current_page: number;
+  custom_total_pages: number | null;
   started_at: string | null;
   finished_at: string | null;
   added_at: string;
@@ -30,7 +31,7 @@ export interface LibraryBook {
 
 export type DatabaseBookRow = Omit<
   LibraryBook,
-  'id' | 'book_id' | 'status' | 'current_page' | 'started_at' | 'finished_at' | 'added_at'
+  'id' | 'book_id' | 'status' | 'current_page' | 'custom_total_pages' | 'started_at' | 'finished_at' | 'added_at'
 >;
 
 async function fetchLibrary(status?: BookStatus): Promise<LibraryBook[]> {
@@ -47,6 +48,7 @@ async function fetchLibrary(status?: BookStatus): Promise<LibraryBook[]> {
       book_id,
       status,
       current_page,
+      custom_total_pages,
       started_at,
       finished_at,
       added_at,
@@ -75,6 +77,7 @@ async function fetchLibrary(status?: BookStatus): Promise<LibraryBook[]> {
     book_id: string;
     status: BookStatus;
     current_page: number;
+    custom_total_pages: number | null;
     started_at: string | null;
     finished_at: string | null;
     added_at: string;
@@ -88,6 +91,7 @@ async function fetchLibrary(status?: BookStatus): Promise<LibraryBook[]> {
       book_id: r.book_id,
       status: r.status,
       current_page: r.current_page,
+      custom_total_pages: r.custom_total_pages,
       started_at: r.started_at,
       finished_at: r.finished_at,
       added_at: r.added_at,
@@ -170,13 +174,16 @@ export function useUpdateBook() {
       userBookId,
       currentPage,
       status,
+      customTotalPages,
     }: {
       userBookId: string;
       currentPage?: number;
       status?: BookStatus;
+      customTotalPages?: number | null;
     }) => {
       const updates: Record<string, unknown> = {};
       if (currentPage !== undefined) updates.current_page = currentPage;
+      if (customTotalPages !== undefined) updates.custom_total_pages = customTotalPages;
       if (status !== undefined) {
         updates.status = status;
         if (status === 'finished') updates.finished_at = new Date().toISOString();

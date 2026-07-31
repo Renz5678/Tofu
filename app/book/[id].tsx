@@ -31,6 +31,7 @@ import {
 import { ProgressBar } from '@/components/ProgressRing';
 import { LogBookSheet } from '@/components/LogBookSheet';
 import { AddToPlaylistSheet } from '@/components/AddToPlaylistSheet';
+import { PageCountModal } from '@/components/PageCountModal';
 
 export default function BookDetailScreen() {
   const { colors, isDark } = useTheme();
@@ -58,11 +59,13 @@ export default function BookDetailScreen() {
   const [isLogSheetOpen, setIsLogSheetOpen] = React.useState(false);
   const [isPlaylistSheetOpen, setIsPlaylistSheetOpen] = React.useState(false);
   const [isShareModalVisible, setIsShareModalVisible] = React.useState(false);
+  const [isPageModalVisible, setIsPageModalVisible] = React.useState(false);
   const shareViewRef = React.useRef<View>(null);
 
   if (!book) return null; // Or a loading/not-found state
 
-  const progress = readingProgress(book.current_page, book.total_pages || 1);
+  const effectiveTotalPages = book.custom_total_pages || book.total_pages || 1;
+  const progress = readingProgress(book.current_page, effectiveTotalPages);
 
   const handleStartReading = async () => {
     if (activeSession && activeSession.userBookId !== book.id) {
@@ -246,10 +249,10 @@ export default function BookDetailScreen() {
               <Text style={styles.progressStatLabel}>Current Page</Text>
             </View>
             <View style={styles.progressDivider} />
-            <View>
-              <Text style={styles.progressStat}>{book.total_pages}</Text>
+            <TouchableOpacity onPress={() => setIsPageModalVisible(true)} activeOpacity={0.7}>
+              <Text style={styles.progressStat}>{book.custom_total_pages || book.total_pages || '?'}</Text>
               <Text style={styles.progressStatLabel}>Total Pages</Text>
-            </View>
+            </TouchableOpacity>
             <View style={styles.progressDivider} />
             <View>
               <Text style={styles.progressStat}>{Math.round(progress * 100)}%</Text>
@@ -449,6 +452,22 @@ export default function BookDetailScreen() {
         visible={isPlaylistSheetOpen}
         bookId={book.book_id}
         onClose={() => setIsPlaylistSheetOpen(false)}
+      />
+
+      <PageCountModal
+        visible={isPageModalVisible}
+        bookTitle={book.title}
+        onCancel={() => setIsPageModalVisible(false)}
+        onSave={async (pages) => {
+          setIsPageModalVisible(false);
+          if (pages) {
+            try {
+              await updateBook({ userBookId: book.id, customTotalPages: pages });
+            } catch (e: any) {
+              Alert.alert('Error', e.message || 'Failed to update page count.');
+            }
+          }
+        }}
       />
 
       {/* Share Modal Preview */}

@@ -21,6 +21,7 @@ import { BookItem, fetchSynopsis } from '@/lib/openLibrary';
 import { useBookStats, useBookReviews, CommunityReview, useMyReview } from '@/hooks/useSocial';
 import { useLibrary, useAddBook } from '@/hooks/useLibrary';
 import { LogBookSheet } from '@/components/LogBookSheet';
+import { PageCountModal } from '@/components/PageCountModal';
 
 export default function DiscoverBookScreen() {
   const { id, bookData } = useLocalSearchParams<{ id: string; bookData: string }>();
@@ -100,10 +101,20 @@ export default function DiscoverBookScreen() {
     );
   }
 
+  const [showPageModal, setShowPageModal] = useState(false);
+
   const handleAdd = async () => {
     if (isAdded) return;
+    if (!book.total_pages || book.total_pages === 0) {
+      setShowPageModal(true);
+    } else {
+      await doAdd(book);
+    }
+  };
+
+  const doAdd = async (bookToSave: BookItem) => {
     try {
-      await addBook({ book });
+      await addBook({ book: bookToSave });
     } catch (e) {
       console.warn('Failed to add book', e);
     }
@@ -420,6 +431,17 @@ export default function DiscoverBookScreen() {
           </View>
         </View>
       </Modal>
+
+      <PageCountModal
+        visible={showPageModal}
+        bookTitle={book.title}
+        onCancel={() => setShowPageModal(false)}
+        onSave={(pages) => {
+          setShowPageModal(false);
+          const bookToSave = pages ? { ...book, total_pages: pages } : book;
+          doAdd(bookToSave);
+        }}
+      />
     </View>
   );
 }

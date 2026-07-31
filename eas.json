@@ -22,6 +22,11 @@
     "production": {
       "android": {
         "buildType": "app-bundle"
+      },
+      "env": {
+        "EXPO_PUBLIC_SUPABASE_URL": "https://klyvgpfuovgxqmbudyey.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_lGDF66_JztO58Ol0B7rB-Q_ri-tp7ek",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "790452676042-h7fh9qlou2o8rf82cdpahnrsnfs9sv5n.apps.googleusercontent.com"
       }
     }
   },

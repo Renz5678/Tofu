@@ -129,7 +129,12 @@ function StatsCard({
           {/* Book info */}
           <View style={styles.bookRow}>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.statBookTitle, { color: textColor }]} numberOfLines={2}>
+              <Text 
+                style={[styles.statBookTitle, { color: textColor }]} 
+                numberOfLines={2}
+                adjustsFontSizeToFit
+                minimumFontScale={0.5}
+              >
                 {title}
               </Text>
               <Text style={[styles.statAuthor, { color: textColor }]} numberOfLines={1}>
@@ -212,7 +217,7 @@ export default function SharePreviewScreen() {
       metrics = [
         { label: 'Duration', value: formatDuration(session.duration_seconds) },
         { label: 'Pages', value: `${session.pages_read}` },
-        { label: 'Pgs/hr', value: `${Number((session.pages_per_hour || 0).toFixed(2))}` },
+        { label: 'Pgs/hr', value: `${Math.round(session.pages_per_hour || 0)}` },
         { label: 'Streak', value: `${streak}` },
       ];
 

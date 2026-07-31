@@ -84,6 +84,11 @@ export function BookCard({
       <Text style={styles.author} numberOfLines={1}>
         {author}
       </Text>
+      {totalPages > 0 && (
+        <Text style={styles.pageNumber} numberOfLines={1}>
+          Page {currentPage} of {totalPages}
+        </Text>
+      )}
     </TouchableOpacity>
   );
 }
@@ -136,5 +141,11 @@ const createStyles = (colors: any, isDark: boolean) =>
       ...Typography.styles.labelSm,
       color: colors.onSurfaceVariant,
       opacity: 0.6,
+    },
+    pageNumber: {
+      ...Typography.styles.labelSm,
+      color: colors.onSurfaceVariant,
+      opacity: 0.8,
+      marginTop: 2,
     },
   });

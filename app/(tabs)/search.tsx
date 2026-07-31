@@ -24,6 +24,7 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { Profile, useBulkBookStats, BookStats } from '@/hooks/useSocial';
+import { PageCountModal } from '@/components/PageCountModal';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -321,11 +322,20 @@ function SearchResultCard({
   const { colors, isDark } = useTheme();
   const styles = createStyles(colors, isDark);
   const { mutateAsync: addBook, isPending } = useAddBook();
+  const [showPageModal, setShowPageModal] = useState(false);
 
   const handleAdd = async () => {
     if (isAdded) return;
+    if (!book.total_pages || book.total_pages === 0) {
+      setShowPageModal(true);
+    } else {
+      await doAdd(book);
+    }
+  };
+
+  const doAdd = async (bookToSave: BookItem) => {
     try {
-      await addBook({ book });
+      await addBook({ book: bookToSave });
     } catch (e) {
       console.warn('Failed to add book', e);
     }
@@ -464,6 +474,17 @@ function SearchResultCard({
           <MaterialIcons name="add" size={20} color={colors.onPrimary} />
         )}
       </TouchableOpacity>
+      
+      <PageCountModal
+        visible={showPageModal}
+        bookTitle={book.title}
+        onCancel={() => setShowPageModal(false)}
+        onSave={(pages) => {
+          setShowPageModal(false);
+          const bookToSave = pages ? { ...book, total_pages: pages } : book;
+          doAdd(bookToSave);
+        }}
+      />
     </TouchableOpacity>
   );
 }
